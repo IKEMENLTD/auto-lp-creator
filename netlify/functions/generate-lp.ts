@@ -449,7 +449,7 @@ function selectImages(d: FlatData): LpImage[] {
   const offset = Math.abs(hash) % photos.length;
 
   return [
-    { url: unsplashUrl(photos[offset % photos.length]!, 1200, 800), alt: `${d.company_name} ヒーロー画像` },
+    { url: unsplashUrl(photos[offset % photos.length]!, 1920, 1080), alt: `${d.company_name} ヒーロー画像` },
     { url: unsplashUrl(photos[(offset + 1) % photos.length]!, 800, 600), alt: `${d.service_name} サービス画像` },
     { url: unsplashUrl(photos[(offset + 2) % photos.length]!, 800, 600), alt: `${d.service_name} 特徴1` },
     { url: unsplashUrl(photos[(offset + 3) % photos.length]!, 800, 600), alt: `${d.service_name} 特徴2` },
@@ -526,39 +526,37 @@ img{max-width:100%;display:block}
 .hd-cta:hover{opacity:.85}
 @media(max-width:750px){.hd-nav a:not(.hd-cta){display:none}}
 
-/* HERO */
-.fv{position:relative;min-height:100vh;display:flex;align-items:center;overflow:hidden;padding-top:64px}
-.fv::before{content:'';position:absolute;inset:0;background:var(--cg);opacity:.06}
-.fv::after{content:'';position:absolute;top:-20%;right:-15%;width:700px;height:700px;border-radius:50%;background:var(--cg);opacity:.07;filter:blur(100px)}
-.fv-deco{position:absolute;bottom:15%;left:5%;width:180px;height:180px;border:2px solid var(--ca);opacity:.07;border-radius:50%;animation:float 8s ease-in-out infinite}
-@keyframes float{0%,100%{transform:translateY(0) rotate(0deg)}50%{transform:translateY(-20px) rotate(5deg)}}
-.fv .inner{position:relative;z-index:1;display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center;padding-top:60px;padding-bottom:100px}
-.fv-txt h1{font-size:clamp(28px,4.5vw,44px);font-weight:900;line-height:1.25;letter-spacing:-.02em;margin-bottom:16px}
-.fv-txt h1 em{font-style:normal;color:var(--c);position:relative}
-.fv-txt h1 em::after{content:'';position:absolute;bottom:2px;left:0;right:0;height:3px;background:var(--ca);opacity:.5}
-.fv-sub{font-size:clamp(15px,1.8vw,17px);color:var(--t2);margin-bottom:28px;line-height:1.9}
-.fv-features{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:32px}
-.fv-features span{display:inline-flex;align-items:center;gap:6px;padding:7px 16px;background:var(--c);color:#fff;font-size:12px;font-weight:700;letter-spacing:.03em;border-radius:var(--r)}
-.fv-features span::before{content:'';width:4px;height:4px;background:#fff;border-radius:50%}
-.fv-cta-wrap{display:flex;flex-direction:column;align-items:flex-start;gap:8px}
-.fv-cta{display:inline-flex;align-items:center;gap:8px;padding:16px 40px;background:var(--dark);color:#fff;font-weight:800;font-size:15px;border-radius:var(--r);transition:transform .2s,box-shadow .2s}
-.fv-cta:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.15)}
-.fv-micro{font-size:12px;color:var(--t3);display:flex;align-items:center;gap:12px}
+/* HERO - fullscreen bg image */
+.fv{position:relative;min-height:100vh;display:flex;align-items:center;overflow:hidden;padding-top:64px;background-size:cover;background-position:center;background-repeat:no-repeat}
+.fv-overlay{position:absolute;inset:0;background:linear-gradient(135deg,rgba(15,23,42,.88) 0%,rgba(15,23,42,.72) 50%,rgba(15,23,42,.55) 100%);z-index:0}
+.fv .inner{position:relative;z-index:1;max-width:800px;text-align:center;padding-top:80px;padding-bottom:120px}
+.fv-txt h1{font-size:clamp(30px,5vw,52px);font-weight:900;line-height:1.2;letter-spacing:-.02em;margin-bottom:18px;color:#fff}
+.fv-txt h1 em{font-style:normal;color:var(--ca);position:relative}
+.fv-txt h1 em::after{content:'';position:absolute;bottom:2px;left:0;right:0;height:3px;background:var(--ca);opacity:.6}
+.fv-sub{font-size:clamp(15px,1.8vw,18px);color:rgba(255,255,255,.75);margin-bottom:32px;line-height:1.9}
+.fv-badge{display:inline-block;padding:6px 18px;border:1px solid rgba(255,255,255,.25);border-radius:20px;font-size:12px;font-weight:700;letter-spacing:.15em;color:var(--ca);text-transform:uppercase;margin-bottom:20px}
+.fv-features{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:36px;justify-content:center}
+.fv-features span{display:inline-flex;align-items:center;gap:6px;padding:8px 18px;background:rgba(255,255,255,.12);backdrop-filter:blur(4px);color:#fff;font-size:13px;font-weight:700;letter-spacing:.03em;border-radius:var(--r);border:1px solid rgba(255,255,255,.1)}
+.fv-features span::before{content:'';width:5px;height:5px;background:var(--ca);border-radius:50%}
+.fv-cta-wrap{display:flex;flex-direction:column;align-items:center;gap:10px}
+.fv-cta{display:inline-flex;align-items:center;gap:8px;padding:18px 48px;background:#fff;color:var(--dark);font-weight:800;font-size:16px;border-radius:var(--r);transition:transform .2s,box-shadow .2s}
+.fv-cta:hover{transform:translateY(-3px);box-shadow:0 12px 32px rgba(0,0,0,.25)}
+.fv-micro{font-size:12px;color:rgba(255,255,255,.5);display:flex;align-items:center;gap:14px}
 .fv-micro span{display:flex;align-items:center;gap:4px}
 .fv-micro svg{width:14px;height:14px;stroke:var(--ca);fill:none;stroke-width:2}
-.fv-visual{position:relative;aspect-ratio:1;display:flex;align-items:center;justify-content:center}
-.fv-visual::before{content:'';position:absolute;inset:10%;background:var(--cg);opacity:.08;border-radius:24px;transform:rotate(-3deg)}
-.fv-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:0;position:absolute;bottom:0;left:0;right:0;background:rgba(255,255,255,.92);backdrop-filter:blur(10px);border-top:1px solid var(--bd);z-index:2}
-.fv-stat{padding:22px 16px;text-align:center;border-right:1px solid var(--bd)}
+.fv-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:0;position:absolute;bottom:0;left:0;right:0;background:rgba(255,255,255,.95);backdrop-filter:blur(10px);z-index:2}
+.fv-stat{padding:24px 16px;text-align:center;border-right:1px solid var(--bd)}
 .fv-stat:last-child{border-right:none}
-.fv-stat-num{font-family:'Inter',sans-serif;font-size:clamp(22px,3vw,36px);font-weight:900;background:var(--cg);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1.1;font-variant-numeric:tabular-nums}
-.fv-stat-label{font-size:11px;color:var(--t3);margin-top:4px;letter-spacing:.05em}
+.fv-stat-num{font-family:'Inter',sans-serif;font-size:clamp(24px,3.5vw,40px);font-weight:900;background:var(--cg);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1.1;font-variant-numeric:tabular-nums}
+.fv-stat-label{font-size:12px;color:var(--t2);margin-top:4px;letter-spacing:.05em;font-weight:600}
+/* DIAGONAL / WAVE DIVIDERS */
+.dvd{position:relative;height:80px;margin-top:-1px;z-index:3;overflow:hidden}
+.dvd svg{width:100%;height:100%;display:block}
+.dvd-flip{transform:scaleX(-1)}
 @media(max-width:750px){
-.fv .inner{grid-template-columns:1fr;text-align:center;padding-top:40px}
-.fv-visual{display:none}
-.fv-features{justify-content:center}
-.fv-cta-wrap{align-items:center}
+.fv .inner{padding-top:48px;padding-bottom:100px}
 .fv-stats{grid-template-columns:repeat(2,1fr)}
+.dvd{height:48px}
 }
 
 /* SECTION COMMON */
@@ -614,8 +612,8 @@ img{max-width:100%;display:block}
 /* 画像あり時 */
 .feature-visual.has-img{background:none;border:none;padding:0}
 .feature-visual.has-img::before{display:none}
+.feature-visual.has-img::after{display:none}
 .feature-visual.has-img img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0;border-radius:var(--r)}
-.hero-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:16px;opacity:.18}
 .about-img{width:100%;height:100%;object-fit:cover;border-radius:var(--r);position:absolute;inset:0}
 @media(max-width:750px){.feature-item,.feature-item:nth-child(even){grid-template-columns:1fr;direction:ltr}.feature-visual{aspect-ratio:16/9}}
 
@@ -727,12 +725,12 @@ details[open] .faq-q::after{transform:rotate(45deg)}
 </nav>
 </div></header>
 
-<!-- HERO -->
-<section class="fv">
-<div class="fv-deco"></div>
+<!-- HERO (fullscreen image bg) -->
+<section class="fv"${hasImg && images[0] ? ` style="background-image:url('${esc(images[0].url.replace(/w=\d+/, "w=1600").replace(/h=\d+/, "h=1000"))}')"` : ""}>
+<div class="fv-overlay"></div>
 <div class="inner">
 <div class="fv-txt">
-<p style="font-size:12px;font-weight:700;letter-spacing:.2em;color:var(--c);text-transform:uppercase;margin-bottom:12px">${esc(c.badge_text || d.industry)}</p>
+<div class="fv-badge">${esc(c.badge_text || d.industry)}</div>
 <h1>${esc(c.hero_headline)}</h1>
 <p class="fv-sub">${esc(c.hero_sub)}</p>
 <div class="fv-features">
@@ -743,17 +741,14 @@ ${hf.map(ft => `<span>${esc(ft)}</span>`).join("")}
 <p class="fv-micro"><span><svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>無料</span><span><svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>30秒で完了</span><span><svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>営業電話なし</span></p>
 </div>
 </div>
-<div class="fv-visual pc">
-${hasImg && images[0] ? `<img class="hero-img" src="${esc(images[0].url)}" alt="${esc(images[0].alt)}" loading="eager">` : ""}
-<div class="about-visual-inner" style="display:flex;flex-direction:column;gap:16px;align-items:center;position:relative;z-index:1">
-${s.slice(0, 3).map(st => `<div style="text-align:center"><div style="font-family:'Inter',sans-serif;font-size:clamp(32px,4vw,48px);font-weight:900;background:var(--cg);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1.2">${esc(st.number)}</div><div style="font-size:12px;color:var(--t3);font-weight:600;letter-spacing:.05em">${esc(st.label)}</div></div>`).join("")}
-</div>
-</div>
 </div>
 <div class="fv-stats">
 ${s.map(st => `<div class="fv-stat"><div class="fv-stat-num">${esc(st.number)}</div><div class="fv-stat-label">${esc(st.label)}</div></div>`).join("")}
 </div>
 </section>
+
+<!-- DIVIDER: hero → about (diagonal) -->
+<div class="dvd" style="background:var(--bg2)"><svg viewBox="0 0 1200 80" preserveAspectRatio="none"><polygon points="0,0 1200,80 0,80" fill="var(--bg2)"/><polygon points="0,0 1200,0 1200,80" fill="var(--dark)"/></svg></div>
 
 <!-- ABOUT -->
 <section class="sec about" id="about">
@@ -769,13 +764,16 @@ ${p.map(item => `<div class="about-problem">
 </div>`).join("")}
 </div>
 </div>
-<div class="about-visual pc" style="position:relative;min-height:280px">
-${hasImg && images[1] ? `<img class="about-img" src="${esc(images[1].url)}" alt="${esc(images[1].alt)}" loading="lazy">` : `<div class="about-visual-inner"><div class="big-num" style="font-size:64px">${esc(d.service_name.charAt(0) || "S")}</div><div class="label" style="margin-top:-10px">${esc(d.service_name)}</div></div>`}
+<div class="about-visual" style="position:relative;min-height:320px;border-radius:var(--r);overflow:hidden">
+${hasImg && images[1] ? `<img class="about-img" src="${esc(images[1].url)}" alt="${esc(images[1].alt)}" loading="lazy" style="opacity:1">` : `<div class="about-visual-inner"><div class="big-num" style="font-size:64px">${esc(d.service_name.charAt(0) || "S")}</div><div class="label" style="margin-top:-10px">${esc(d.service_name)}</div></div>`}
 </div>
 </div>
 <div class="about-transition fi">${esc(c.transition_text || `${d.service_name}なら、すべて解決します`)}</div>
 </div>
 </section>
+
+<!-- DIVIDER: about → features (wave) -->
+<div class="dvd" style="background:var(--bg)"><svg viewBox="0 0 1200 80" preserveAspectRatio="none"><path d="M0,0 C300,80 900,0 1200,80 L1200,0 L0,0 Z" fill="var(--bg2)"/></svg></div>
 
 <!-- FEATURES -->
 <section class="sec dot-bg" id="features">
@@ -797,6 +795,9 @@ ${s[i + 1] ? `<div class="fv-stat-big">${esc(s[i + 1]?.number || "")}</div><div 
 </div>
 </section>
 
+<!-- DIVIDER: features → cta (diagonal) -->
+<div class="dvd" style="background:var(--dark)"><svg viewBox="0 0 1200 80" preserveAspectRatio="none"><polygon points="0,80 1200,0 1200,80" fill="var(--dark)"/><polygon points="0,0 1200,0 0,80" fill="var(--bg)"/></svg></div>
+
 <!-- MID CTA 1 (OFFER) -->
 <section class="offer">
 <div class="inner">
@@ -807,6 +808,9 @@ ${c.urgency_text ? `<div class="offer-urgency"><svg viewBox="0 0 24 24"><path st
 <p class="offer-micro">30秒で完了 / 無料 / 営業電話なし</p>
 </div>
 </section>
+
+<!-- DIVIDER: cta → testimonials (wave) -->
+<div class="dvd" style="background:var(--bg)"><svg viewBox="0 0 1200 80" preserveAspectRatio="none"><path d="M0,80 C400,0 800,80 1200,0 L1200,80 L0,80 Z" fill="var(--bg)"/><path d="M0,0 C400,0 800,80 1200,0 L1200,80 C800,80 400,0 0,80 Z" fill="var(--dark)"/></svg></div>
 
 <!-- TESTIMONIALS -->
 ${tm.length > 0 ? `<section class="sec" id="voice">
@@ -848,6 +852,9 @@ ${m.map((item, i) => `<div class="merit-card fi">
 <a href="#contact" class="fv-cta">${esc(c.cta_text)} <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/></svg></a>
 </div>
 </section>
+
+<!-- DIVIDER: cta2 → comparison (diagonal) -->
+<div class="dvd" style="background:var(--bg)"><svg viewBox="0 0 1200 80" preserveAspectRatio="none"><polygon points="0,0 1200,80 0,80" fill="var(--bg)"/><polygon points="0,0 1200,0 1200,80" fill="var(--dark)"/></svg></div>
 
 <!-- COMPARISON -->
 ${cmp.length > 0 ? `<section class="sec">
@@ -899,6 +906,9 @@ ${c.company_profile ? `<section class="sec" style="background:var(--bg2)">
 </div>
 </div>
 </section>` : ""}
+
+<!-- DIVIDER: → final cta (diagonal) -->
+<div class="dvd" style="background:var(--dark)"><svg viewBox="0 0 1200 80" preserveAspectRatio="none"><polygon points="0,80 1200,0 1200,80" fill="var(--dark)"/><polygon points="0,0 1200,0 0,80" fill="var(--bg2)"/></svg></div>
 
 <!-- CTA -->
 <section class="cta-sec" id="contact">
