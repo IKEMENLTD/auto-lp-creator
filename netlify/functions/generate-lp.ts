@@ -506,6 +506,44 @@ function getDecoColors(industry: string): { primary: string; gradient: string; a
 }
 
 // ============================================================
+// 人名バリデーション（Whisper誤認識対策）
+// ============================================================
+
+/**
+ * Whisperの音声認識は人名を頻繁に誤認識する（例: 「荒木明治」→「荒木明治奈良樹」）。
+ * key_personsリストと照合し、最も近い名前を返す。
+ * 照合できない場合は長さチェックで明らかな異常を除去。
+ */
+function sanitizePersonName(name: string | undefined, keyPersons: string[]): string {
+  if (!name || name.trim().length === 0) return "";
+
+  const trimmed = name.trim();
+
+  // key_personsに完全一致があればそのまま
+  if (keyPersons.some(kp => kp.includes(trimmed) || trimmed.includes(kp))) {
+    // key_personsの中で、trimmedに含まれる最長の名前を採用
+    const match = keyPersons
+      .filter(kp => trimmed.includes(kp))
+      .sort((a, b) => b.length - a.length)[0];
+    if (match) return match;
+  }
+
+  // 日本語名は通常2〜6文字（姓1-3 + 名1-3）。7文字以上は誤認識の可能性大
+  if (trimmed.length > 6) {
+    // key_personsから部分一致を試みる
+    for (const kp of keyPersons) {
+      if (trimmed.startsWith(kp) || kp.startsWith(trimmed.slice(0, 4))) {
+        return kp;
+      }
+    }
+    // 救済不可：最初の4文字を信頼（姓2+名2が最も一般的）
+    return trimmed.slice(0, 4);
+  }
+
+  return trimmed;
+}
+
+// ============================================================
 // LP Step 3: Build HTML (高品質テンプレート)
 // ============================================================
 
@@ -521,7 +559,7 @@ function buildLpHtml(c: LpContent, d: FlatData, images: LpImage[] = []): string 
   const hf = c.hero_features || [];
   const colors = getDecoColors(d.industry);
   const hasImg = images.length > 0;
-  const pName = c.person_name || d.company_name;
+  const pName = sanitizePersonName(c.person_name, d.key_persons) || d.company_name;
   const pTitle = c.person_title || d.industry;
 
   const ico = [
@@ -757,8 +795,8 @@ ${microHtml}
 </div>
 </section>
 
-<!-- WAVE: CTA1(accent) → comparison(white) -->
-<div class="dvd"><svg viewBox="0 0 1200 72" preserveAspectRatio="none"><rect width="1200" height="72" fill="var(--bg)"/><path d="M0,0 C200,50 500,72 750,35 C1000,0 1150,40 1200,20 L1200,0 L0,0 Z" fill="var(--c)"/></svg></div>
+<!-- CTA1(accent) → comparison(white): straight line -->
+<div style="height:0;border-top:1px solid var(--bd)"></div>
 
 <!-- COMPARISON (COMPARISON component) -->
 ${cmp.length > 0 ? `<section class="sec">
