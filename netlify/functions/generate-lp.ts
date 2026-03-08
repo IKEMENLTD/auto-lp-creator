@@ -14,7 +14,7 @@
 import type { Config } from "@netlify/functions";
 import { getStore } from "@netlify/blobs";
 import Anthropic from "@anthropic-ai/sdk";
-import { SCROLL_ANIM, SEC_HEADER, WAVE_DIVIDER, DOT_BG, TESTIMONIAL_CARD, COMPARISON, FLOW, FAQ } from "./templates/lp-components";
+import { SCROLL_ANIM, SEC_HEADER, WAVE_DIVIDER, DOT_BG, CARD_BORDERED, CARD_STAT, BTN_PRIMARY, MICRO_COPY, STRENGTH_CARD, TESTIMONIAL_CARD, CARD_GRID, STATS_GRID, FLOW, FAQ } from "./templates/lp-components";
 
 // ============================================================
 // 型定義
@@ -34,27 +34,39 @@ interface FlatData {
 }
 
 interface LpContent {
+  // Profile
+  profile_name: string;
+  profile_title: string;
+  // Hero
   hero_headline: string;
   hero_sub: string;
   hero_features: string[];
   badge_text: string;
+  // About
   about_title: string;
   about_text: string;
-  problems: { title: string; desc: string }[];
-  transition_text: string;
-  benefits: { title: string; desc: string }[];
+  strengths: { title: string; desc: string }[];
+  // Expertise
+  expertise: { title: string; desc: string }[];
+  // Merits
   merits: { title: string; desc: string }[];
+  // CTA
   cta_text: string;
   cta_sub: string;
+  guarantee_text: string;
+  urgency_text: string;
+  // Data
   stats: { number: string; label: string }[];
   flow: { title: string; desc: string }[];
-  comparison: { feature: string; us: string; other: string }[];
   faq: { q: string; a: string }[];
-  about: string;
-  guarantee_text: string;
   testimonials: { name: string; role: string; text: string; result: string }[];
   company_profile: string;
-  urgency_text: string;
+  // Legacy compat
+  problems?: { title: string; desc: string }[];
+  benefits?: { title: string; desc: string }[];
+  comparison?: { feature: string; us: string; other: string }[];
+  about?: string;
+  transition_text?: string;
 }
 
 interface AdContent {
@@ -258,33 +270,33 @@ ${extra}`;
 // LP Step 1: Draft (設計+コピー生成)
 // ============================================================
 
-const LP_DRAFT_PROMPT = `商談情報からLP用コピーをJSON形式で生成。数字で語れ。形容詞禁止。
+const LP_DRAFT_PROMPT = `商談情報から「サービス提供者のプロフィールページ」用コンテンツをJSON生成。
+この人に仕事を依頼したくなるプロフィールページ。数字で語れ。形容詞禁止。
 
 出力JSON（全フィールド必須）:
 {
-  "hero_headline": "25字以内。数字+固有名詞必須",
-  "hero_sub": "50字以内",
-  "hero_features": ["数字入り12字×3"],
-  "badge_text": "12字以内",
-  "about_title": "20字以内",
-  "about_text": "100字以内",
-  "problems": [{"title":"15字","desc":"50字"}],
-  "transition_text": "20字以内",
-  "benefits": [{"title":"20字","desc":"数字+結果で80字"}],
-  "merits": [{"title":"20字","desc":"導入後の変化80字"}],
-  "cta_text": "8字以内",
+  "profile_name": "氏名（商談から推定）",
+  "profile_title": "肩書き（例: 補助金採択コンサルタント）",
+  "hero_headline": "25字以内。この人を一言で。数字必須",
+  "hero_sub": "50字以内。何をしている人か",
+  "hero_features": ["実績12字×3（数字入り）"],
+  "badge_text": "12字以内。専門分野",
+  "about_title": "自己紹介タイトル20字",
+  "about_text": "人柄が伝わる自己紹介120字。経歴+実績+想い",
+  "strengths": [{"title":"強み15字","desc":"具体的に数字入り50字"}],
+  "expertise": [{"title":"サービス名20字","desc":"内容+成果を数字で80字"}],
+  "merits": [{"title":"選ばれる理由20字","desc":"数字で裏付け80字"}],
+  "cta_text": "8字以内（例:「話を聞いてみる」）",
   "cta_sub": "20字以内",
   "stats": [{"number":"92%","label":"採択率"}],
-  "flow": [{"title":"10字","desc":"40字"}],
-  "comparison": [{"feature":"比較項目","us":"数字で自社","other":"一般的"}],
-  "faq": [{"q":"質問","a":"50字"}],
-  "about": "会社紹介100字",
-  "guarantee_text": "安心保証30字",
-  "testimonials": [{"name":"実名","role":"業種 役職","text":"数字入り体験談60字","result":"定量的成果20字"}],
-  "company_profile": "設立年・実績数80字",
-  "urgency_text": "数字入り20字以内"
+  "flow": [{"title":"ステップ10字","desc":"説明40字"}],
+  "faq": [{"q":"質問","a":"回答50字"}],
+  "guarantee_text": "安心ポイント30字",
+  "testimonials": [{"name":"実名","role":"業種 役職","text":"この人に頼んだ感想60字","result":"定量成果20字"}],
+  "company_profile": "会社概要80字",
+  "urgency_text": "数字入り限定感20字"
 }
-problems3,benefits3,merits3,stats4,flow4,comparison4,faq4,testimonials3。JSONのみ出力。`;
+strengths3,expertise3,merits3,stats4,flow4,faq4,testimonials3。JSONのみ出力。`;
 
 async function lpDraft(d: FlatData, transcript: string, apiKey: string, rawData?: Record<string, unknown>): Promise<LpContent> {
   return callClaudeJson<LpContent>(LP_DRAFT_PROMPT, bizContext(d, transcript, rawData), apiKey, 4000, LP_MODEL);
@@ -294,34 +306,35 @@ async function lpDraft(d: FlatData, transcript: string, apiKey: string, rawData?
 // LP Step 2: Evaluate + Revise (品質評価+修正)
 // ============================================================
 
-const LP_EVALUATE_PROMPT = `あなたはCVR12%超のLP専門コピーライター。入力JSONを"売れるLP"に書き換えてください。
+const LP_EVALUATE_PROMPT = `あなたはプロフィールページ専門のコピーライター。入力JSONを"この人に頼みたい"と思わせるプロフィールに書き換えてください。
 
-【字数制限（厳守・超過は全て短縮）】
-- hero_headline: 25字以内。数字+固有名詞必須。型:「○○が△△を□□した方法」「たった○○で△△%改善」
-- hero_sub: 50字以内。headlineの具体的な補足
-- hero_features: 各12字以内、3つ。各項目に数字を1つ含める
-- badge_text: 12字以内。業種×実績（例:「製造業DX実績No.1」）
-- transition_text: 20字以内。課題→解決の橋渡し
-- urgency_text: 20字以内。必ず数字入り（例:「3月の無料枠：残り3社」「先着10社限定」）
-- cta_text: 8字以内（例:「無料で相談する」「資料をもらう」）
-- cta_sub: 20字以内
+【字数制限（厳守）】
+- profile_name: 実名。商談から推定できなければ「担当者」
+- profile_title: 20字以内。専門性が伝わる肩書き
+- hero_headline: 25字以内。数字必須。型:「○○件の実績を持つ△△専門家」
+- hero_sub: 50字以内。具体的な仕事内容
+- hero_features: 各12字以内×3。各項目に異なる数字
+- badge_text: 12字以内
+- about_text: 120字以内。経歴→実績→信念の流れ
+- urgency_text: 20字以内。数字入り
+- cta_text: 8字以内
 
 【品質ルール】
-1. 形容詞禁止。「豊富な」→「年間200件の」、「高品質な」→「顧客満足度98%の」
-2. 主語を具体化。「多くの企業」→「従業員50名以上の製造業」
-3. benefits/features: 3つそれぞれに異なる具体的数字を入れる。同じ表現の繰り返し禁止
-4. problems: ターゲットが「あるある」と思う日常的な課題。抽象的な経営課題NG
-5. testimonials: 必ず3件。各testimonialに異なる業種名+改善数字。resultは「売上○%UP」「コスト○万円削減」のように定量的
-6. comparison: usは具体的数字、otherは「一般的には…」で対比
-7. stats: 4つすべて異なるカテゴリの数字（例: 実績数、満足度、削減率、対応速度）
-8. faq: 「料金」「期間」「他社との違い」「サポート」の4種を必ずカバー
+1. 形容詞禁止。「豊富な」→「年間200件の」
+2. 人物像を具体化。「専門家」→「補助金採択率92%のコンサルタント」
+3. strengths: 3つそれぞれに異なる数字。この人ならではの強み
+4. expertise: 3サービスそれぞれに具体的な成果数字
+5. testimonials: 3件。異なる業種+改善数字。resultは定量的
+6. stats: 4つ異なるカテゴリ（実績数、満足度、経験年数、対応速度等）
+7. faq: 「料金」「期間」「進め方」「相性」をカバー
+8. merits: この人に頼む理由。他の人との違いを数字で
 
 【絶対NG】
-- 「お客様に寄り添う」「丁寧なサポート」等の抽象フレーズ
+- 「寄り添う」「丁寧」「真心」等の抽象語
 - 同じ数字の使い回し
-- フィールドの省略・空配列
+- フィールド省略・空配列
 
-入力と同じJSON構造で出力。JSON以外のテキスト不要。`;
+入力と同じJSON構造で出力。JSON以外不要。`;
 
 async function lpEvaluate(draft: LpContent, d: FlatData, apiKey: string): Promise<LpContent> {
   const input = `【対象企業】${d.company_name}（${d.service_name}）
@@ -470,17 +483,19 @@ function getDecoColors(industry: string): { primary: string; gradient: string; a
 // ============================================================
 
 function buildLpHtml(c: LpContent, d: FlatData, images: LpImage[] = []): string {
-  const p = c.problems || [];
-  const b = c.benefits || [];
-  const m = c.merits?.length ? c.merits : (c.benefits?.length ? c.benefits : []);
+  // Compat: legacy field mapping
+  const str = c.strengths?.length ? c.strengths : (c.problems || []);
+  const exp = c.expertise?.length ? c.expertise : (c.benefits || []);
+  const m = c.merits || [];
   const s = c.stats || [];
   const f = c.flow || [];
-  const cmp = c.comparison || [];
   const faq = c.faq || [];
   const hf = c.hero_features || [];
   const tm = c.testimonials || [];
   const colors = getDecoColors(d.industry);
   const hasImg = images.length > 0;
+  const pName = c.profile_name || d.company_name;
+  const pTitle = c.profile_title || d.industry;
 
   const ico = [
     `<svg width="40" height="40" viewBox="0 0 40 40" fill="none"><rect width="40" height="40" rx="8" fill="var(--c)" opacity=".12"/><path d="M14 20l4 4 8-10" stroke="var(--c)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
@@ -489,11 +504,14 @@ function buildLpHtml(c: LpContent, d: FlatData, images: LpImage[] = []): string 
   ];
 
   const starSvg = `<svg width="18" height="18" viewBox="0 0 20 20" fill="#f59e0b"><path d="M10 1l2.39 4.84L18 6.71l-4 3.9.94 5.5L10 13.38 5.06 16.1 6 10.6l-4-3.9 5.61-.87L10 1z"/></svg>`;
+  const checkSvg = `<svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`;
+  const clockSvg = `<svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`;
+  const microHtml = `<p class="micro micro-light"><span>${checkSvg}無料</span><span>${clockSvg}30秒で完了</span><span>${checkSvg}営業電話なし</span></p>`;
 
   const cRgb = `${parseInt(colors.primary.slice(1,3),16)},${parseInt(colors.primary.slice(3,5),16)},${parseInt(colors.primary.slice(5,7),16)}`;
 
   return `<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>${esc(c.hero_headline || d.service_name)} | ${esc(d.company_name)}</title>
+<title>${esc(pName)} - ${esc(pTitle)} | ${esc(d.company_name)}</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
@@ -503,286 +521,147 @@ body{font-family:'Noto Sans JP','Inter',sans-serif;color:var(--t1);background:va
 a{text-decoration:none;color:inherit}
 img{max-width:100%;display:block}
 .inner{max-width:1100px;margin:0 auto;padding:0 24px}
-.sp{display:none}
-@media(max-width:750px){.sp{display:block}.pc{display:none}}
 
-/* SCROLL ANIMATION (component) */
+/* ===== COMPONENTS ===== */
 ${SCROLL_ANIM}
+${SEC_HEADER}
+${WAVE_DIVIDER}
+${DOT_BG}
+${CARD_BORDERED}
+${CARD_STAT}
+${BTN_PRIMARY}
+${MICRO_COPY}
+${STRENGTH_CARD}
+${TESTIMONIAL_CARD}
+${CARD_GRID}
+${STATS_GRID}
+${FLOW}
+${FAQ}
 
-/* HEADER */
+/* ===== HEADER ===== */
 .hd{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(255,255,255,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--bd);height:64px;display:flex;align-items:center}
 .hd .inner{display:flex;align-items:center;justify-content:space-between;width:100%}
 .hd-logo{font-weight:800;font-size:18px;color:var(--c);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:50%}
 .hd-nav{display:flex;gap:24px;align-items:center;flex-shrink:0}
 .hd-nav a{font-size:13px;color:var(--t2);font-weight:500;transition:color .2s;white-space:nowrap}
 .hd-nav a:hover{color:var(--c)}
-.hd-cta{padding:8px 20px;background:var(--c);color:#fff!important;font-size:13px;font-weight:700;border-radius:var(--r);transition:opacity .2s}
-.hd-cta:hover{opacity:.85}
 
-/* HERO - fullscreen bg image */
+/* ===== HERO ===== */
 .fv{position:relative;min-height:100svh;display:flex;align-items:center;overflow:hidden;padding-top:64px;background-size:cover;background-position:center;background-repeat:no-repeat}
 .fv-overlay{position:absolute;inset:0;background:linear-gradient(135deg,rgba(15,23,42,.88) 0%,rgba(15,23,42,.72) 50%,rgba(15,23,42,.55) 100%);z-index:0}
 .fv .inner{position:relative;z-index:1;max-width:800px;text-align:center;padding-top:80px;padding-bottom:120px}
-.fv-txt h1{font-size:clamp(30px,5vw,52px);font-weight:900;line-height:1.2;letter-spacing:-.02em;margin-bottom:18px;color:#fff}
-.fv-txt h1 em{font-style:normal;color:var(--ca);position:relative}
-.fv-txt h1 em::after{content:'';position:absolute;bottom:2px;left:0;right:0;height:3px;background:var(--ca);opacity:.6}
-.fv-sub{font-size:clamp(15px,1.8vw,18px);color:rgba(255,255,255,.75);margin-bottom:32px;line-height:1.9}
 .fv-badge{display:inline-block;padding:6px 18px;border:1px solid rgba(255,255,255,.25);border-radius:20px;font-size:12px;font-weight:700;letter-spacing:.15em;color:var(--ca);text-transform:uppercase;margin-bottom:20px}
+.fv-name{font-size:clamp(32px,5.5vw,56px);font-weight:900;line-height:1.1;color:#fff;margin-bottom:6px}
+.fv-role{font-size:clamp(14px,1.6vw,16px);color:var(--ca);font-weight:700;margin-bottom:16px;letter-spacing:.05em}
+.fv-headline{font-size:clamp(16px,2vw,20px);color:rgba(255,255,255,.8);margin-bottom:28px;line-height:1.7}
 .fv-features{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:36px;justify-content:center}
 .fv-features span{display:inline-flex;align-items:center;gap:6px;padding:8px 18px;background:rgba(255,255,255,.12);backdrop-filter:blur(4px);color:#fff;font-size:13px;font-weight:700;letter-spacing:.03em;border-radius:var(--r);border:1px solid rgba(255,255,255,.1)}
 .fv-features span::before{content:'';width:5px;height:5px;background:var(--ca);border-radius:50%}
-.fv-cta-wrap{display:flex;flex-direction:column;align-items:center;gap:10px}
-.fv-cta{display:inline-flex;align-items:center;gap:8px;padding:18px 48px;background:#fff;color:var(--dark);font-weight:800;font-size:16px;border-radius:var(--r);transition:transform .2s,box-shadow .2s}
-.fv-cta:hover{transform:translateY(-3px);box-shadow:0 12px 32px rgba(0,0,0,.25)}
-.fv-micro{font-size:12px;color:rgba(255,255,255,.5);display:flex;align-items:center;gap:14px}
-.fv-micro span{display:flex;align-items:center;gap:4px}
-.fv-micro svg{width:14px;height:14px;stroke:var(--ca);fill:none;stroke-width:2}
 .fv-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:0;position:absolute;bottom:0;left:0;right:0;background:rgba(255,255,255,.95);backdrop-filter:blur(10px);z-index:2}
 .fv-stat{padding:24px 16px;text-align:center;border-right:1px solid var(--bd)}
 .fv-stat:last-child{border-right:none}
-.fv-stat-num{font-family:'Inter',sans-serif;font-size:clamp(24px,3.5vw,40px);font-weight:900;background:var(--cg);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1.1;font-variant-numeric:tabular-nums}
+.fv-stat-num{font-family:'Inter',sans-serif;font-size:clamp(24px,3.5vw,40px);font-weight:900;background:var(--cg);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1.1}
 .fv-stat-label{font-size:12px;color:var(--t2);margin-top:4px;letter-spacing:.05em;font-weight:600}
-/* WAVE DIVIDERS (component) */
-${WAVE_DIVIDER}
 
-/* SECTION COMMON (component) */
-${SEC_HEADER}
-
-/* DOT DECORATION (component) */
-${DOT_BG}
-
-/* ABOUT */
+/* ===== ABOUT ===== */
 .about{background:var(--bg2)}
 .about-grid{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center}
 .about-txt{font-size:15px;color:var(--t2);line-height:2;margin-bottom:24px}
-.about-problems{display:flex;flex-direction:column;gap:12px}
-.about-problem{display:flex;align-items:center;gap:14px;padding:16px 20px;background:var(--bg);border:1px solid var(--bd);border-left:3px solid #ef4444;border-radius:var(--r);transition:border-color .2s,box-shadow .2s}
-.about-problem:hover{box-shadow:0 4px 12px rgba(0,0,0,.05)}
-.about-problem-icon{flex-shrink:0;width:36px;height:36px;display:flex;align-items:center;justify-content:center;background:rgba(239,68,68,.08);border-radius:8px}
-.about-problem-icon svg{width:18px;height:18px;color:#ef4444}
-.about-problem p{font-size:14px;font-weight:600}
+.about-strengths{display:flex;flex-direction:column;gap:10px}
 .about-visual{position:relative;display:flex;align-items:center;justify-content:center;min-height:320px;border-radius:var(--r);overflow:hidden}
-.about-visual::before{content:'';position:absolute;inset:0;background:var(--cg);opacity:.06;border-radius:16px;z-index:0}
-.about-visual-inner{position:relative;padding:40px;text-align:center}
-.about-visual-inner .big-num{font-family:'Inter',sans-serif;font-size:80px;font-weight:900;color:var(--c);opacity:.15;line-height:1}
-.about-visual-inner .label{font-size:14px;font-weight:700;color:var(--t1);margin-top:-20px;position:relative}
-.about-transition{text-align:center;margin-top:48px;font-size:clamp(16px,2.5vw,20px);font-weight:800;color:var(--c);padding:20px 24px;border:2px solid var(--ca);border-radius:var(--r);background:rgba(var(--c-rgb),.04)}
-
-/* FEATURES */
-.features-list{display:flex;flex-direction:column;gap:56px}
-.feature-item{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center}
-.feature-item:nth-child(even){direction:rtl}
-.feature-item:nth-child(even)>*{direction:ltr}
-.feature-num{font-family:'Inter',sans-serif;font-size:13px;font-weight:800;color:var(--c);letter-spacing:.15em;margin-bottom:12px}
-.feature-h3{font-size:clamp(18px,2.5vw,22px);font-weight:800;margin-bottom:10px}
-.feature-desc{font-size:15px;color:var(--t2);line-height:1.9}
-.feature-visual{position:relative;aspect-ratio:4/3;overflow:hidden;border-radius:var(--r);display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--bg2);border:1px solid var(--bd)}
-.feature-visual::before{content:'';position:absolute;inset:0;background:var(--cg);opacity:.04}
-.feature-visual::after{content:attr(data-num);position:absolute;bottom:12px;right:16px;font-family:'Inter',sans-serif;font-size:100px;font-weight:900;color:var(--c);opacity:.06;line-height:1}
-.feature-visual .fv-ico{position:relative;z-index:1;margin-bottom:12px}
-.feature-visual .fv-stat-big{font-family:'Inter',sans-serif;font-size:clamp(36px,5vw,56px);font-weight:900;background:var(--cg);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1.1;position:relative;z-index:1}
-.feature-visual .fv-stat-sub{font-size:13px;color:var(--t3);margin-top:4px;position:relative;z-index:1;font-weight:600}
-/* 画像あり時 */
-.feature-visual.has-img{background:var(--bg2);border:1px solid var(--bd)}
-.feature-visual.has-img::before{display:none}
-.feature-visual.has-img::after{display:none}
-.feature-visual.has-img img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0;border-radius:var(--r)}
+.about-visual::before{content:'';position:absolute;inset:0;background:var(--cg);opacity:.06;border-radius:16px}
+.about-avatar{position:relative;z-index:1;width:160px;height:160px;border-radius:50%;background:var(--cg);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:64px;box-shadow:0 12px 40px rgba(var(--c-rgb),.2)}
 .about-img{width:100%;height:100%;object-fit:cover;border-radius:var(--r);position:absolute;inset:0;z-index:1}
 
-/* TESTIMONIALS (component) */
-${TESTIMONIAL_CARD}
-
-/* MID CTA (OFFER) */
+/* ===== OFFER / CTA ===== */
 .offer{padding:56px 0;background:var(--dark);color:#fff;text-align:center;position:relative;overflow:hidden}
 .offer::before{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:600px;height:400px;background:radial-gradient(circle,rgba(255,255,255,.04),transparent 70%)}
 .offer-accent{background:var(--c);padding:72px 0}
 .offer-tit{font-size:clamp(18px,3vw,24px);font-weight:800;margin-bottom:8px;position:relative}
 .offer-sub{font-size:14px;color:rgba(255,255,255,.55);margin-bottom:20px;position:relative}
-.offer-urgency{display:inline-flex;align-items:center;gap:8px;padding:6px 16px;border:1px solid rgba(255,255,255,.15);border-radius:20px;font-size:12px;color:var(--ca);margin-bottom:20px;position:relative}
+.offer-urgency{display:inline-flex;align-items:center;gap:8px;padding:6px 16px;border:1px solid rgba(255,255,255,.2);border-radius:20px;font-size:12px;color:#fff;font-weight:700;margin-bottom:20px;position:relative}
 .offer-urgency svg{width:14px;height:14px;fill:none;stroke:var(--ca);stroke-width:2}
-.offer .fv-cta{display:inline-flex;align-items:center;gap:8px;padding:18px 48px;font-weight:800;font-size:16px;border-radius:var(--r);transition:transform .2s,box-shadow .2s;text-decoration:none;border:none;cursor:pointer}
-.offer .fv-cta:hover{transform:translateY(-2px);box-shadow:0 12px 32px rgba(0,0,0,.2)}
-.offer-micro{font-size:12px;color:rgba(255,255,255,.4);margin-top:14px;position:relative}
 
-/* MERIT */
-.merit-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
-.merit-card{position:relative;padding:32px 24px;border:1px solid var(--bd);border-radius:var(--r);overflow:hidden;transition:border-color .3s,box-shadow .3s,transform .3s}
-.merit-card:hover{border-color:var(--c);box-shadow:0 12px 32px rgba(0,0,0,.06);transform:translateY(-4px)}
-.merit-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--cg)}
-.merit-ico{color:var(--c);margin-bottom:16px}
-.merit-h3{font-size:16px;font-weight:800;margin-bottom:8px}
-.merit-desc{font-size:14px;color:var(--t2);line-height:1.9}
-
-/* COMPARISON (component) */
-${COMPARISON}
-
-/* FLOW (component) */
-${FLOW}
-
-/* FAQ (component) */
-${FAQ}
-
-/* COMPANY */
+/* ===== COMPANY ===== */
 .company-box{max-width:720px;margin:0 auto;padding:32px;border:1px solid var(--bd);border-radius:var(--r);display:flex;align-items:center;gap:24px}
 .company-logo{flex-shrink:0;width:64px;height:64px;border-radius:var(--r);background:var(--cg);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:24px}
 .company-info p{font-size:14px;color:var(--t2);line-height:1.8}
 .company-info strong{color:var(--t1);font-size:16px;display:block;margin-bottom:4px}
 
-/* CTA */
+/* ===== FINAL CTA ===== */
 .cta-sec{padding:100px 24px;background:var(--dark);text-align:center;position:relative;overflow:hidden}
 .cta-sec::before{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:700px;height:500px;background:radial-gradient(circle,rgba(255,255,255,.04),transparent 70%)}
 .cta-tit{font-size:clamp(22px,3.5vw,30px);font-weight:900;color:#fff;margin-bottom:10px;position:relative}
-.cta-sub{font-size:14px;color:rgba(255,255,255,.5);margin-bottom:12px;position:relative}
-.cta-urgency{display:inline-flex;align-items:center;gap:8px;padding:8px 20px;border:1px solid rgba(255,255,255,.12);border-radius:20px;font-size:13px;color:var(--ca);margin-bottom:24px;position:relative}
-.cta-urgency svg{width:14px;height:14px;fill:none;stroke:var(--ca);stroke-width:2}
-.cta-btn{display:inline-flex;align-items:center;gap:8px;padding:18px 48px;background:#fff;color:var(--dark);font-weight:800;font-size:15px;border-radius:var(--r);transition:transform .2s,box-shadow .2s;position:relative}
-.cta-btn:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(255,255,255,.12)}
-.cta-micro{font-size:13px;color:rgba(255,255,255,.45);margin-top:14px;position:relative;display:flex;justify-content:center;gap:16px}
-.cta-micro span{display:flex;align-items:center;gap:4px}
-.cta-micro svg{width:14px;height:14px;fill:none;stroke:rgba(255,255,255,.5);stroke-width:2}
-.cta-g{font-size:13px;color:rgba(255,255,255,.55);margin-top:20px;position:relative;padding:10px 24px;border:1px solid rgba(255,255,255,.1);border-radius:var(--r);display:inline-block}
+.cta-sub{font-size:14px;color:rgba(255,255,255,.5);margin-bottom:24px;position:relative}
 
-/* FOOTER */
+/* ===== FOOTER ===== */
 .ft{padding:28px;text-align:center;border-top:1px solid var(--bd);font-size:12px;color:var(--t3)}
 
-/* MOBILE CTA BAR */
+/* ===== MOBILE CTA BAR ===== */
 .m-cta{display:none;position:fixed;bottom:0;left:0;right:0;padding:10px 16px;background:rgba(255,255,255,.95);backdrop-filter:blur(12px);border-top:1px solid var(--bd);z-index:100}
 .m-cta a{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;padding:14px;background:var(--c);color:#fff;font-weight:800;font-size:14px;border-radius:var(--r)}
 .m-cta-sub{font-size:10px;color:var(--t3);text-align:center;margin-top:4px}
 
 /* ============================== */
-/* RESPONSIVE 750px (TABLET)      */
+/* RESPONSIVE 750px               */
 /* ============================== */
 @media(max-width:750px){
-/* Header */
-.hd{height:56px}
-.hd-logo{font-size:15px;max-width:60%}
-.hd-nav{gap:0}
-.hd-nav a:not(.hd-cta){display:none}
-.hd-cta{padding:7px 16px;font-size:12px}
-/* Hero */
-.fv{min-height:auto;padding-top:56px}
-.fv .inner{padding-top:48px;padding-bottom:100px;max-width:100%}
-.fv-badge{font-size:11px;padding:5px 14px;letter-spacing:.1em}
-.fv-txt h1{font-size:clamp(22px,6.5vw,34px);margin-bottom:14px}
-.fv-sub{font-size:14px;margin-bottom:24px;line-height:1.8}
-.fv-features{gap:6px;margin-bottom:28px}
-.fv-features span{padding:6px 12px;font-size:11px}
-.fv-cta{padding:14px 32px;font-size:14px}
-.fv-micro{flex-wrap:wrap;justify-content:center;gap:8px;font-size:11px}
-.fv-stats{grid-template-columns:repeat(2,1fr);position:relative}
-.fv-stat{padding:16px 12px}
-.fv-stat-num{font-size:clamp(20px,5vw,28px)}
-.fv-stat-label{font-size:10px}
-/* About */
-.about-grid{grid-template-columns:1fr;gap:24px}
-.about-visual{order:-1;min-height:220px!important}
-.about-txt{font-size:14px;line-height:1.9}
-.about-problems{gap:8px}
-.about-problem{padding:12px 14px;gap:10px}
-.about-problem p{font-size:13px}
-.about-problem-icon{width:32px;height:32px}
-.about-problem-icon svg{width:16px;height:16px}
-.about-transition{font-size:16px;padding:16px 18px}
-/* Features */
-.features-list{gap:36px}
-.feature-item,.feature-item:nth-child(even){grid-template-columns:1fr;direction:ltr;gap:20px}
-.feature-visual{aspect-ratio:16/9}
-.feature-num{font-size:12px;margin-bottom:8px}
-.feature-h3{font-size:17px}
-.feature-desc{font-size:14px}
-/* Offer / CTA sections */
-.offer{padding:48px 0}
-.offer-accent{padding:56px 0}
-.offer-tit{font-size:clamp(16px,4.5vw,22px)}
-.offer .fv-cta{padding:14px 28px;font-size:14px}
-/* Merit */
-.merit-grid{grid-template-columns:1fr}
-.merit-card{padding:24px 20px}
-.merit-h3{font-size:15px}
-.merit-desc{font-size:13px}
-/* Flow */
-.flow-item{gap:14px;padding:14px 0}
-.flow-num{width:44px;height:44px;font-size:16px}
-.flow-h3{font-size:14px}
-.flow-desc{font-size:13px}
-.flow-list::before{left:22px}
-/* Company */
+.hd{height:56px}.hd-logo{font-size:15px;max-width:60%}.hd-nav{gap:0}.hd-nav a:not(.btn){display:none}
+.fv{min-height:auto;padding-top:56px}.fv .inner{padding-top:48px;padding-bottom:100px;max-width:100%}
+.fv-name{font-size:clamp(26px,7vw,36px)}.fv-role{font-size:13px}.fv-headline{font-size:14px;margin-bottom:20px}
+.fv-badge{font-size:11px;padding:5px 14px}.fv-features{gap:6px;margin-bottom:24px}
+.fv-features span{padding:6px 12px;font-size:11px}.fv-stats{grid-template-columns:repeat(2,1fr);position:relative}
+.fv-stat{padding:16px 12px}.fv-stat-num{font-size:clamp(20px,5vw,28px)}.fv-stat-label{font-size:10px}
+.about-grid{grid-template-columns:1fr;gap:24px}.about-visual{order:-1;min-height:200px!important}
+.about-avatar{width:120px;height:120px;font-size:48px}.about-txt{font-size:14px}
+.offer{padding:48px 0}.offer-accent{padding:56px 0}.offer-tit{font-size:clamp(16px,4.5vw,22px)}
 .company-box{flex-direction:column;text-align:center;padding:24px;gap:16px}
-.company-logo{width:52px;height:52px;font-size:20px}
-.company-info strong{font-size:15px}
-.company-info p{font-size:13px}
-/* Final CTA */
-.cta-sec{padding:64px 20px}
-.cta-tit{font-size:clamp(18px,5vw,24px)}
-.cta-sub{font-size:13px}
-.cta-btn{padding:14px 28px;font-size:14px}
-.cta-micro{flex-wrap:wrap;gap:8px;font-size:11px}
-.cta-g{font-size:11px;padding:8px 16px}
-/* Footer */
-.ft{padding:20px 16px;font-size:11px}
-/* Mobile CTA bar */
-.m-cta{display:block}
-body{padding-bottom:72px}
+.company-logo{width:52px;height:52px;font-size:20px}.company-info strong{font-size:15px}.company-info p{font-size:13px}
+.cta-sec{padding:64px 20px}.cta-tit{font-size:clamp(18px,5vw,24px)}
+.ft{padding:20px 16px;font-size:11px}.m-cta{display:block}body{padding-bottom:72px}
+.btn-lg{padding:14px 32px;font-size:14px}
+.flow-item{gap:14px;padding:14px 0}.flow-num{width:44px;height:44px;font-size:16px}
+.flow-list::before{left:22px}.flow-h3{font-size:14px}.flow-desc{font-size:13px}
 }
-
-/* ============================== */
-/* RESPONSIVE 480px (SMALL PHONE) */
-/* ============================== */
 @media(max-width:480px){
-.inner{padding:0 16px}
-.hd-logo{font-size:14px}
-.fv-txt h1{font-size:22px;letter-spacing:-.01em}
-.fv-sub{font-size:13px}
-.fv-features{gap:4px}
-.fv-features span{padding:5px 8px;font-size:10px}
-.fv-cta{padding:12px 24px;font-size:13px}
-.fv-stats{grid-template-columns:1fr 1fr}
-.fv-stat{padding:12px 8px}
-.fv-stat-num{font-size:20px}
-.about-problem{flex-direction:row;gap:8px}
-.about-problem-icon{width:28px;height:28px;min-width:28px}
-.about-transition{font-size:14px;padding:12px 14px}
-.feature-h3{font-size:16px}
-.offer-urgency{font-size:11px;padding:5px 12px}
-.offer-tit{font-size:16px}
-.offer .fv-cta{padding:12px 24px;font-size:13px}
-.merit-card{padding:20px 16px}
-.flow-num{width:36px;height:36px;font-size:14px}
-.flow-list::before{left:18px}
-.cta-tit{font-size:18px}
-.cta-btn{padding:12px 24px;font-size:13px}
-.m-cta a{padding:12px;font-size:13px}
+.inner{padding:0 16px}.hd-logo{font-size:14px}
+.fv-name{font-size:24px}.fv-features span{padding:5px 8px;font-size:10px}
+.fv-stats{grid-template-columns:1fr 1fr}.fv-stat{padding:12px 8px}.fv-stat-num{font-size:20px}
+.about-avatar{width:100px;height:100px;font-size:36px}
+.btn-lg{padding:12px 24px;font-size:13px}.btn-md{padding:10px 20px;font-size:12px}
+.offer-urgency{font-size:11px}.offer-tit{font-size:16px}
+.flow-num{width:36px;height:36px;font-size:14px}.flow-list::before{left:18px}
+.cta-tit{font-size:18px}.m-cta a{padding:12px;font-size:13px}
 }
 </style>
 </head><body>
 
 <!-- HEADER -->
 <header class="hd"><div class="inner">
-<p class="hd-logo">${esc(d.service_name || d.company_name)}</p>
+<p class="hd-logo">${esc(pName)}</p>
 <nav class="hd-nav">
 <a href="#about">About</a>
-<a href="#features">Features</a>
+<a href="#expertise">Expertise</a>
 <a href="#voice">Voice</a>
-<a href="#merit">Merit</a>
-<a href="#contact" class="hd-cta">${esc(c.cta_text)}</a>
+<a href="#contact" class="btn btn-md btn-accent">${esc(c.cta_text)}</a>
 </nav>
 </div></header>
 
-<!-- HERO (fullscreen image bg) -->
+<!-- HERO -->
 <section class="fv"${hasImg && images[0] ? ` style="background-image:url('${esc(images[0].url.replace(/w=\d+/, "w=1600").replace(/h=\d+/, "h=1000"))}')"` : ""}>
 <div class="fv-overlay"></div>
 <div class="inner">
 <div class="fv-txt">
 <div class="fv-badge">${esc(c.badge_text || d.industry)}</div>
-<h1>${esc(c.hero_headline)}</h1>
-<p class="fv-sub">${esc(c.hero_sub)}</p>
+<h1 class="fv-name">${esc(pName)}</h1>
+<p class="fv-role">${esc(pTitle)} / ${esc(d.company_name)}</p>
+<p class="fv-headline">${esc(c.hero_headline)}</p>
 <div class="fv-features">
 ${hf.map(ft => `<span>${esc(ft)}</span>`).join("")}
 </div>
-<div class="fv-cta-wrap">
-<a href="#contact" class="fv-cta">${esc(c.cta_text)} <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/></svg></a>
-<p class="fv-micro"><span><svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>無料</span><span><svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>30秒で完了</span><span><svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>営業電話なし</span></p>
+<div style="display:flex;flex-direction:column;align-items:center;gap:10px">
+<a href="#contact" class="btn btn-lg btn-white">${esc(c.cta_text)} <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/></svg></a>
+${microHtml}
 </div>
 </div>
 </div>
@@ -794,69 +673,68 @@ ${s.map(st => `<div class="fv-stat"><div class="fv-stat-num">${esc(st.number)}</
 <!-- ABOUT -->
 <section class="sec about" id="about">
 <div class="inner">
-<div class="sec-hd"><p class="sec-bg-txt">About</p><p class="sec-eng">About</p><h2 class="sec-tit fi">${esc(c.about_title || `${d.service_name}とは？`)}</h2></div>
+<div class="sec-hd"><p class="sec-bg-txt">About</p><p class="sec-eng">About</p><h2 class="sec-tit fi">${esc(c.about_title || `${pName}について`)}</h2></div>
 <div class="about-grid fi">
 <div>
-<p class="about-txt">${esc(c.about_text || c.about)}</p>
-<div class="about-problems">
-${p.map(item => `<div class="about-problem">
-<div class="about-problem-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"/></svg></div>
-<p>${esc(item.title)}<br/><span style="font-weight:400;font-size:13px;color:var(--t2)">${esc(item.desc)}</span></p>
+<p class="about-txt">${esc(c.about_text || c.about || "")}</p>
+<div class="about-strengths">
+${str.map(item => `<div class="str">
+<div class="str-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div>
+<p>${esc(item.title)}<br/><span>${esc(item.desc)}</span></p>
 </div>`).join("")}
 </div>
 </div>
 <div class="about-visual">
-${hasImg && images[1] ? `<img class="about-img" src="${esc(images[1].url)}" alt="${esc(images[1].alt)}" loading="lazy" onerror="this.style.display='none'">` : `<div class="about-visual-inner"><div class="big-num" style="font-size:64px">${esc(d.service_name.charAt(0) || "S")}</div><div class="label" style="margin-top:-10px">${esc(d.service_name)}</div></div>`}
+${hasImg && images[1] ? `<img class="about-img" src="${esc(images[1].url)}" alt="${esc(pName)}" loading="lazy" onerror="this.style.display='none'">` : `<div class="about-avatar">${esc(pName.charAt(0))}</div>`}
 </div>
 </div>
-<div class="about-transition fi">${esc(c.transition_text || `${d.service_name}なら、すべて解決します`)}</div>
 </div>
 </section>
 
-<!-- DIVIDER: about → features (wave, gray→white) -->
+<!-- DIVIDER: about → expertise -->
 <div class="dvd"><svg viewBox="0 0 1200 72" preserveAspectRatio="none"><rect width="1200" height="72" fill="var(--bg)"/><path d="M0,0 C300,55 600,70 800,40 C1000,10 1150,45 1200,25 L1200,0 L0,0 Z" fill="var(--bg2)"/></svg></div>
 
-<!-- FEATURES -->
-<section class="sec dot-bg" id="features">
+<!-- EXPERTISE (CARD_BORDERED + CARD_STAT) -->
+<section class="sec dot-bg" id="expertise">
 <div class="inner">
-<div class="sec-hd"><p class="sec-bg-txt">Features</p><p class="sec-eng">Features</p><h2 class="sec-tit fi">${esc(d.service_name)}が選ばれる理由</h2></div>
-<div class="features-list">
-${b.map((item, i) => `<div class="feature-item fi">
-<div>
-<p class="feature-num">FEATURE ${String(i + 1).padStart(2, "0")}</p>
-<h3 class="feature-h3">${esc(item.title)}</h3>
-<p class="feature-desc">${esc(item.desc)}</p>
-</div>
-<div class="feature-visual${hasImg && images[i + 2] ? " has-img" : ""}" data-num="${String(i + 1).padStart(2, "0")}">
-${hasImg && images[i + 2] ? `<img src="${esc(images[i + 2]!.url)}" alt="${esc(images[i + 2]!.alt)}" loading="lazy" onerror="this.parentElement.classList.remove('has-img');this.remove()">` : `${ico[i] || ico[0]}
-${s[i + 1] ? `<div class="fv-stat-big">${esc(s[i + 1]?.number || "")}</div><div class="fv-stat-sub">${esc(s[i + 1]?.label || "")}</div>` : `<div class="fv-stat-big">${String(i + 1).padStart(2, "0")}</div>`}`}
-</div>
+<div class="sec-hd"><p class="sec-bg-txt">Expertise</p><p class="sec-eng">Expertise</p><h2 class="sec-tit fi">${esc(pName)}の専門領域</h2></div>
+<div class="card-grid">
+${exp.map((item, i) => `<div class="card card-accent fi">
+<div class="card-ico">${ico[i] || ico[0]}</div>
+<h3>${esc(item.title)}</h3>
+<p>${esc(item.desc)}</p>
 </div>`).join("")}
 </div>
+${s.length > 0 ? `<div class="stats-grid">
+${s.map(st => `<div class="card stat-card fi">
+<div class="stat-num">${esc(st.number)}</div>
+<div class="stat-label">${esc(st.label)}</div>
+</div>`).join("")}
+</div>` : ""}
 </div>
 </section>
 
-<!-- DIVIDER: features → cta1 (wave, white→accent) -->
+<!-- DIVIDER: expertise → cta1 -->
 <div class="dvd"><svg viewBox="0 0 1200 72" preserveAspectRatio="none"><rect width="1200" height="72" fill="var(--c)"/><path d="M0,0 C250,65 550,20 750,55 C950,72 1100,30 1200,45 L1200,0 L0,0 Z" fill="var(--bg)"/></svg></div>
 
-<!-- MID CTA 1 (OFFER - primary accent solid) -->
+<!-- CTA 1 (accent) -->
 <section class="offer offer-accent">
 <div class="inner" style="position:relative;z-index:1">
-${c.urgency_text ? `<div class="offer-urgency" style="border-color:rgba(255,255,255,.3);color:#fff;font-weight:700"><svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>${esc(c.urgency_text)}</div>` : ""}
+${c.urgency_text ? `<div class="offer-urgency">${clockSvg}${esc(c.urgency_text)}</div>` : ""}
 <p class="offer-tit">${esc(c.cta_sub || "まずはお気軽にご相談ください")}</p>
-<p class="offer-sub" style="color:rgba(255,255,255,.7)">${esc(c.guarantee_text || "無料相談・しつこい営業は一切ありません")}</p>
-<a href="#contact" class="fv-cta" style="background:#fff;color:var(--dark)">${esc(c.cta_text)} <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/></svg></a>
-<p class="offer-micro" style="color:rgba(255,255,255,.55)">30秒で完了 / 無料 / 営業電話なし</p>
+<p class="offer-sub" style="color:rgba(255,255,255,.7)">${esc(c.guarantee_text || "無料相談・営業電話なし")}</p>
+<a href="#contact" class="btn btn-lg btn-white">${esc(c.cta_text)} <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/></svg></a>
+${microHtml}
 </div>
 </section>
 
-<!-- DIVIDER: cta1 → testimonials (wave, accent→white) -->
+<!-- DIVIDER: cta1 → voice -->
 <div class="dvd"><svg viewBox="0 0 1200 72" preserveAspectRatio="none"><rect width="1200" height="72" fill="var(--bg)"/><path d="M0,0 C200,50 500,72 750,35 C1000,0 1150,40 1200,20 L1200,0 L0,0 Z" fill="var(--c)"/></svg></div>
 
-<!-- TESTIMONIALS -->
+<!-- TESTIMONIALS (TESTIMONIAL_CARD component) -->
 ${tm.length > 0 ? `<section class="sec" id="voice">
 <div class="inner">
-<div class="sec-hd"><p class="sec-bg-txt">Voice</p><p class="sec-eng">Voice</p><h2 class="sec-tit fi">お客様の声</h2></div>
+<div class="sec-hd"><p class="sec-bg-txt">Voice</p><p class="sec-eng">Client Voice</p><h2 class="sec-tit fi">${esc(pName)}に依頼した方の声</h2></div>
 <div class="tm-grid">
 ${tm.map(t => `<div class="tm-card fi">
 <div class="tm-stars">${starSvg}${starSvg}${starSvg}${starSvg}${starSvg}</div>
@@ -871,56 +749,40 @@ ${tm.map(t => `<div class="tm-card fi">
 </div>
 </section>` : ""}
 
-<!-- MERIT -->
-<section class="sec dot-bg" id="merit" style="background:var(--bg2)">
+<!-- WHY CHOOSE ME (CARD_BORDERED highlight) -->
+<section class="sec dot-bg" style="background:var(--bg2)">
 <div class="inner">
-<div class="sec-hd"><p class="sec-bg-txt">Merit</p><p class="sec-eng">Merit</p><h2 class="sec-tit fi">導入メリット</h2></div>
-<div class="merit-grid">
-${m.map((item, i) => `<div class="merit-card fi">
-<div class="merit-ico">${ico[i] || ico[0]}</div>
-<h3 class="merit-h3">${esc(item.title)}</h3>
-<p class="merit-desc">${esc(item.desc)}</p>
+<div class="sec-hd"><p class="sec-bg-txt">Merit</p><p class="sec-eng">Why Choose Me</p><h2 class="sec-tit fi">${esc(pName)}が選ばれる理由</h2></div>
+<div class="card-grid">
+${m.map((item, i) => `<div class="card card-highlight fi">
+<div class="card-ico">${ico[i] || ico[0]}</div>
+<h3>${esc(item.title)}</h3>
+<p>${esc(item.desc)}</p>
 </div>`).join("")}
 </div>
 </div>
 </section>
 
-<!-- DIVIDER: merit → cta2 (wave, gray→dark) -->
+<!-- DIVIDER: merit → cta2 -->
 <div class="dvd"><svg viewBox="0 0 1200 72" preserveAspectRatio="none"><rect width="1200" height="72" fill="var(--dark)"/><path d="M0,0 C300,55 600,70 800,40 C1000,10 1150,45 1200,25 L1200,0 L0,0 Z" fill="var(--bg2)"/></svg></div>
 
-<!-- MID CTA 2 -->
+<!-- CTA 2 (dark) -->
 <section class="offer">
-<div class="inner">
+<div class="inner" style="position:relative;z-index:1">
 <p class="offer-tit">${esc(c.cta_text)}</p>
-<p class="offer-sub">${esc(c.cta_sub || "まずはお気軽にご相談ください")}</p>
-<a href="#contact" class="fv-cta">${esc(c.cta_text)} <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/></svg></a>
+<p class="offer-sub">${esc(c.cta_sub || "まずはお話を聞かせてください")}</p>
+<a href="#contact" class="btn btn-lg btn-white">${esc(c.cta_text)} <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/></svg></a>
+${microHtml}
 </div>
 </section>
 
-<!-- DIVIDER: cta2 → comparison (wave, dark→white) -->
-<div class="dvd"><svg viewBox="0 0 1200 72" preserveAspectRatio="none"><rect width="1200" height="72" fill="var(--bg)"/><path d="M0,0 C250,60 550,25 750,55 C950,72 1100,30 1200,45 L1200,0 L0,0 Z" fill="var(--dark)"/></svg></div>
-
-<!-- COMPARISON -->
-${cmp.length > 0 ? `<section class="sec">
-<div class="inner">
-<div class="sec-hd"><p class="sec-bg-txt">Compare</p><p class="sec-eng">Comparison</p><h2 class="sec-tit fi">他社との違い</h2></div>
-<div class="cmp-grid fi">
-<div class="cmp-card cmp-us">
-<p class="cmp-title">${esc(d.company_name)}</p>
-${cmp.map(r => `<div class="cmp-row"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--c)" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg><span><strong>${esc(r.feature)}</strong>: ${esc(r.us)}</span></div>`).join("")}
-</div>
-<div class="cmp-card cmp-muted">
-<p class="cmp-title">一般的な企業</p>
-${cmp.map(r => `<div class="cmp-row"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg><span><strong>${esc(r.feature)}</strong>: ${esc(r.other)}</span></div>`).join("")}
-</div>
-</div>
-</div>
-</section>` : ""}
+<!-- DIVIDER: cta2 → flow -->
+<div class="dvd"><svg viewBox="0 0 1200 72" preserveAspectRatio="none"><rect width="1200" height="72" fill="var(--bg2)"/><path d="M0,0 C250,60 550,25 750,55 C950,72 1100,30 1200,45 L1200,0 L0,0 Z" fill="var(--dark)"/></svg></div>
 
 <!-- FLOW -->
 <section class="sec" style="background:var(--bg2)">
 <div class="inner">
-<div class="sec-hd"><p class="sec-bg-txt">Flow</p><p class="sec-eng">Flow</p><h2 class="sec-tit fi">ご利用の流れ</h2></div>
+<div class="sec-hd"><p class="sec-bg-txt">Flow</p><p class="sec-eng">Flow</p><h2 class="sec-tit fi">ご依頼の流れ</h2></div>
 <div class="flow-list fi" style="max-width:640px;margin:0 auto">
 ${f.map((item, i) => `<div class="flow-item">
 <div class="flow-num">${i + 1}</div>
@@ -930,7 +792,7 @@ ${f.map((item, i) => `<div class="flow-item">
 </div>
 </section>
 
-<!-- FAQ -->
+<!-- FAQ (FAQ component) -->
 ${faq.length > 0 ? `<section class="sec">
 <div class="inner" style="max-width:720px">
 <div class="sec-hd"><p class="sec-bg-txt">FAQ</p><p class="sec-eng">FAQ</p><h2 class="sec-tit fi">よくある質問</h2></div>
@@ -943,7 +805,7 @@ ${faq.map(item => `<details class="faq-item"><summary class="faq-q">${esc(item.q
 <!-- COMPANY -->
 ${c.company_profile ? `<section class="sec" style="background:var(--bg2)">
 <div class="inner">
-<div class="sec-hd"><p class="sec-eng">Company</p><h2 class="sec-tit fi">会社概要</h2></div>
+<div class="sec-hd"><p class="sec-eng">Company</p><h2 class="sec-tit fi">所属企業</h2></div>
 <div class="company-box fi">
 <div class="company-logo">${esc(d.company_name.charAt(0))}</div>
 <div class="company-info"><strong>${esc(d.company_name)}</strong><p>${esc(c.company_profile)}</p></div>
@@ -951,17 +813,17 @@ ${c.company_profile ? `<section class="sec" style="background:var(--bg2)">
 </div>
 </section>` : ""}
 
-<!-- DIVIDER: → final cta (wave, gray→dark) -->
+<!-- DIVIDER: → final cta -->
 <div class="dvd"><svg viewBox="0 0 1200 72" preserveAspectRatio="none"><rect width="1200" height="72" fill="var(--dark)"/><path d="M0,0 C200,60 500,72 700,45 C900,18 1100,50 1200,30 L1200,0 L0,0 Z" fill="var(--bg2)"/></svg></div>
 
-<!-- CTA -->
+<!-- FINAL CTA -->
 <section class="cta-sec" id="contact">
-<div class="cta-tit">${esc(c.cta_text)}</div>
-<div class="cta-sub">${esc(c.cta_sub)}</div>
-${c.urgency_text ? `<div class="cta-urgency"><svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>${esc(c.urgency_text)}</div><br>` : ""}
-<a href="#contact" class="cta-btn">${esc(c.cta_text)} <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/></svg></a>
-<div class="cta-micro"><span><svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>無料</span><span><svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>30秒で完了</span><span><svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>営業電話なし</span></div>
-<p class="cta-g">${esc(c.guarantee_text || "無料相談・しつこい営業は一切ありません")}</p>
+<div class="cta-tit">${esc(pName)}に相談する</div>
+<div class="cta-sub">${esc(c.cta_sub || "")}</div>
+${c.urgency_text ? `<p style="display:inline-flex;align-items:center;gap:8px;padding:8px 20px;border:1px solid rgba(255,255,255,.12);border-radius:20px;font-size:13px;color:var(--ca);margin-bottom:24px;position:relative">${clockSvg}${esc(c.urgency_text)}</p><br>` : ""}
+<a href="#contact" class="btn btn-lg btn-white" style="position:relative">${esc(c.cta_text)} <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/></svg></a>
+<div class="micro micro-light" style="position:relative">${checkSvg}<span>無料</span>${clockSvg}<span>30秒で完了</span>${checkSvg}<span>営業電話なし</span></div>
+<p style="font-size:13px;color:rgba(255,255,255,.55);margin-top:20px;position:relative;padding:10px 24px;border:1px solid rgba(255,255,255,.1);border-radius:var(--r);display:inline-block">${esc(c.guarantee_text || "無料相談・営業電話なし")}</p>
 </section>
 
 <!-- FOOTER -->

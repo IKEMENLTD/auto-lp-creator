@@ -148,3 +148,31 @@ export const FAQ = `
 details[open] .faq-q::after{transform:rotate(45deg)}
 .faq-a{padding:0 20px 18px;font-size:15px;color:var(--t2);line-height:1.9;border-top:1px solid var(--bd)}
 `;
+
+/** カードグリッド（3列→1列レスポンシブ） */
+export const CARD_GRID = `
+.card-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+.card-grid .card{display:flex;flex-direction:column}
+.card-ico{color:var(--c);margin-bottom:16px}
+.card h3{font-size:16px;font-weight:800;margin-bottom:8px}
+.card p{font-size:14px;color:var(--t2);line-height:1.8}
+@media(max-width:750px){.card-grid{grid-template-columns:1fr}}
+`;
+
+/** スタッツグリッド（4列→2列レスポンシブ） */
+export const STATS_GRID = `
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;margin-top:48px}
+.stats-grid .card{text-align:center}
+@media(max-width:750px){.stats-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:480px){.stats-grid{grid-template-columns:1fr 1fr;gap:12px}}
+`;
+
+/** 強みカード（アクセントカラー版PROBLEM_CARD） */
+export const STRENGTH_CARD = `
+.str{display:flex;align-items:center;gap:14px;padding:16px 20px;background:var(--bg);border:1px solid var(--bd);border-left:3px solid var(--c);border-radius:var(--r);transition:box-shadow .2s}
+.str:hover{box-shadow:0 4px 12px rgba(var(--c-rgb),.08)}
+.str-ico{flex-shrink:0;width:36px;height:36px;display:flex;align-items:center;justify-content:center;background:rgba(var(--c-rgb),.08);border-radius:8px}
+.str-ico svg{width:18px;height:18px;color:var(--c)}
+.str p{font-size:14px;font-weight:600}
+.str span{font-weight:400;font-size:13px;color:var(--t2)}
+`;
