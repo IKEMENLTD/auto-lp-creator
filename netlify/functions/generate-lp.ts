@@ -639,7 +639,7 @@ ${FAQ}
 .fv-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:0;position:absolute;bottom:0;left:0;right:0;background:rgba(255,255,255,.95);backdrop-filter:blur(10px);z-index:2}
 .fv-stat{padding:24px 16px;text-align:center;border-right:1px solid var(--bd)}
 .fv-stat:last-child{border-right:none}
-.fv-stat-num{font-family:'Inter',sans-serif;font-size:clamp(24px,3.5vw,40px);font-weight:900;background:var(--cg);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1.1}
+.fv-stat-num{font-family:'Inter',sans-serif;font-size:clamp(22px,3.5vw,40px);font-weight:900;background:var(--cg);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1.1;white-space:nowrap}
 .fv-stat-label{font-size:12px;color:var(--t2);margin-top:4px;letter-spacing:.05em;font-weight:600}
 
 /* ===== PROBLEMS ===== */
@@ -679,30 +679,83 @@ ${FAQ}
 /* RESPONSIVE 750px               */
 /* ============================== */
 @media(max-width:750px){
+/* header */
 .hd{height:56px}.hd-logo{font-size:15px;max-width:60%}.hd-nav{gap:0}.hd-nav a:not(.btn){display:none}
-.fv{min-height:auto;padding-top:56px}.fv .inner{padding-top:48px;padding-bottom:100px;max-width:100%}
+/* hero */
+.fv{min-height:auto;padding-top:56px}.fv .inner{padding-top:48px;padding-bottom:24px;max-width:100%}
 .fv-headline{font-size:clamp(20px,5.5vw,28px)}.fv-sub{font-size:14px}.fv-name{font-size:13px}
 .fv-badge{font-size:11px;padding:5px 14px}.fv-features{gap:6px;margin-bottom:24px}
-.fv-features span{padding:6px 12px;font-size:11px}.fv-stats{grid-template-columns:repeat(2,1fr);position:relative}
-.fv-stat{padding:16px 12px}.fv-stat-num{font-size:clamp(20px,5vw,28px)}.fv-stat-label{font-size:10px}
-.offer{padding:48px 0}.offer-accent{padding:56px 0}.offer-tit{font-size:clamp(16px,4.5vw,22px)}
-.company-box{flex-direction:column;text-align:center;padding:24px;gap:16px}
+.fv-features span{padding:6px 12px;font-size:11px}
+/* stats: 2×2 grid, relative position */
+.fv-stats{grid-template-columns:repeat(2,1fr);position:relative;bottom:auto}
+.fv-stat{padding:16px 12px}.fv-stat-num{font-size:clamp(18px,5vw,26px)}.fv-stat-label{font-size:10px}
+/* problems */
+.prob p{font-size:13px}.prob span{font-size:12px}.prob{padding:14px 16px;gap:10px}
+.prob-ico{width:32px;height:32px}.prob-ico svg{width:16px;height:16px}
+/* solution */
+.sol-text{font-size:14px}
+/* service */
+.svc-head{padding:22px 20px 16px}.svc-ico-ring{width:44px;height:44px;border-radius:10px}
+.svc-body{padding:16px 20px 22px}.svc-body p{font-size:13px}
+/* CTA */
+.offer{padding:40px 0}.offer-accent{padding:48px 0}.offer-tit{font-size:clamp(16px,4.5vw,20px)}
+.offer-sub{font-size:13px;margin-bottom:16px}
+/* micro copy: stack on mobile */
+.micro{flex-wrap:wrap;gap:8px 14px}
+/* comparison */
+.cmp-card{padding:22px}
+/* testimonial */
+.tm-card{padding:24px}.tm-text{font-size:14px}
+/* company */
+.company-box{flex-direction:column;text-align:left;padding:24px;gap:16px}
 .company-logo{width:52px;height:52px;font-size:20px}.company-info strong{font-size:15px}.company-info p{font-size:13px}
+/* FAQ */
+.faq-q{padding:14px 16px;font-size:14px}.faq-a{padding:0 16px 14px;font-size:14px}
+/* final CTA */
 .cta-sec{padding:64px 20px}.cta-tit{font-size:clamp(18px,5vw,24px)}
+/* footer + mobile CTA bar */
 .ft{padding:20px 16px;font-size:11px}.m-cta{display:block}body{padding-bottom:72px}
+/* buttons */
 .btn-lg{padding:14px 32px;font-size:14px}
+/* flow */
 .flow-item{gap:14px;padding:14px 0}.flow-num{width:44px;height:44px;font-size:16px}
 .flow-list::before{left:22px}.flow-h3{font-size:14px}.flow-desc{font-size:13px}
-.sol-text{font-size:14px}
+/* wave dividers */
+.dvd-tall{height:72px}
 }
+
+/* ============================== */
+/* RESPONSIVE 480px               */
+/* ============================== */
 @media(max-width:480px){
 .inner{padding:0 16px}.hd-logo{font-size:14px}
+/* hero */
 .fv-headline{font-size:20px}.fv-features span{padding:5px 8px;font-size:10px}
-.fv-stats{grid-template-columns:1fr 1fr}.fv-stat{padding:12px 8px}.fv-stat-num{font-size:20px}
+/* stats: keep 2×2 but tighter */
+.fv-stats{grid-template-columns:1fr 1fr}.fv-stat{padding:12px 8px}.fv-stat-num{font-size:18px}
+.fv-stat-label{font-size:9px}
+/* section headers */
+.sec-bg-txt{font-size:36px;margin-bottom:-12px}
+/* buttons */
 .btn-lg{padding:12px 24px;font-size:13px}.btn-md{padding:10px 20px;font-size:12px}
-.offer-tit{font-size:16px}
+/* CTA */
+.offer-tit{font-size:16px}.offer-accent{padding:40px 0}
+/* flow */
 .flow-num{width:36px;height:36px;font-size:14px}.flow-list::before{left:18px}
+/* final CTA */
 .cta-tit{font-size:18px}.m-cta a{padding:12px;font-size:13px}
+/* stats grid (separate section) */
+.stats-grid .stat-num{font-size:clamp(22px,6vw,32px)}
+/* wave */
+.dvd-tall{height:56px}
+/* FAQ tighter */
+.faq-q{padding:12px 14px;font-size:13px}.faq-a{font-size:13px}
+/* testimonial */
+.tm-card{padding:20px}.tm-text{font-size:13px}.tm-result{font-size:11px}
+/* comparison */
+.cmp-card{padding:18px}.cmp-title{font-size:14px}.cmp-row{font-size:13px}
+/* service */
+.svc-card h3{font-size:15px}.svc-body p{font-size:12px}
 }
 </style>
 </head><body>
