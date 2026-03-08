@@ -274,7 +274,7 @@ export function useSession(sessionId: string): UseSessionReturn {
     const evalRes = await fetch('/api/generate-lp', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...baseBody, step: 'evaluate', draft_content: draftResult.content }),
+      body: JSON.stringify({ ...baseBody, step: 'evaluate', draft_content: draftResult.content, transcript: fullText }),
     });
     let finalContent = draftResult.content;
     if (evalRes.ok) {
