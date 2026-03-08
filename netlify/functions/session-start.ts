@@ -8,6 +8,7 @@
  */
 
 import type { Config } from "@netlify/functions";
+import { randomUUID } from "node:crypto";
 
 // ============================================================
 // CORSヘッダー
@@ -40,13 +41,13 @@ export default async function handler(
       JSON.stringify({ error: "Method Not Allowed. Use POST." }),
       {
         status: 405,
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...corsHeaders },
       },
     );
   }
 
   try {
-    const sessionId = crypto.randomUUID();
+    const sessionId = randomUUID();
 
     // TODO: 将来的にSupabaseへセッションレコードを作成する
 
@@ -70,7 +71,7 @@ export default async function handler(
       }),
       {
         status: 500,
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...corsHeaders },
       },
     );
   }
