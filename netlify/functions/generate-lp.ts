@@ -493,7 +493,7 @@ function buildLpHtml(c: LpContent, d: FlatData, images: LpImage[] = []): string 
   const cRgb = `${parseInt(colors.primary.slice(1,3),16)},${parseInt(colors.primary.slice(3,5),16)},${parseInt(colors.primary.slice(5,7),16)}`;
 
   return `<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>${esc(d.service_name)} | ${esc(d.company_name)}</title>
+<title>${esc(c.hero_headline || d.service_name)} | ${esc(d.company_name)}</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
@@ -512,16 +512,15 @@ ${SCROLL_ANIM}
 /* HEADER */
 .hd{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(255,255,255,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--bd);height:64px;display:flex;align-items:center}
 .hd .inner{display:flex;align-items:center;justify-content:space-between;width:100%}
-.hd-logo{font-weight:800;font-size:18px;color:var(--c)}
-.hd-nav{display:flex;gap:24px;align-items:center}
-.hd-nav a{font-size:13px;color:var(--t2);font-weight:500;transition:color .2s}
+.hd-logo{font-weight:800;font-size:18px;color:var(--c);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:50%}
+.hd-nav{display:flex;gap:24px;align-items:center;flex-shrink:0}
+.hd-nav a{font-size:13px;color:var(--t2);font-weight:500;transition:color .2s;white-space:nowrap}
 .hd-nav a:hover{color:var(--c)}
 .hd-cta{padding:8px 20px;background:var(--c);color:#fff!important;font-size:13px;font-weight:700;border-radius:var(--r);transition:opacity .2s}
 .hd-cta:hover{opacity:.85}
-@media(max-width:750px){.hd-nav a:not(.hd-cta){display:none}}
 
 /* HERO - fullscreen bg image */
-.fv{position:relative;min-height:100vh;display:flex;align-items:center;overflow:hidden;padding-top:64px;background-size:cover;background-position:center;background-repeat:no-repeat}
+.fv{position:relative;min-height:100svh;display:flex;align-items:center;overflow:hidden;padding-top:64px;background-size:cover;background-position:center;background-repeat:no-repeat}
 .fv-overlay{position:absolute;inset:0;background:linear-gradient(135deg,rgba(15,23,42,.88) 0%,rgba(15,23,42,.72) 50%,rgba(15,23,42,.55) 100%);z-index:0}
 .fv .inner{position:relative;z-index:1;max-width:800px;text-align:center;padding-top:80px;padding-bottom:120px}
 .fv-txt h1{font-size:clamp(30px,5vw,52px);font-weight:900;line-height:1.2;letter-spacing:-.02em;margin-bottom:18px;color:#fff}
@@ -545,10 +544,6 @@ ${SCROLL_ANIM}
 .fv-stat-label{font-size:12px;color:var(--t2);margin-top:4px;letter-spacing:.05em;font-weight:600}
 /* WAVE DIVIDERS (component) */
 ${WAVE_DIVIDER}
-@media(max-width:750px){
-.fv .inner{padding-top:48px;padding-bottom:100px}
-.fv-stats{grid-template-columns:repeat(2,1fr)}
-}
 
 /* SECTION COMMON (component) */
 ${SEC_HEADER}
@@ -566,13 +561,12 @@ ${DOT_BG}
 .about-problem-icon{flex-shrink:0;width:36px;height:36px;display:flex;align-items:center;justify-content:center;background:rgba(239,68,68,.08);border-radius:8px}
 .about-problem-icon svg{width:18px;height:18px;color:#ef4444}
 .about-problem p{font-size:14px;font-weight:600}
-.about-visual{position:relative;display:flex;align-items:center;justify-content:center}
-.about-visual::before{content:'';position:absolute;inset:0;background:var(--cg);opacity:.06;border-radius:16px}
+.about-visual{position:relative;display:flex;align-items:center;justify-content:center;min-height:320px;border-radius:var(--r);overflow:hidden}
+.about-visual::before{content:'';position:absolute;inset:0;background:var(--cg);opacity:.06;border-radius:16px;z-index:0}
 .about-visual-inner{position:relative;padding:40px;text-align:center}
 .about-visual-inner .big-num{font-family:'Inter',sans-serif;font-size:80px;font-weight:900;color:var(--c);opacity:.15;line-height:1}
 .about-visual-inner .label{font-size:14px;font-weight:700;color:var(--t1);margin-top:-20px;position:relative}
 .about-transition{text-align:center;margin-top:48px;font-size:clamp(16px,2.5vw,20px);font-weight:800;color:var(--c);padding:20px 24px;border:2px solid var(--ca);border-radius:var(--r);background:rgba(var(--c-rgb),.04)}
-@media(max-width:750px){.about-grid{grid-template-columns:1fr}.about-visual{margin-bottom:24px;order:-1}}
 
 /* FEATURES */
 .features-list{display:flex;flex-direction:column;gap:56px}
@@ -589,12 +583,11 @@ ${DOT_BG}
 .feature-visual .fv-stat-big{font-family:'Inter',sans-serif;font-size:clamp(36px,5vw,56px);font-weight:900;background:var(--cg);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1.1;position:relative;z-index:1}
 .feature-visual .fv-stat-sub{font-size:13px;color:var(--t3);margin-top:4px;position:relative;z-index:1;font-weight:600}
 /* 画像あり時 */
-.feature-visual.has-img{background:none;border:none;padding:0}
+.feature-visual.has-img{background:var(--bg2);border:1px solid var(--bd)}
 .feature-visual.has-img::before{display:none}
 .feature-visual.has-img::after{display:none}
 .feature-visual.has-img img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0;border-radius:var(--r)}
-.about-img{width:100%;height:100%;object-fit:cover;border-radius:var(--r);position:absolute;inset:0}
-@media(max-width:750px){.feature-item,.feature-item:nth-child(even){grid-template-columns:1fr;direction:ltr}.feature-visual{aspect-ratio:16/9}}
+.about-img{width:100%;height:100%;object-fit:cover;border-radius:var(--r);position:absolute;inset:0;z-index:1}
 
 /* TESTIMONIALS (component) */
 ${TESTIMONIAL_CARD}
@@ -602,12 +595,14 @@ ${TESTIMONIAL_CARD}
 /* MID CTA (OFFER) */
 .offer{padding:56px 0;background:var(--dark);color:#fff;text-align:center;position:relative;overflow:hidden}
 .offer::before{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:600px;height:400px;background:radial-gradient(circle,rgba(255,255,255,.04),transparent 70%)}
+.offer-accent{background:var(--c);padding:72px 0}
 .offer-tit{font-size:clamp(18px,3vw,24px);font-weight:800;margin-bottom:8px;position:relative}
-.offer-sub{font-size:13px;color:rgba(255,255,255,.5);margin-bottom:12px;position:relative}
+.offer-sub{font-size:14px;color:rgba(255,255,255,.55);margin-bottom:20px;position:relative}
 .offer-urgency{display:inline-flex;align-items:center;gap:8px;padding:6px 16px;border:1px solid rgba(255,255,255,.15);border-radius:20px;font-size:12px;color:var(--ca);margin-bottom:20px;position:relative}
 .offer-urgency svg{width:14px;height:14px;fill:none;stroke:var(--ca);stroke-width:2}
-.offer .fv-cta{background:var(--c);border-radius:var(--r);position:relative}
-.offer-micro{font-size:12px;color:rgba(255,255,255,.4);margin-top:12px;position:relative}
+.offer .fv-cta{display:inline-flex;align-items:center;gap:8px;padding:18px 48px;font-weight:800;font-size:16px;border-radius:var(--r);transition:transform .2s,box-shadow .2s;text-decoration:none;border:none;cursor:pointer}
+.offer .fv-cta:hover{transform:translateY(-2px);box-shadow:0 12px 32px rgba(0,0,0,.2)}
+.offer-micro{font-size:12px;color:rgba(255,255,255,.4);margin-top:14px;position:relative}
 
 /* MERIT */
 .merit-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
@@ -617,7 +612,6 @@ ${TESTIMONIAL_CARD}
 .merit-ico{color:var(--c);margin-bottom:16px}
 .merit-h3{font-size:16px;font-weight:800;margin-bottom:8px}
 .merit-desc{font-size:14px;color:var(--t2);line-height:1.9}
-@media(max-width:750px){.merit-grid{grid-template-columns:1fr}}
 
 /* COMPARISON (component) */
 ${COMPARISON}
@@ -633,7 +627,6 @@ ${FAQ}
 .company-logo{flex-shrink:0;width:64px;height:64px;border-radius:var(--r);background:var(--cg);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:24px}
 .company-info p{font-size:14px;color:var(--t2);line-height:1.8}
 .company-info strong{color:var(--t1);font-size:16px;display:block;margin-bottom:4px}
-@media(max-width:750px){.company-box{flex-direction:column;text-align:center}}
 
 /* CTA */
 .cta-sec{padding:100px 24px;background:var(--dark);text-align:center;position:relative;overflow:hidden}
@@ -652,11 +645,115 @@ ${FAQ}
 /* FOOTER */
 .ft{padding:28px;text-align:center;border-top:1px solid var(--bd);font-size:12px;color:var(--t3)}
 
-/* MOBILE CTA */
+/* MOBILE CTA BAR */
 .m-cta{display:none;position:fixed;bottom:0;left:0;right:0;padding:10px 16px;background:rgba(255,255,255,.95);backdrop-filter:blur(12px);border-top:1px solid var(--bd);z-index:100}
 .m-cta a{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;padding:14px;background:var(--c);color:#fff;font-weight:800;font-size:14px;border-radius:var(--r)}
 .m-cta-sub{font-size:10px;color:var(--t3);text-align:center;margin-top:4px}
-@media(max-width:750px){.m-cta{display:block}body{padding-bottom:72px}}
+
+/* ============================== */
+/* RESPONSIVE 750px (TABLET)      */
+/* ============================== */
+@media(max-width:750px){
+/* Header */
+.hd{height:56px}
+.hd-logo{font-size:15px;max-width:60%}
+.hd-nav{gap:0}
+.hd-nav a:not(.hd-cta){display:none}
+.hd-cta{padding:7px 16px;font-size:12px}
+/* Hero */
+.fv{min-height:auto;padding-top:56px}
+.fv .inner{padding-top:48px;padding-bottom:100px;max-width:100%}
+.fv-badge{font-size:11px;padding:5px 14px;letter-spacing:.1em}
+.fv-txt h1{font-size:clamp(22px,6.5vw,34px);margin-bottom:14px}
+.fv-sub{font-size:14px;margin-bottom:24px;line-height:1.8}
+.fv-features{gap:6px;margin-bottom:28px}
+.fv-features span{padding:6px 12px;font-size:11px}
+.fv-cta{padding:14px 32px;font-size:14px}
+.fv-micro{flex-wrap:wrap;justify-content:center;gap:8px;font-size:11px}
+.fv-stats{grid-template-columns:repeat(2,1fr);position:relative}
+.fv-stat{padding:16px 12px}
+.fv-stat-num{font-size:clamp(20px,5vw,28px)}
+.fv-stat-label{font-size:10px}
+/* About */
+.about-grid{grid-template-columns:1fr;gap:24px}
+.about-visual{order:-1;min-height:220px!important}
+.about-txt{font-size:14px;line-height:1.9}
+.about-problems{gap:8px}
+.about-problem{padding:12px 14px;gap:10px}
+.about-problem p{font-size:13px}
+.about-problem-icon{width:32px;height:32px}
+.about-problem-icon svg{width:16px;height:16px}
+.about-transition{font-size:16px;padding:16px 18px}
+/* Features */
+.features-list{gap:36px}
+.feature-item,.feature-item:nth-child(even){grid-template-columns:1fr;direction:ltr;gap:20px}
+.feature-visual{aspect-ratio:16/9}
+.feature-num{font-size:12px;margin-bottom:8px}
+.feature-h3{font-size:17px}
+.feature-desc{font-size:14px}
+/* Offer / CTA sections */
+.offer{padding:48px 0}
+.offer-accent{padding:56px 0}
+.offer-tit{font-size:clamp(16px,4.5vw,22px)}
+.offer .fv-cta{padding:14px 28px;font-size:14px}
+/* Merit */
+.merit-grid{grid-template-columns:1fr}
+.merit-card{padding:24px 20px}
+.merit-h3{font-size:15px}
+.merit-desc{font-size:13px}
+/* Flow */
+.flow-item{gap:14px;padding:14px 0}
+.flow-num{width:44px;height:44px;font-size:16px}
+.flow-h3{font-size:14px}
+.flow-desc{font-size:13px}
+.flow-list::before{left:22px}
+/* Company */
+.company-box{flex-direction:column;text-align:center;padding:24px;gap:16px}
+.company-logo{width:52px;height:52px;font-size:20px}
+.company-info strong{font-size:15px}
+.company-info p{font-size:13px}
+/* Final CTA */
+.cta-sec{padding:64px 20px}
+.cta-tit{font-size:clamp(18px,5vw,24px)}
+.cta-sub{font-size:13px}
+.cta-btn{padding:14px 28px;font-size:14px}
+.cta-micro{flex-wrap:wrap;gap:8px;font-size:11px}
+.cta-g{font-size:11px;padding:8px 16px}
+/* Footer */
+.ft{padding:20px 16px;font-size:11px}
+/* Mobile CTA bar */
+.m-cta{display:block}
+body{padding-bottom:72px}
+}
+
+/* ============================== */
+/* RESPONSIVE 480px (SMALL PHONE) */
+/* ============================== */
+@media(max-width:480px){
+.inner{padding:0 16px}
+.hd-logo{font-size:14px}
+.fv-txt h1{font-size:22px;letter-spacing:-.01em}
+.fv-sub{font-size:13px}
+.fv-features{gap:4px}
+.fv-features span{padding:5px 8px;font-size:10px}
+.fv-cta{padding:12px 24px;font-size:13px}
+.fv-stats{grid-template-columns:1fr 1fr}
+.fv-stat{padding:12px 8px}
+.fv-stat-num{font-size:20px}
+.about-problem{flex-direction:row;gap:8px}
+.about-problem-icon{width:28px;height:28px;min-width:28px}
+.about-transition{font-size:14px;padding:12px 14px}
+.feature-h3{font-size:16px}
+.offer-urgency{font-size:11px;padding:5px 12px}
+.offer-tit{font-size:16px}
+.offer .fv-cta{padding:12px 24px;font-size:13px}
+.merit-card{padding:20px 16px}
+.flow-num{width:36px;height:36px;font-size:14px}
+.flow-list::before{left:18px}
+.cta-tit{font-size:18px}
+.cta-btn{padding:12px 24px;font-size:13px}
+.m-cta a{padding:12px;font-size:13px}
+}
 </style>
 </head><body>
 
@@ -694,9 +791,6 @@ ${s.map(st => `<div class="fv-stat"><div class="fv-stat-num">${esc(st.number)}</
 </div>
 </section>
 
-<!-- DIVIDER: hero → about (wave, dark→gray) -->
-<div class="dvd"><svg viewBox="0 0 1200 72" preserveAspectRatio="none"><rect width="1200" height="72" fill="var(--bg2)"/><path d="M0,0 C200,60 500,72 700,45 C900,18 1100,50 1200,30 L1200,0 L0,0 Z" fill="var(--dark)"/></svg></div>
-
 <!-- ABOUT -->
 <section class="sec about" id="about">
 <div class="inner">
@@ -711,8 +805,8 @@ ${p.map(item => `<div class="about-problem">
 </div>`).join("")}
 </div>
 </div>
-<div class="about-visual" style="position:relative;min-height:320px;border-radius:var(--r);overflow:hidden">
-${hasImg && images[1] ? `<img class="about-img" src="${esc(images[1].url)}" alt="${esc(images[1].alt)}" loading="lazy" style="opacity:1">` : `<div class="about-visual-inner"><div class="big-num" style="font-size:64px">${esc(d.service_name.charAt(0) || "S")}</div><div class="label" style="margin-top:-10px">${esc(d.service_name)}</div></div>`}
+<div class="about-visual">
+${hasImg && images[1] ? `<img class="about-img" src="${esc(images[1].url)}" alt="${esc(images[1].alt)}" loading="lazy" onerror="this.style.display='none'">` : `<div class="about-visual-inner"><div class="big-num" style="font-size:64px">${esc(d.service_name.charAt(0) || "S")}</div><div class="label" style="margin-top:-10px">${esc(d.service_name)}</div></div>`}
 </div>
 </div>
 <div class="about-transition fi">${esc(c.transition_text || `${d.service_name}なら、すべて解決します`)}</div>
@@ -734,7 +828,7 @@ ${b.map((item, i) => `<div class="feature-item fi">
 <p class="feature-desc">${esc(item.desc)}</p>
 </div>
 <div class="feature-visual${hasImg && images[i + 2] ? " has-img" : ""}" data-num="${String(i + 1).padStart(2, "0")}">
-${hasImg && images[i + 2] ? `<img src="${esc(images[i + 2]!.url)}" alt="${esc(images[i + 2]!.alt)}" loading="lazy">` : `${ico[i] || ico[0]}
+${hasImg && images[i + 2] ? `<img src="${esc(images[i + 2]!.url)}" alt="${esc(images[i + 2]!.alt)}" loading="lazy" onerror="this.parentElement.classList.remove('has-img');this.remove()">` : `${ico[i] || ico[0]}
 ${s[i + 1] ? `<div class="fv-stat-big">${esc(s[i + 1]?.number || "")}</div><div class="fv-stat-sub">${esc(s[i + 1]?.label || "")}</div>` : `<div class="fv-stat-big">${String(i + 1).padStart(2, "0")}</div>`}`}
 </div>
 </div>`).join("")}
@@ -745,13 +839,13 @@ ${s[i + 1] ? `<div class="fv-stat-big">${esc(s[i + 1]?.number || "")}</div><div 
 <!-- DIVIDER: features → cta1 (wave, white→accent) -->
 <div class="dvd"><svg viewBox="0 0 1200 72" preserveAspectRatio="none"><rect width="1200" height="72" fill="var(--c)"/><path d="M0,0 C250,65 550,20 750,55 C950,72 1100,30 1200,45 L1200,0 L0,0 Z" fill="var(--bg)"/></svg></div>
 
-<!-- MID CTA 1 (OFFER - primary, accent gradient) -->
-<section class="offer" style="background:var(--cg);padding:72px 0">
+<!-- MID CTA 1 (OFFER - primary accent solid) -->
+<section class="offer offer-accent">
 <div class="inner" style="position:relative;z-index:1">
 ${c.urgency_text ? `<div class="offer-urgency" style="border-color:rgba(255,255,255,.3);color:#fff;font-weight:700"><svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>${esc(c.urgency_text)}</div>` : ""}
-<p class="offer-tit" style="font-size:clamp(20px,3.5vw,28px)">${esc(c.cta_sub || "まずはお気軽にご相談ください")}</p>
+<p class="offer-tit">${esc(c.cta_sub || "まずはお気軽にご相談ください")}</p>
 <p class="offer-sub" style="color:rgba(255,255,255,.7)">${esc(c.guarantee_text || "無料相談・しつこい営業は一切ありません")}</p>
-<br><a href="#contact" class="fv-cta" style="background:#fff;color:var(--dark);font-size:16px;padding:18px 48px">${esc(c.cta_text)} <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/></svg></a>
+<a href="#contact" class="fv-cta" style="background:#fff;color:var(--dark)">${esc(c.cta_text)} <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/></svg></a>
 <p class="offer-micro" style="color:rgba(255,255,255,.55)">30秒で完了 / 無料 / 営業電話なし</p>
 </div>
 </section>
