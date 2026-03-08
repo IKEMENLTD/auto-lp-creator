@@ -541,10 +541,9 @@ img{max-width:100%;display:block}
 .fv-stat:last-child{border-right:none}
 .fv-stat-num{font-family:'Inter',sans-serif;font-size:clamp(24px,3.5vw,40px);font-weight:900;background:var(--cg);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1.1;font-variant-numeric:tabular-nums}
 .fv-stat-label{font-size:12px;color:var(--t2);margin-top:4px;letter-spacing:.05em;font-weight:600}
-/* DIAGONAL / WAVE DIVIDERS */
-.dvd{position:relative;height:80px;margin-top:-1px;z-index:3;overflow:hidden}
+/* WAVE DIVIDERS */
+.dvd{position:relative;height:72px;margin-top:-1px;z-index:3;overflow:hidden}
 .dvd svg{width:100%;height:100%;display:block}
-.dvd-flip{transform:scaleX(-1)}
 @media(max-width:750px){
 .fv .inner{padding-top:48px;padding-bottom:100px}
 .fv-stats{grid-template-columns:repeat(2,1fr)}
@@ -739,8 +738,8 @@ ${s.map(st => `<div class="fv-stat"><div class="fv-stat-num">${esc(st.number)}</
 </div>
 </section>
 
-<!-- DIVIDER: hero → about (diagonal, dark→gray) -->
-<div class="dvd"><svg viewBox="0 0 1200 80" preserveAspectRatio="none"><polygon points="0,0 1200,0 1200,80" fill="var(--dark)"/><polygon points="0,0 1200,80 0,80" fill="var(--bg2)"/></svg></div>
+<!-- DIVIDER: hero → about (wave, dark→gray) -->
+<div class="dvd"><svg viewBox="0 0 1200 72" preserveAspectRatio="none"><rect width="1200" height="72" fill="var(--bg2)"/><path d="M0,0 C200,60 500,72 700,45 C900,18 1100,50 1200,30 L1200,0 L0,0 Z" fill="var(--dark)"/></svg></div>
 
 <!-- ABOUT -->
 <section class="sec about" id="about">
@@ -764,8 +763,8 @@ ${hasImg && images[1] ? `<img class="about-img" src="${esc(images[1].url)}" alt=
 </div>
 </section>
 
-<!-- DIVIDER: about → features (soft wave, gray→white) -->
-<div class="dvd"><svg viewBox="0 0 1200 80" preserveAspectRatio="none"><rect width="1200" height="80" fill="var(--bg)"/><path d="M0,0 C300,65 900,5 1200,60 L1200,0 L0,0 Z" fill="var(--bg2)"/></svg></div>
+<!-- DIVIDER: about → features (wave, gray→white) -->
+<div class="dvd"><svg viewBox="0 0 1200 72" preserveAspectRatio="none"><rect width="1200" height="72" fill="var(--bg)"/><path d="M0,0 C300,55 600,70 800,40 C1000,10 1150,45 1200,25 L1200,0 L0,0 Z" fill="var(--bg2)"/></svg></div>
 
 <!-- FEATURES -->
 <section class="sec dot-bg" id="features">
@@ -788,7 +787,7 @@ ${s[i + 1] ? `<div class="fv-stat-big">${esc(s[i + 1]?.number || "")}</div><div 
 </section>
 
 <!-- DIVIDER: features → cta1 (wave, white→accent) -->
-<div class="dvd"><svg viewBox="0 0 1200 80" preserveAspectRatio="none"><rect width="1200" height="80" fill="var(--c)"/><path d="M0,0 C400,70 800,10 1200,50 L1200,0 L0,0 Z" fill="var(--bg)"/></svg></div>
+<div class="dvd"><svg viewBox="0 0 1200 72" preserveAspectRatio="none"><rect width="1200" height="72" fill="var(--c)"/><path d="M0,0 C250,65 550,20 750,55 C950,72 1100,30 1200,45 L1200,0 L0,0 Z" fill="var(--bg)"/></svg></div>
 
 <!-- MID CTA 1 (OFFER - primary, accent gradient) -->
 <section class="offer" style="background:var(--cg);padding:72px 0">
@@ -802,7 +801,7 @@ ${c.urgency_text ? `<div class="offer-urgency" style="border-color:rgba(255,255,
 </section>
 
 <!-- DIVIDER: cta1 → testimonials (wave, accent→white) -->
-<div class="dvd"><svg viewBox="0 0 1200 80" preserveAspectRatio="none"><rect width="1200" height="80" fill="var(--bg)"/><path d="M0,0 C300,65 900,5 1200,60 L1200,0 L0,0 Z" fill="var(--c)"/></svg></div>
+<div class="dvd"><svg viewBox="0 0 1200 72" preserveAspectRatio="none"><rect width="1200" height="72" fill="var(--bg)"/><path d="M0,0 C200,50 500,72 750,35 C1000,0 1150,40 1200,20 L1200,0 L0,0 Z" fill="var(--c)"/></svg></div>
 
 <!-- TESTIMONIALS -->
 ${tm.length > 0 ? `<section class="sec" id="voice">
@@ -836,8 +835,8 @@ ${m.map((item, i) => `<div class="merit-card fi">
 </div>
 </section>
 
-<!-- DIVIDER: merit → cta2 (diagonal, gray→dark) -->
-<div class="dvd"><svg viewBox="0 0 1200 80" preserveAspectRatio="none"><polygon points="0,0 1200,0 0,80" fill="var(--bg2)"/><polygon points="0,80 1200,0 1200,80" fill="var(--dark)"/></svg></div>
+<!-- DIVIDER: merit → cta2 (wave, gray→dark) -->
+<div class="dvd"><svg viewBox="0 0 1200 72" preserveAspectRatio="none"><rect width="1200" height="72" fill="var(--dark)"/><path d="M0,0 C300,55 600,70 800,40 C1000,10 1150,45 1200,25 L1200,0 L0,0 Z" fill="var(--bg2)"/></svg></div>
 
 <!-- MID CTA 2 -->
 <section class="offer">
@@ -849,7 +848,7 @@ ${m.map((item, i) => `<div class="merit-card fi">
 </section>
 
 <!-- DIVIDER: cta2 → comparison (wave, dark→white) -->
-<div class="dvd"><svg viewBox="0 0 1200 80" preserveAspectRatio="none"><rect width="1200" height="80" fill="var(--bg)"/><path d="M0,0 C400,70 800,10 1200,50 L1200,0 L0,0 Z" fill="var(--dark)"/></svg></div>
+<div class="dvd"><svg viewBox="0 0 1200 72" preserveAspectRatio="none"><rect width="1200" height="72" fill="var(--bg)"/><path d="M0,0 C250,60 550,25 750,55 C950,72 1100,30 1200,45 L1200,0 L0,0 Z" fill="var(--dark)"/></svg></div>
 
 <!-- COMPARISON -->
 ${cmp.length > 0 ? `<section class="sec">
@@ -902,8 +901,8 @@ ${c.company_profile ? `<section class="sec" style="background:var(--bg2)">
 </div>
 </section>` : ""}
 
-<!-- DIVIDER: → final cta (diagonal, gray→dark) -->
-<div class="dvd"><svg viewBox="0 0 1200 80" preserveAspectRatio="none"><polygon points="0,0 1200,0 1200,80" fill="var(--bg2)"/><polygon points="0,0 0,80 1200,80" fill="var(--dark)"/></svg></div>
+<!-- DIVIDER: → final cta (wave, gray→dark) -->
+<div class="dvd"><svg viewBox="0 0 1200 72" preserveAspectRatio="none"><rect width="1200" height="72" fill="var(--dark)"/><path d="M0,0 C200,60 500,72 700,45 C900,18 1100,50 1200,30 L1200,0 L0,0 Z" fill="var(--bg2)"/></svg></div>
 
 <!-- CTA -->
 <section class="cta-sec" id="contact">
