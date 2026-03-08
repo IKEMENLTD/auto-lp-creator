@@ -13,8 +13,10 @@ import Anthropic from "@anthropic-ai/sdk";
 // 定数
 // ============================================================
 
-const CLAUDE_MODEL = "claude-sonnet-4-20250514";
-const MAX_TOKENS = 2500;
+// Haiku: 200-400 tok/s → 2000tok = 5-10秒 (26秒制限内に余裕)
+// Sonnet: 60-100 tok/s → 2500tok = 25-41秒 → タイムアウト頻発
+const CLAUDE_MODEL = "claude-haiku-4-5-20251001";
+const MAX_TOKENS = 2000;
 const CHUNK_SIZE = 4000; // 1チャンクの最大文字数
 const CHUNK_OVERLAP = 500; // チャンク間のオーバーラップ
 const MAX_CHUNKS = 5; // 最大チャンク数（コスト制限）
