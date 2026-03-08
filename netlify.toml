@@ -1,0 +1,56 @@
+[build]
+  publish = "dist"
+  command = "npm run build:client"
+
+[build.environment]
+  NODE_VERSION = "18"
+
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+  external_node_modules = ["@anthropic-ai/sdk"]
+
+[functions."detect-companies"]
+  timeout = 26
+
+[functions."extract-preview"]
+  timeout = 26
+
+[functions."generate-lp"]
+  timeout = 26
+
+# Netlify Functions v2 uses config.path for routing
+# No API redirects needed - functions handle their own paths
+
+# SPA fallback (only for non-API, non-function paths)
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# CORS headers for API
+[[headers]]
+  for = "/.netlify/functions/*"
+  [headers.values]
+    Access-Control-Allow-Origin = "*"
+    Access-Control-Allow-Headers = "Content-Type, Authorization"
+    Access-Control-Allow-Methods = "GET, POST, PATCH, OPTIONS"
+
+[[headers]]
+  for = "/api/*"
+  [headers.values]
+    Access-Control-Allow-Origin = "*"
+    Access-Control-Allow-Headers = "Content-Type, Authorization"
+    Access-Control-Allow-Methods = "GET, POST, PATCH, OPTIONS"
+
+# Security headers (exclude /view/* so generated pages render freely)
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-XSS-Protection = "1; mode=block"
+    X-Content-Type-Options = "nosniff"
+
+[[headers]]
+  for = "/view/*"
+  [headers.values]
+    Cache-Control = "public, max-age=3600"

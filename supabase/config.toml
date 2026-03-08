@@ -1,0 +1,56 @@
+# ============================================================
+# Supabase CLI ローカル開発設定
+# リアルタイムアポ制作物自動生成システム
+# ============================================================
+
+[api]
+# ローカルSupabase APIポート
+port = 54321
+# スキーマ
+schemas = ["public"]
+# 追加スキーマ
+extra_search_path = ["public", "extensions"]
+
+[db]
+# ローカルDBポート
+port = 54322
+# データベース名
+major_version = 15
+
+[studio]
+# Supabase Studio (ダッシュボード)
+port = 54323
+
+[inbucket]
+# メール テスト用
+port = 54324
+
+[storage]
+# ストレージ
+port = 54325
+
+[auth]
+# 認証
+site_url = "http://localhost:3000"
+additional_redirect_urls = ["http://localhost:3000"]
+jwt_expiry = 3600
+enable_signup = true
+
+[auth.email]
+enable_signup = true
+double_confirm_changes = true
+enable_confirmations = false
+
+[realtime]
+# Realtime
+enabled = true
+
+[analytics]
+enabled = false
+
+# ============================================================
+# シード設定
+# ============================================================
+[db.seed]
+enabled = true
+sql_paths = ["./seed.sql"]
