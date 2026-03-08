@@ -574,6 +574,7 @@ ${FAQ}
 .hd-nav{display:flex;gap:24px;align-items:center;flex-shrink:0}
 .hd-nav a{font-size:13px;color:var(--t2);font-weight:500;transition:color .2s;white-space:nowrap}
 .hd-nav a:hover{color:var(--c)}
+.hd-nav a.btn-accent{color:#fff}
 
 /* ===== HERO ===== */
 .fv{position:relative;min-height:100svh;display:flex;align-items:center;overflow:hidden;padding-top:64px;background-size:cover;background-position:center;background-repeat:no-repeat}
