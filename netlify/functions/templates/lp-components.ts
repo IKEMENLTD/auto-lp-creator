@@ -167,12 +167,33 @@ export const STATS_GRID = `
 @media(max-width:480px){.stats-grid{grid-template-columns:1fr 1fr;gap:12px}}
 `;
 
-/** 強みカード（アクセントカラー版PROBLEM_CARD） */
+/** 強みカード（プレミアム版 — グラデアイコン+ホバーリフト+ナンバーバッジ） */
 export const STRENGTH_CARD = `
-.str{display:flex;align-items:center;gap:14px;padding:16px 20px;background:var(--bg);border:1px solid var(--bd);border-left:3px solid var(--c);border-radius:var(--r);transition:box-shadow .2s}
-.str:hover{box-shadow:0 4px 12px rgba(var(--c-rgb),.08)}
-.str-ico{flex-shrink:0;width:36px;height:36px;display:flex;align-items:center;justify-content:center;background:rgba(var(--c-rgb),.08);border-radius:8px}
-.str-ico svg{width:18px;height:18px;color:var(--c)}
-.str p{font-size:14px;font-weight:600}
-.str span{font-weight:400;font-size:13px;color:var(--t2)}
+.str-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;max-width:960px;margin:0 auto}
+.str{position:relative;padding:32px 24px 28px;background:var(--bg);border:1px solid var(--bd);border-radius:var(--r);transition:box-shadow .4s,transform .4s,border-color .4s;overflow:hidden}
+.str::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--cg);border-radius:var(--r) var(--r) 0 0}
+.str:hover{box-shadow:0 16px 48px rgba(var(--c-rgb),.12);transform:translateY(-4px);border-color:rgba(var(--c-rgb),.2)}
+.str-num{position:absolute;top:12px;right:16px;font-family:'Inter',sans-serif;font-size:48px;font-weight:900;color:var(--c);opacity:.06;line-height:1}
+.str-ico{width:48px;height:48px;display:flex;align-items:center;justify-content:center;background:var(--cg);border-radius:12px;margin-bottom:16px}
+.str-ico svg{width:22px;height:22px;color:#fff}
+.str h4{font-size:15px;font-weight:800;margin-bottom:6px;color:var(--t1)}
+.str p{font-size:14px;color:var(--t2);line-height:1.7;margin:0}
+@media(max-width:750px){.str-grid{grid-template-columns:1fr;gap:16px}.str{padding:24px 20px}}
+`;
+
+/** カードグリッド・プレミアム版（グラデヘッダー+ホバーグロー+アイコンリング） */
+export const SERVICE_CARD = `
+.svc-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:28px}
+.svc-card{position:relative;background:var(--bg);border:1px solid var(--bd);border-radius:var(--r);overflow:hidden;transition:box-shadow .4s,transform .4s}
+.svc-card:hover{box-shadow:0 20px 60px rgba(var(--c-rgb),.1);transform:translateY(-5px)}
+.svc-head{padding:28px 24px 20px;background:linear-gradient(135deg,rgba(var(--c-rgb),.04),rgba(var(--c-rgb),.01));border-bottom:1px solid var(--bd)}
+.svc-ico-ring{width:52px;height:52px;display:flex;align-items:center;justify-content:center;border-radius:14px;background:var(--bg);border:2px solid rgba(var(--c-rgb),.15);box-shadow:0 4px 12px rgba(var(--c-rgb),.06);margin-bottom:14px}
+.svc-ico-ring svg{width:24px;height:24px;color:var(--c)}
+.svc-card h3{font-size:16px;font-weight:800;color:var(--t1);margin:0}
+.svc-card h3::after{content:'';display:block;width:24px;height:2px;background:var(--cg);margin-top:10px;border-radius:1px;transition:width .3s}
+.svc-card:hover h3::after{width:48px}
+.svc-body{padding:20px 24px 28px}
+.svc-body p{font-size:14px;color:var(--t2);line-height:1.85;margin:0}
+.svc-tag{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.05em;color:var(--c);background:rgba(var(--c-rgb),.08);padding:3px 10px;border-radius:4px;margin-top:14px;font-family:'Inter',sans-serif}
+@media(max-width:750px){.svc-grid{grid-template-columns:1fr;gap:20px}}
 `;

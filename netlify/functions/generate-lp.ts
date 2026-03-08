@@ -14,7 +14,7 @@
 import type { Config } from "@netlify/functions";
 import { getStore } from "@netlify/blobs";
 import Anthropic from "@anthropic-ai/sdk";
-import { SCROLL_ANIM, SEC_HEADER, WAVE_DIVIDER, DOT_BG, CARD_BORDERED, CARD_STAT, BTN_PRIMARY, MICRO_COPY, PROBLEM_CARD, STRENGTH_CARD, TESTIMONIAL_CARD, COMPARISON, CARD_GRID, STATS_GRID, FLOW, FAQ } from "./templates/lp-components";
+import { SCROLL_ANIM, SEC_HEADER, WAVE_DIVIDER, DOT_BG, CARD_BORDERED, CARD_STAT, BTN_PRIMARY, MICRO_COPY, PROBLEM_CARD, STRENGTH_CARD, SERVICE_CARD, TESTIMONIAL_CARD, COMPARISON, CARD_GRID, STATS_GRID, FLOW, FAQ } from "./templates/lp-components";
 
 // ============================================================
 // 型定義
@@ -608,6 +608,7 @@ ${BTN_PRIMARY}
 ${MICRO_COPY}
 ${PROBLEM_CARD}
 ${STRENGTH_CARD}
+${SERVICE_CARD}
 ${TESTIMONIAL_CARD}
 ${COMPARISON}
 ${CARD_GRID}
@@ -645,8 +646,7 @@ ${FAQ}
 .prob-grid{display:flex;flex-direction:column;gap:10px;max-width:680px;margin:0 auto}
 
 /* ===== SOLUTION ===== */
-.sol-text{font-size:15px;color:var(--t2);line-height:2;max-width:640px;margin:0 auto 32px;text-align:center}
-.str-grid{display:flex;flex-direction:column;gap:10px;max-width:680px;margin:0 auto}
+.sol-text{font-size:15px;color:var(--t2);line-height:2;max-width:640px;margin:0 auto 40px;text-align:center}
 
 /* ===== OFFER / CTA ===== */
 .offer{padding:56px 0;background:var(--dark);color:#fff;text-align:center;position:relative;overflow:hidden}
@@ -754,29 +754,35 @@ ${prob.map(item => `<div class="prob fi">
 <!-- WAVE: problems(bg2) → solution(white) -->
 <div class="dvd"><svg viewBox="0 0 1200 72" preserveAspectRatio="none"><rect width="1200" height="72" fill="var(--bg)"/><path d="M0,0 C300,55 600,70 800,40 C1000,10 1150,45 1200,25 L1200,0 L0,0 Z" fill="var(--bg2)"/></svg></div>
 
-<!-- SOLUTION: 解決アプローチ (STRENGTH_CARD) -->
+<!-- SOLUTION: 解決アプローチ (STRENGTH_CARD premium) -->
 <section class="sec" id="solution">
 <div class="inner">
 <div class="sec-hd"><p class="sec-bg-txt">Solution</p><p class="sec-eng">Solution</p><h2 class="sec-tit fi">${esc(c.solution_title || `${d.company_name}が解決します`)}</h2></div>
 <p class="sol-text fi">${esc(c.solution_text || "")}</p>
 <div class="str-grid">
-${str.map(item => `<div class="str fi">
+${str.map((item, i) => `<div class="str fi">
+<span class="str-num">${String(i + 1).padStart(2, "0")}</span>
 <div class="str-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div>
-<p>${esc(item.title)}<br/><span>${esc(item.desc)}</span></p>
+<h4>${esc(item.title)}</h4>
+<p>${esc(item.desc)}</p>
 </div>`).join("")}
 </div>
 </div>
 </section>
 
-<!-- SERVICES: 提供サービス (CARD_BORDERED + CARD_GRID) -->
+<!-- SERVICES: 提供サービス (SERVICE_CARD premium) -->
 <section class="sec dot-bg" id="service" style="background:var(--bg2)">
 <div class="inner">
 <div class="sec-hd"><p class="sec-bg-txt">Service</p><p class="sec-eng">Service</p><h2 class="sec-tit fi">提供サービス</h2></div>
-<div class="card-grid">
-${svc.map((item, i) => `<div class="card card-accent fi">
-<div class="card-ico">${ico[i] || ico[0]}</div>
+<div class="svc-grid">
+${svc.map((item, i) => `<div class="svc-card fi">
+<div class="svc-head">
+<div class="svc-ico-ring">${ico[i] || ico[0]}</div>
 <h3>${esc(item.title)}</h3>
+</div>
+<div class="svc-body">
 <p>${esc(item.desc)}</p>
+</div>
 </div>`).join("")}
 </div>
 </div>
