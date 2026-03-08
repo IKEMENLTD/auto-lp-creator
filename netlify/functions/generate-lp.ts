@@ -257,52 +257,33 @@ ${extra}`;
 // LP Step 1: Draft (設計+コピー生成)
 // ============================================================
 
-const LP_DRAFT_PROMPT = `商談情報からLP用コピーをJSON形式で生成してください。
-商談中の具体的な数字・実績を必ず引用。抽象的な修飾語は禁止、数字で語ること。
+const LP_DRAFT_PROMPT = `商談情報からLP用コピーをJSON形式で生成。数字で語れ。形容詞禁止。
 
-以下のJSONスキーマに従って出力してください。JSON以外のテキストは出力しないでください。
-
+出力JSON（全フィールド必須）:
 {
-  "hero_headline": "数字入りキャッチコピー30字以内",
-  "hero_sub": "具体的な価値を伝える60字以内",
-  "hero_features": ["特徴1", "特徴2", "特徴3"],
-  "badge_text": "業種×ターゲット15字以内",
-  "about_title": "サービス概要の見出し20字以内",
-  "about_text": "サービスの説明100字以内",
-  "problems": [
-    {"title": "課題名15字", "desc": "具体的な説明50字"}
-  ],
-  "transition_text": "課題から解決への橋渡し25字",
-  "benefits": [
-    {"title": "強み20字", "desc": "数字+結果で80字"}
-  ],
-  "merits": [
-    {"title": "メリット20字", "desc": "導入後の変化80字"}
-  ],
-  "cta_text": "ボタン文言12字",
-  "cta_sub": "リスクなしを伝える25字",
-  "stats": [
-    {"number": "92%", "label": "採択率"}
-  ],
-  "flow": [
-    {"title": "ステップ名10字", "desc": "説明40字"}
-  ],
-  "comparison": [
-    {"feature": "比較項目", "us": "自社の強み", "other": "一般的"}
-  ],
-  "faq": [
-    {"q": "よくある質問", "a": "回答50字"}
-  ],
+  "hero_headline": "25字以内。数字+固有名詞必須",
+  "hero_sub": "50字以内",
+  "hero_features": ["数字入り12字×3"],
+  "badge_text": "12字以内",
+  "about_title": "20字以内",
+  "about_text": "100字以内",
+  "problems": [{"title":"15字","desc":"50字"}],
+  "transition_text": "20字以内",
+  "benefits": [{"title":"20字","desc":"数字+結果で80字"}],
+  "merits": [{"title":"20字","desc":"導入後の変化80字"}],
+  "cta_text": "8字以内",
+  "cta_sub": "20字以内",
+  "stats": [{"number":"92%","label":"採択率"}],
+  "flow": [{"title":"10字","desc":"40字"}],
+  "comparison": [{"feature":"比較項目","us":"数字で自社","other":"一般的"}],
+  "faq": [{"q":"質問","a":"50字"}],
   "about": "会社紹介100字",
   "guarantee_text": "安心保証30字",
-  "testimonials": [
-    {"name": "山田太郎", "role": "製造業 代表", "text": "数字入り体験談60字", "result": "成果20字"}
-  ],
+  "testimonials": [{"name":"実名","role":"業種 役職","text":"数字入り体験談60字","result":"定量的成果20字"}],
   "company_profile": "設立年・実績数80字",
-  "urgency_text": "今すぐ行動する理由25字"
+  "urgency_text": "数字入り20字以内"
 }
-
-problems,benefits,merits各3つ、stats4つ、flow4つ、comparison4つ、faq4つ、testimonials3つ生成すること。`;
+problems3,benefits3,merits3,stats4,flow4,comparison4,faq4,testimonials3。JSONのみ出力。`;
 
 async function lpDraft(d: FlatData, transcript: string, apiKey: string, rawData?: Record<string, unknown>): Promise<LpContent> {
   return callClaudeJson<LpContent>(LP_DRAFT_PROMPT, bizContext(d, transcript, rawData), apiKey, 4000, LP_MODEL);
@@ -312,23 +293,34 @@ async function lpDraft(d: FlatData, transcript: string, apiKey: string, rawData?
 // LP Step 2: Evaluate + Revise (品質評価+修正)
 // ============================================================
 
-const LP_EVALUATE_PROMPT = `CVR最適化の専門家として、LPコピーJSONを評価・修正してください。
+const LP_EVALUATE_PROMPT = `あなたはCVR12%超のLP専門コピーライター。入力JSONを"売れるLP"に書き換えてください。
 
-【最重要: 字数制限を厳守】
-- hero_headline: 30字以内（超えていたら短縮必須）
-- hero_features: 各15字以内（超えていたら短縮必須）
-- badge_text: 15字以内
-- transition_text: 25字以内
-- urgency_text: 25字以内（例:「今月の無料枠：残り5社」）
-- cta_text: 12字以内
-- testimonials: 必ず3件。1-2件なら追加生成すること
+【字数制限（厳守・超過は全て短縮）】
+- hero_headline: 25字以内。数字+固有名詞必須。型:「○○が△△を□□した方法」「たった○○で△△%改善」
+- hero_sub: 50字以内。headlineの具体的な補足
+- hero_features: 各12字以内、3つ。各項目に数字を1つ含める
+- badge_text: 12字以内。業種×実績（例:「製造業DX実績No.1」）
+- transition_text: 20字以内。課題→解決の橋渡し
+- urgency_text: 20字以内。必ず数字入り（例:「3月の無料枠：残り3社」「先着10社限定」）
+- cta_text: 8字以内（例:「無料で相談する」「資料をもらう」）
+- cta_sub: 20字以内
 
-【修正ルール】
-- 形容詞は数字に置換、曖昧な主語は具体化
-- hero_headlineが弱い or 長すぎなら完全に書き直す
-- 全フィールド必須。省略禁止
+【品質ルール】
+1. 形容詞禁止。「豊富な」→「年間200件の」、「高品質な」→「顧客満足度98%の」
+2. 主語を具体化。「多くの企業」→「従業員50名以上の製造業」
+3. benefits/features: 3つそれぞれに異なる具体的数字を入れる。同じ表現の繰り返し禁止
+4. problems: ターゲットが「あるある」と思う日常的な課題。抽象的な経営課題NG
+5. testimonials: 必ず3件。各testimonialに異なる業種名+改善数字。resultは「売上○%UP」「コスト○万円削減」のように定量的
+6. comparison: usは具体的数字、otherは「一般的には…」で対比
+7. stats: 4つすべて異なるカテゴリの数字（例: 実績数、満足度、削減率、対応速度）
+8. faq: 「料金」「期間」「他社との違い」「サポート」の4種を必ずカバー
 
-入力JSONと同じ構造で修正版を出力。JSON以外のテキスト不要。`;
+【絶対NG】
+- 「お客様に寄り添う」「丁寧なサポート」等の抽象フレーズ
+- 同じ数字の使い回し
+- フィールドの省略・空配列
+
+入力と同じJSON構造で出力。JSON以外のテキスト不要。`;
 
 async function lpEvaluate(draft: LpContent, d: FlatData, apiKey: string): Promise<LpContent> {
   const input = `【対象企業】${d.company_name}（${d.service_name}）
@@ -495,7 +487,7 @@ function buildLpHtml(c: LpContent, d: FlatData, images: LpImage[] = []): string 
     `<svg width="40" height="40" viewBox="0 0 40 40" fill="none"><rect width="40" height="40" rx="8" fill="var(--c)" opacity=".12"/><path d="M14 26l5-10 5 6 5-8" stroke="var(--c)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
   ];
 
-  const starSvg = `<svg width="14" height="14" viewBox="0 0 20 20" fill="var(--ca)"><path d="M10 1l2.39 4.84L18 6.71l-4 3.9.94 5.5L10 13.38 5.06 16.1 6 10.6l-4-3.9 5.61-.87L10 1z"/></svg>`;
+  const starSvg = `<svg width="18" height="18" viewBox="0 0 20 20" fill="#f59e0b"><path d="M10 1l2.39 4.84L18 6.71l-4 3.9.94 5.5L10 13.38 5.06 16.1 6 10.6l-4-3.9 5.61-.87L10 1z"/></svg>`;
 
   return `<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>${esc(c.hero_headline)} | ${esc(d.company_name)}</title>
@@ -619,16 +611,16 @@ img{max-width:100%;display:block}
 
 /* TESTIMONIALS */
 .tm-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
-.tm-card{padding:28px;background:var(--bg);border:1px solid var(--bd);border-radius:var(--r);position:relative;transition:box-shadow .3s}
-.tm-card:hover{box-shadow:0 8px 32px rgba(0,0,0,.06)}
-.tm-card::before{content:'"';position:absolute;top:16px;right:20px;font-family:'Inter',serif;font-size:48px;color:var(--c);opacity:.12;line-height:1}
-.tm-stars{display:flex;gap:2px;margin-bottom:12px}
-.tm-text{font-size:14px;color:var(--t2);line-height:1.9;margin-bottom:16px;font-style:italic}
-.tm-result{display:inline-block;padding:4px 12px;background:rgba(${parseInt(colors.primary.slice(1,3),16)},${parseInt(colors.primary.slice(3,5),16)},${parseInt(colors.primary.slice(5,7),16)},.08);color:var(--c);font-size:12px;font-weight:700;border-radius:20px;margin-bottom:14px}
-.tm-author{display:flex;align-items:center;gap:12px;border-top:1px solid var(--bd);padding-top:14px}
-.tm-avatar{width:40px;height:40px;border-radius:50%;background:var(--cg);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:14px}
-.tm-name{font-size:13px;font-weight:700}
-.tm-role{font-size:11px;color:var(--t3)}
+.tm-card{padding:32px;background:var(--bg);border:1px solid var(--bd);border-radius:var(--r);position:relative;transition:box-shadow .3s,transform .3s}
+.tm-card:hover{box-shadow:0 12px 40px rgba(0,0,0,.08);transform:translateY(-4px)}
+.tm-card::before{content:'"';position:absolute;top:12px;right:20px;font-family:Georgia,serif;font-size:64px;color:var(--c);opacity:.1;line-height:1}
+.tm-stars{display:flex;gap:3px;margin-bottom:14px}
+.tm-text{font-size:15px;color:var(--t1);line-height:1.9;margin-bottom:18px;font-style:italic}
+.tm-result{display:inline-block;padding:6px 16px;background:rgba(${parseInt(colors.primary.slice(1,3),16)},${parseInt(colors.primary.slice(3,5),16)},${parseInt(colors.primary.slice(5,7),16)},.1);color:var(--c);font-size:13px;font-weight:800;border-radius:20px;margin-bottom:16px}
+.tm-author{display:flex;align-items:center;gap:12px;border-top:1px solid var(--bd);padding-top:16px}
+.tm-avatar{width:48px;height:48px;border-radius:50%;background:var(--cg);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:16px}
+.tm-name{font-size:14px;font-weight:800}
+.tm-role{font-size:12px;color:var(--t3)}
 @media(max-width:750px){.tm-grid{grid-template-columns:1fr}}
 
 /* MID CTA (OFFER) */
@@ -653,7 +645,7 @@ img{max-width:100%;display:block}
 
 /* COMPARISON */
 .cmp-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
-.cmp-card{padding:28px;border:2px solid var(--bd);border-radius:var(--r)}
+.cmp-card{padding:28px;border:2px solid var(--bd);border-radius:var(--r);background:var(--bg)}
 .cmp-us{border-color:var(--c);position:relative;background:rgba(${parseInt(colors.primary.slice(1,3),16)},${parseInt(colors.primary.slice(3,5),16)},${parseInt(colors.primary.slice(5,7),16)},.02);box-shadow:0 4px 24px rgba(${parseInt(colors.primary.slice(1,3),16)},${parseInt(colors.primary.slice(3,5),16)},${parseInt(colors.primary.slice(5,7),16)},.08)}
 .cmp-us::before{content:'RECOMMEND';position:absolute;top:-13px;left:20px;background:var(--c);color:#fff;font-size:10px;font-weight:700;letter-spacing:.15em;padding:4px 14px;font-family:'Inter',sans-serif;border-radius:4px}
 .cmp-title{font-size:15px;font-weight:800;margin-bottom:20px;padding-bottom:14px;border-bottom:1px solid var(--bd)}
@@ -747,8 +739,8 @@ ${s.map(st => `<div class="fv-stat"><div class="fv-stat-num">${esc(st.number)}</
 </div>
 </section>
 
-<!-- DIVIDER: hero → about (diagonal) -->
-<div class="dvd" style="background:var(--bg2)"><svg viewBox="0 0 1200 80" preserveAspectRatio="none"><polygon points="0,0 1200,80 0,80" fill="var(--bg2)"/><polygon points="0,0 1200,0 1200,80" fill="var(--dark)"/></svg></div>
+<!-- DIVIDER: hero → about (diagonal, dark→gray) -->
+<div class="dvd"><svg viewBox="0 0 1200 80" preserveAspectRatio="none"><polygon points="0,0 1200,0 1200,80" fill="var(--dark)"/><polygon points="0,0 1200,80 0,80" fill="var(--bg2)"/></svg></div>
 
 <!-- ABOUT -->
 <section class="sec about" id="about">
@@ -772,8 +764,8 @@ ${hasImg && images[1] ? `<img class="about-img" src="${esc(images[1].url)}" alt=
 </div>
 </section>
 
-<!-- DIVIDER: about → features (wave) -->
-<div class="dvd" style="background:var(--bg)"><svg viewBox="0 0 1200 80" preserveAspectRatio="none"><path d="M0,0 C300,80 900,0 1200,80 L1200,0 L0,0 Z" fill="var(--bg2)"/></svg></div>
+<!-- DIVIDER: about → features (soft wave, gray→white) -->
+<div class="dvd"><svg viewBox="0 0 1200 80" preserveAspectRatio="none"><rect width="1200" height="80" fill="var(--bg)"/><path d="M0,0 C300,65 900,5 1200,60 L1200,0 L0,0 Z" fill="var(--bg2)"/></svg></div>
 
 <!-- FEATURES -->
 <section class="sec dot-bg" id="features">
@@ -795,22 +787,22 @@ ${s[i + 1] ? `<div class="fv-stat-big">${esc(s[i + 1]?.number || "")}</div><div 
 </div>
 </section>
 
-<!-- DIVIDER: features → cta (diagonal) -->
-<div class="dvd" style="background:var(--dark)"><svg viewBox="0 0 1200 80" preserveAspectRatio="none"><polygon points="0,80 1200,0 1200,80" fill="var(--dark)"/><polygon points="0,0 1200,0 0,80" fill="var(--bg)"/></svg></div>
+<!-- DIVIDER: features → cta (diagonal, white→dark) -->
+<div class="dvd"><svg viewBox="0 0 1200 80" preserveAspectRatio="none"><polygon points="0,0 1200,0 0,80" fill="var(--bg)"/><polygon points="0,80 1200,0 1200,80" fill="var(--dark)"/></svg></div>
 
-<!-- MID CTA 1 (OFFER) -->
-<section class="offer">
-<div class="inner">
-<p class="offer-tit">${esc(c.cta_sub || "まずはお気軽にご相談ください")}</p>
-<p class="offer-sub">${esc(c.guarantee_text || "無料相談・しつこい営業は一切ありません")}</p>
-${c.urgency_text ? `<div class="offer-urgency"><svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>${esc(c.urgency_text)}</div>` : ""}
-<br><a href="#contact" class="fv-cta">${esc(c.cta_text)} <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/></svg></a>
-<p class="offer-micro">30秒で完了 / 無料 / 営業電話なし</p>
+<!-- MID CTA 1 (OFFER - primary, accent gradient) -->
+<section class="offer" style="background:var(--cg);padding:72px 0">
+<div class="inner" style="position:relative;z-index:1">
+${c.urgency_text ? `<div class="offer-urgency" style="border-color:rgba(255,255,255,.3);color:#fff;font-weight:700"><svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>${esc(c.urgency_text)}</div>` : ""}
+<p class="offer-tit" style="font-size:clamp(20px,3.5vw,28px)">${esc(c.cta_sub || "まずはお気軽にご相談ください")}</p>
+<p class="offer-sub" style="color:rgba(255,255,255,.7)">${esc(c.guarantee_text || "無料相談・しつこい営業は一切ありません")}</p>
+<br><a href="#contact" class="fv-cta" style="background:#fff;color:var(--dark);font-size:16px;padding:18px 48px">${esc(c.cta_text)} <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/></svg></a>
+<p class="offer-micro" style="color:rgba(255,255,255,.55)">30秒で完了 / 無料 / 営業電話なし</p>
 </div>
 </section>
 
-<!-- DIVIDER: cta → testimonials (wave) -->
-<div class="dvd" style="background:var(--bg)"><svg viewBox="0 0 1200 80" preserveAspectRatio="none"><path d="M0,80 C400,0 800,80 1200,0 L1200,80 L0,80 Z" fill="var(--bg)"/><path d="M0,0 C400,0 800,80 1200,0 L1200,80 C800,80 400,0 0,80 Z" fill="var(--dark)"/></svg></div>
+<!-- DIVIDER: cta → testimonials (diagonal, dark→white) -->
+<div class="dvd"><svg viewBox="0 0 1200 80" preserveAspectRatio="none"><polygon points="0,0 1200,0 1200,80" fill="var(--dark)"/><polygon points="0,0 0,80 1200,80" fill="var(--bg)"/></svg></div>
 
 <!-- TESTIMONIALS -->
 ${tm.length > 0 ? `<section class="sec" id="voice">
@@ -853,8 +845,8 @@ ${m.map((item, i) => `<div class="merit-card fi">
 </div>
 </section>
 
-<!-- DIVIDER: cta2 → comparison (diagonal) -->
-<div class="dvd" style="background:var(--bg)"><svg viewBox="0 0 1200 80" preserveAspectRatio="none"><polygon points="0,0 1200,80 0,80" fill="var(--bg)"/><polygon points="0,0 1200,0 1200,80" fill="var(--dark)"/></svg></div>
+<!-- DIVIDER: cta2 → comparison (wave, dark→white) -->
+<div class="dvd"><svg viewBox="0 0 1200 80" preserveAspectRatio="none"><rect width="1200" height="80" fill="var(--bg)"/><path d="M0,0 C400,70 800,10 1200,50 L1200,0 L0,0 Z" fill="var(--dark)"/></svg></div>
 
 <!-- COMPARISON -->
 ${cmp.length > 0 ? `<section class="sec">
@@ -865,8 +857,8 @@ ${cmp.length > 0 ? `<section class="sec">
 <p class="cmp-title">${esc(d.company_name)}</p>
 ${cmp.map(r => `<div class="cmp-row"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--c)" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg><span><strong>${esc(r.feature)}</strong>: ${esc(r.us)}</span></div>`).join("")}
 </div>
-<div class="cmp-card">
-<p class="cmp-title">一般的な企業</p>
+<div class="cmp-card" style="background:var(--bg2);border-color:var(--bg2)">
+<p class="cmp-title" style="color:var(--t3)">一般的な企業</p>
 ${cmp.map(r => `<div class="cmp-row"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg><span><strong>${esc(r.feature)}</strong>: ${esc(r.other)}</span></div>`).join("")}
 </div>
 </div>
@@ -907,8 +899,8 @@ ${c.company_profile ? `<section class="sec" style="background:var(--bg2)">
 </div>
 </section>` : ""}
 
-<!-- DIVIDER: → final cta (diagonal) -->
-<div class="dvd" style="background:var(--dark)"><svg viewBox="0 0 1200 80" preserveAspectRatio="none"><polygon points="0,80 1200,0 1200,80" fill="var(--dark)"/><polygon points="0,0 1200,0 0,80" fill="var(--bg2)"/></svg></div>
+<!-- DIVIDER: → final cta (diagonal, gray→dark) -->
+<div class="dvd"><svg viewBox="0 0 1200 80" preserveAspectRatio="none"><polygon points="0,0 1200,0 1200,80" fill="var(--bg2)"/><polygon points="0,0 0,80 1200,80" fill="var(--dark)"/></svg></div>
 
 <!-- CTA -->
 <section class="cta-sec" id="contact">
