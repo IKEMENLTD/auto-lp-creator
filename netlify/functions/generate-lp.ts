@@ -14,7 +14,7 @@
 import type { Config } from "@netlify/functions";
 import { getStore } from "@netlify/blobs";
 import Anthropic from "@anthropic-ai/sdk";
-import { SCROLL_ANIM, SEC_HEADER, WAVE_DIVIDER, DOT_BG, CARD_BORDERED, CARD_STAT, BTN_PRIMARY, MICRO_COPY, STRENGTH_CARD, TESTIMONIAL_CARD, CARD_GRID, STATS_GRID, FLOW, FAQ } from "./templates/lp-components";
+import { SCROLL_ANIM, SEC_HEADER, WAVE_DIVIDER, DOT_BG, CARD_BORDERED, CARD_STAT, BTN_PRIMARY, MICRO_COPY, PROBLEM_CARD, STRENGTH_CARD, TESTIMONIAL_CARD, COMPARISON, CARD_GRID, STATS_GRID, FLOW, FAQ } from "./templates/lp-components";
 
 // ============================================================
 // 型定義
@@ -31,42 +31,40 @@ interface FlatData {
   pain_points: string[];
   price_range: string;
   current_marketing: string;
+  key_persons: string[];
 }
 
 interface LpContent {
-  // Profile
-  profile_name: string;
-  profile_title: string;
+  // Person
+  person_name: string;
+  person_title: string;
   // Hero
   hero_headline: string;
   hero_sub: string;
   hero_features: string[];
   badge_text: string;
-  // About
-  about_title: string;
-  about_text: string;
+  // Problems
+  problems: { title: string; desc: string }[];
+  // Solution
+  solution_title: string;
+  solution_text: string;
   strengths: { title: string; desc: string }[];
-  // Expertise
-  expertise: { title: string; desc: string }[];
-  // Merits
-  merits: { title: string; desc: string }[];
+  // Services
+  services: { title: string; desc: string }[];
+  // Stats
+  stats: { number: string; label: string }[];
+  // Cases (real data from transcript only)
+  cases: { category: string; detail: string; result: string }[];
+  // Comparison
+  comparison: { feature: string; us: string; other: string }[];
+  // Flow
+  flow: { title: string; desc: string }[];
+  faq: { q: string; a: string }[];
   // CTA
   cta_text: string;
   cta_sub: string;
-  guarantee_text: string;
-  urgency_text: string;
-  // Data
-  stats: { number: string; label: string }[];
-  flow: { title: string; desc: string }[];
-  faq: { q: string; a: string }[];
-  testimonials: { name: string; role: string; text: string; result: string }[];
+  // Company
   company_profile: string;
-  // Legacy compat
-  problems?: { title: string; desc: string }[];
-  benefits?: { title: string; desc: string }[];
-  comparison?: { feature: string; us: string; other: string }[];
-  about?: string;
-  transition_text?: string;
 }
 
 interface AdContent {
@@ -141,6 +139,7 @@ function flatten(raw: Record<string, unknown>): FlatData {
     pain_points: getArr("pain_points").length > 0 ? getArr("pain_points") : ["課題あり"],
     price_range: get("price_range"),
     current_marketing: get("current_marketing"),
+    key_persons: getArr("key_persons"),
   };
 }
 
@@ -219,7 +218,7 @@ async function callClaudeJson<T>(system: string, user: string, apiKey: string, m
 // ビジネスコンテキスト
 // ============================================================
 
-const TRANSCRIPT_MAX_CHARS = 4000; // Sonnet 26秒制限対策（入力トークン削減）
+const TRANSCRIPT_MAX_CHARS = 8000; // Haiku入力は高速。重要情報が後半にあるケース対策
 
 function truncateTranscript(transcript: string): string {
   if (!transcript || transcript.length <= TRANSCRIPT_MAX_CHARS) return transcript;
@@ -258,11 +257,13 @@ function bizContext(d: FlatData, transcript: string, rawData?: Record<string, un
   return `【トランスクリプト】
 ${transcript || "（なし）"}
 
-【サマリー】
-${d.company_name}/${d.service_name}/${d.industry}
+【対象企業】${d.company_name}
+サービス:${d.service_name}
+業種:${d.industry}
 ターゲット:${d.target_customer}
 強み:${d.strengths.join("/")}
 課題:${d.pain_points.join("/")}
+${d.key_persons.length > 0 ? `登場人物:${d.key_persons.join("/")}` : ""}
 ${extra}`;
 }
 
@@ -270,33 +271,40 @@ ${extra}`;
 // LP Step 1: Draft (設計+コピー生成)
 // ============================================================
 
-const LP_DRAFT_PROMPT = `商談情報から「サービス提供者のプロフィールページ」用コンテンツをJSON生成。
-この人に仕事を依頼したくなるプロフィールページ。数字で語れ。形容詞禁止。
+const LP_DRAFT_PROMPT = `商談トランスクリプトから「課題解決型ページ」用コンテンツをJSON生成。
+
+【最重要ルール】
+- 【対象企業】に記載の企業の、商談に実際に参加し発言している担当者が対象
+- 話者ラベルを確認せよ。名前のみ言及された人物（代表者等）は対象外
+- 数字はトランスクリプトに含まれるものだけ使え。捏造禁止
+- 形容詞禁止。数字で語れ
+- ページの目的:「この人/会社に相談すれば課題が解決できる」と思わせること
 
 出力JSON（全フィールド必須）:
 {
-  "profile_name": "氏名（商談から推定）",
-  "profile_title": "肩書き（例: 補助金採択コンサルタント）",
-  "hero_headline": "25字以内。この人を一言で。数字必須",
-  "hero_sub": "50字以内。何をしている人か",
-  "hero_features": ["実績12字×3（数字入り）"],
+  "person_name": "実際に発言している担当者名（話者ラベルから特定）",
+  "person_title": "肩書き（発言内容から推定）",
+  "hero_headline": "30字以内。ターゲットの課題を問いかけ形式で",
+  "hero_sub": "50字以内。この会社/人がどう解決するか",
+  "hero_features": ["実績数字12字×3"],
   "badge_text": "12字以内。専門分野",
-  "about_title": "自己紹介タイトル20字",
-  "about_text": "人柄が伝わる自己紹介120字。経歴+実績+想い",
-  "strengths": [{"title":"強み15字","desc":"具体的に数字入り50字"}],
-  "expertise": [{"title":"サービス名20字","desc":"内容+成果を数字で80字"}],
-  "merits": [{"title":"選ばれる理由20字","desc":"数字で裏付け80字"}],
-  "cta_text": "8字以内（例:「話を聞いてみる」）",
-  "cta_sub": "20字以内",
+  "problems": [{"title":"課題15字","desc":"ターゲットの具体的困りごと50字"}],
+  "solution_title": "解決提案タイトル25字",
+  "solution_text": "解決アプローチ120字。具体的な方法論",
+  "strengths": [{"title":"強み15字","desc":"数字入り解決力50字"}],
+  "services": [{"title":"サービス名20字","desc":"内容+対象+成果80字"}],
   "stats": [{"number":"92%","label":"採択率"}],
+  "cases": [{"category":"案件カテゴリ","detail":"具体内容50字","result":"成果数字20字"}],
+  "comparison": [{"feature":"比較項目","us":"自社の方法","other":"一般的な方法"}],
   "flow": [{"title":"ステップ10字","desc":"説明40字"}],
   "faq": [{"q":"質問","a":"回答50字"}],
-  "guarantee_text": "安心ポイント30字",
-  "testimonials": [{"name":"実名","role":"業種 役職","text":"この人に頼んだ感想60字","result":"定量成果20字"}],
-  "company_profile": "会社概要80字",
-  "urgency_text": "数字入り限定感20字"
+  "cta_text": "8字以内",
+  "cta_sub": "20字以内",
+  "company_profile": "会社概要80字"
 }
-strengths3,expertise3,merits3,stats4,flow4,faq4,testimonials3。JSONのみ出力。`;
+problems3-4,strengths3,services3,stats4,comparison4-5,flow4,faq4。
+cases:トランスクリプトに具体的事例があれば最大3件（なければ空配列[]）。捏造厳禁。
+JSONのみ出力。`;
 
 async function lpDraft(d: FlatData, transcript: string, apiKey: string, rawData?: Record<string, unknown>): Promise<LpContent> {
   return callClaudeJson<LpContent>(LP_DRAFT_PROMPT, bizContext(d, transcript, rawData), apiKey, 4000, LP_MODEL);
@@ -306,42 +314,39 @@ async function lpDraft(d: FlatData, transcript: string, apiKey: string, rawData?
 // LP Step 2: Evaluate + Revise (品質評価+修正)
 // ============================================================
 
-const LP_EVALUATE_PROMPT = `あなたはプロフィールページ専門のコピーライター。入力JSONを"この人に頼みたい"と思わせるプロフィールに書き換えてください。
+const LP_EVALUATE_PROMPT = `あなたは課題解決型ページ専門のコピーライター。入力JSONを改善してください。
 
-【字数制限（厳守）】
-- profile_name: 実名。商談から推定できなければ「担当者」
-- profile_title: 20字以内。専門性が伝わる肩書き
-- hero_headline: 25字以内。数字必須。型:「○○件の実績を持つ△△専門家」
-- hero_sub: 50字以内。具体的な仕事内容
-- hero_features: 各12字以内×3。各項目に異なる数字
-- badge_text: 12字以内
-- about_text: 120字以内。経歴→実績→信念の流れ
-- urgency_text: 20字以内。数字入り
-- cta_text: 8字以内
+【ページの目的】「この人/会社に相談すれば課題が解決できる」と思わせること。
 
 【品質ルール】
-1. 形容詞禁止。「豊富な」→「年間200件の」
-2. 人物像を具体化。「専門家」→「補助金採択率92%のコンサルタント」
-3. strengths: 3つそれぞれに異なる数字。この人ならではの強み
-4. expertise: 3サービスそれぞれに具体的な成果数字
-5. testimonials: 3件。異なる業種+改善数字。resultは定量的
-6. stats: 4つ異なるカテゴリ（実績数、満足度、経験年数、対応速度等）
-7. faq: 「料金」「期間」「進め方」「相性」をカバー
-8. merits: この人に頼む理由。他の人との違いを数字で
+1. person_name: 話者ラベルと一致する実名か検証。名前のみ言及された人物に差し替えるな
+2. hero_headline: ターゲットの課題を刺す問いかけ。30字以内
+3. problems: ターゲットが共感する具体的課題。抽象禁止。3-4個
+4. solution_text: 課題→解決の論理的つながり。120字以内
+5. strengths: 各項目に異なる数字。課題に対する具体的解決力。3個
+6. services: 各サービスの対象と成果を数字で。3個
+7. comparison: 「一般的な方法」vs「この会社の場合」で差を明確に。4-5行
+8. cases: トランスクリプトに言及あればそのまま。なければ空配列[]維持。捏造厳禁
+9. stats: 4つ異なるカテゴリ
+10. faq: 料金・期間・進め方・対象範囲をカバー。4個
+11. cta_text: 8字以内
 
 【絶対NG】
+- 架空の実績・数字の捏造
 - 「寄り添う」「丁寧」「真心」等の抽象語
 - 同じ数字の使い回し
-- フィールド省略・空配列
+- フィールド省略
 
 入力と同じJSON構造で出力。JSON以外不要。`;
 
 async function lpEvaluate(draft: LpContent, d: FlatData, apiKey: string): Promise<LpContent> {
   const input = `【対象企業】${d.company_name}（${d.service_name}）
+【対象人物】${draft.person_name}（${draft.person_title}）
 【ターゲット】${d.target_customer}
 【強み】${d.strengths.join(" / ")}
+${d.key_persons.length > 0 ? `【商談参加者】${d.key_persons.join(" / ")}` : ""}
 
-【評価対象のLPコピー】
+【評価対象のコピー】
 ${JSON.stringify(draft)}`;
 
   return callClaudeJson<LpContent>(LP_EVALUATE_PROMPT, input, apiKey, 4000, LP_MODEL);
@@ -470,7 +475,7 @@ function selectImages(d: FlatData): LpImage[] {
 function getDecoColors(industry: string): { primary: string; gradient: string; accent: string } {
   const i = industry.toLowerCase();
   if (i.includes("医") || i.includes("健康") || i.includes("福祉")) return { primary: "#0891b2", gradient: "linear-gradient(135deg,#0891b2,#06b6d4)", accent: "#06b6d4" };
-  if (i.includes("IT") || i.includes("テック") || i.includes("開発")) return { primary: "#7c3aed", gradient: "linear-gradient(135deg,#7c3aed,#a78bfa)", accent: "#a78bfa" };
+  if (i.includes("it") || i.includes("テック") || i.includes("開発") || i.includes("システム")) return { primary: "#7c3aed", gradient: "linear-gradient(135deg,#7c3aed,#a78bfa)", accent: "#a78bfa" };
   if (i.includes("飲食") || i.includes("食")) return { primary: "#ea580c", gradient: "linear-gradient(135deg,#ea580c,#f97316)", accent: "#fb923c" };
   if (i.includes("教育") || i.includes("学")) return { primary: "#0d9488", gradient: "linear-gradient(135deg,#0d9488,#2dd4bf)", accent: "#2dd4bf" };
   if (i.includes("建") || i.includes("不動産")) return { primary: "#b45309", gradient: "linear-gradient(135deg,#92400e,#b45309)", accent: "#d97706" };
@@ -483,19 +488,19 @@ function getDecoColors(industry: string): { primary: string; gradient: string; a
 // ============================================================
 
 function buildLpHtml(c: LpContent, d: FlatData, images: LpImage[] = []): string {
-  // Compat: legacy field mapping
-  const str = c.strengths?.length ? c.strengths : (c.problems || []);
-  const exp = c.expertise?.length ? c.expertise : (c.benefits || []);
-  const m = c.merits || [];
+  const prob = c.problems || [];
+  const str = c.strengths || [];
+  const svc = c.services || [];
   const s = c.stats || [];
+  const cmp = c.comparison || [];
+  const cas = c.cases || [];
   const f = c.flow || [];
   const faq = c.faq || [];
   const hf = c.hero_features || [];
-  const tm = c.testimonials || [];
   const colors = getDecoColors(d.industry);
   const hasImg = images.length > 0;
-  const pName = c.profile_name || d.company_name;
-  const pTitle = c.profile_title || d.industry;
+  const pName = c.person_name || d.company_name;
+  const pTitle = c.person_title || d.industry;
 
   const ico = [
     `<svg width="40" height="40" viewBox="0 0 40 40" fill="none"><rect width="40" height="40" rx="8" fill="var(--c)" opacity=".12"/><path d="M14 20l4 4 8-10" stroke="var(--c)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
@@ -503,15 +508,23 @@ function buildLpHtml(c: LpContent, d: FlatData, images: LpImage[] = []): string 
     `<svg width="40" height="40" viewBox="0 0 40 40" fill="none"><rect width="40" height="40" rx="8" fill="var(--c)" opacity=".12"/><path d="M14 26l5-10 5 6 5-8" stroke="var(--c)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
   ];
 
-  const starSvg = `<svg width="18" height="18" viewBox="0 0 20 20" fill="#f59e0b"><path d="M10 1l2.39 4.84L18 6.71l-4 3.9.94 5.5L10 13.38 5.06 16.1 6 10.6l-4-3.9 5.61-.87L10 1z"/></svg>`;
   const checkSvg = `<svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`;
   const clockSvg = `<svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`;
-  const microHtml = `<p class="micro micro-light"><span>${checkSvg}無料</span><span>${clockSvg}30秒で完了</span><span>${checkSvg}営業電話なし</span></p>`;
+  const shieldSvg = `<svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"/></svg>`;
+  const alertSvg = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/></svg>`;
+  const microHtml = `<p class="micro micro-light"><span>${checkSvg}相談無料</span><span>${shieldSvg}秘密厳守</span><span>${clockSvg}オンライン対応</span></p>`;
+  const microDarkHtml = `<p class="micro micro-dark"><span>${checkSvg}相談無料</span><span>${shieldSvg}秘密厳守</span><span>${clockSvg}オンライン対応</span></p>`;
+  const cmpCheck = `<svg width="16" height="16" viewBox="0 0 20 20" fill="var(--c)"><path d="M16.7 5.3a1 1 0 010 1.4l-8 8a1 1 0 01-1.4 0l-4-4a1 1 0 111.4-1.4L8 12.6l7.3-7.3a1 1 0 011.4 0z"/></svg>`;
+  const cmpCross = `<svg width="16" height="16" viewBox="0 0 20 20" fill="#94a3b8"><path d="M6.3 6.3a1 1 0 011.4 0L10 8.6l2.3-2.3a1 1 0 111.4 1.4L11.4 10l2.3 2.3a1 1 0 01-1.4 1.4L10 11.4l-2.3 2.3a1 1 0 01-1.4-1.4L8.6 10 6.3 7.7a1 1 0 010-1.4z"/></svg>`;
+  const arrowSvg = `<svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/></svg>`;
 
   const cRgb = `${parseInt(colors.primary.slice(1,3),16)},${parseInt(colors.primary.slice(3,5),16)},${parseInt(colors.primary.slice(5,7),16)}`;
 
   return `<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>${esc(pName)} - ${esc(pTitle)} | ${esc(d.company_name)}</title>
+<title>${esc(d.company_name)} - ${esc(d.service_name)} | ${esc(pName)}</title>
+<meta property="og:title" content="${esc(d.company_name)} - ${esc(pName)}">
+<meta property="og:description" content="${esc(c.hero_headline)}">
+<meta property="og:type" content="website">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
@@ -522,7 +535,7 @@ a{text-decoration:none;color:inherit}
 img{max-width:100%;display:block}
 .inner{max-width:1100px;margin:0 auto;padding:0 24px}
 
-/* ===== COMPONENTS ===== */
+/* ===== ALL COMPONENTS ===== */
 ${SCROLL_ANIM}
 ${SEC_HEADER}
 ${WAVE_DIVIDER}
@@ -531,8 +544,10 @@ ${CARD_BORDERED}
 ${CARD_STAT}
 ${BTN_PRIMARY}
 ${MICRO_COPY}
+${PROBLEM_CARD}
 ${STRENGTH_CARD}
 ${TESTIMONIAL_CARD}
+${COMPARISON}
 ${CARD_GRID}
 ${STATS_GRID}
 ${FLOW}
@@ -551,9 +566,9 @@ ${FAQ}
 .fv-overlay{position:absolute;inset:0;background:linear-gradient(135deg,rgba(15,23,42,.88) 0%,rgba(15,23,42,.72) 50%,rgba(15,23,42,.55) 100%);z-index:0}
 .fv .inner{position:relative;z-index:1;max-width:800px;text-align:center;padding-top:80px;padding-bottom:120px}
 .fv-badge{display:inline-block;padding:6px 18px;border:1px solid rgba(255,255,255,.25);border-radius:20px;font-size:12px;font-weight:700;letter-spacing:.15em;color:var(--ca);text-transform:uppercase;margin-bottom:20px}
-.fv-name{font-size:clamp(32px,5.5vw,56px);font-weight:900;line-height:1.1;color:#fff;margin-bottom:6px}
-.fv-role{font-size:clamp(14px,1.6vw,16px);color:var(--ca);font-weight:700;margin-bottom:16px;letter-spacing:.05em}
-.fv-headline{font-size:clamp(16px,2vw,20px);color:rgba(255,255,255,.8);margin-bottom:28px;line-height:1.7}
+.fv-name{font-size:clamp(14px,1.6vw,16px);color:var(--ca);font-weight:700;margin-bottom:8px;letter-spacing:.05em}
+.fv-headline{font-size:clamp(24px,4vw,42px);font-weight:900;line-height:1.3;color:#fff;margin-bottom:16px}
+.fv-sub{font-size:clamp(14px,1.6vw,17px);color:rgba(255,255,255,.75);margin-bottom:28px;line-height:1.8}
 .fv-features{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:36px;justify-content:center}
 .fv-features span{display:inline-flex;align-items:center;gap:6px;padding:8px 18px;background:rgba(255,255,255,.12);backdrop-filter:blur(4px);color:#fff;font-size:13px;font-weight:700;letter-spacing:.03em;border-radius:var(--r);border:1px solid rgba(255,255,255,.1)}
 .fv-features span::before{content:'';width:5px;height:5px;background:var(--ca);border-radius:50%}
@@ -563,15 +578,12 @@ ${FAQ}
 .fv-stat-num{font-family:'Inter',sans-serif;font-size:clamp(24px,3.5vw,40px);font-weight:900;background:var(--cg);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1.1}
 .fv-stat-label{font-size:12px;color:var(--t2);margin-top:4px;letter-spacing:.05em;font-weight:600}
 
-/* ===== ABOUT ===== */
-.about{background:var(--bg2)}
-.about-grid{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center}
-.about-txt{font-size:15px;color:var(--t2);line-height:2;margin-bottom:24px}
-.about-strengths{display:flex;flex-direction:column;gap:10px}
-.about-visual{position:relative;display:flex;align-items:center;justify-content:center;min-height:320px;border-radius:var(--r);overflow:hidden}
-.about-visual::before{content:'';position:absolute;inset:0;background:var(--cg);opacity:.06;border-radius:16px}
-.about-avatar{position:relative;z-index:1;width:160px;height:160px;border-radius:50%;background:var(--cg);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:64px;box-shadow:0 12px 40px rgba(var(--c-rgb),.2)}
-.about-img{width:100%;height:100%;object-fit:cover;border-radius:var(--r);position:absolute;inset:0;z-index:1}
+/* ===== PROBLEMS ===== */
+.prob-grid{display:flex;flex-direction:column;gap:10px;max-width:680px;margin:0 auto}
+
+/* ===== SOLUTION ===== */
+.sol-text{font-size:15px;color:var(--t2);line-height:2;max-width:640px;margin:0 auto 32px;text-align:center}
+.str-grid{display:flex;flex-direction:column;gap:10px;max-width:680px;margin:0 auto}
 
 /* ===== OFFER / CTA ===== */
 .offer{padding:56px 0;background:var(--dark);color:#fff;text-align:center;position:relative;overflow:hidden}
@@ -579,8 +591,6 @@ ${FAQ}
 .offer-accent{background:var(--c);padding:72px 0}
 .offer-tit{font-size:clamp(18px,3vw,24px);font-weight:800;margin-bottom:8px;position:relative}
 .offer-sub{font-size:14px;color:rgba(255,255,255,.55);margin-bottom:20px;position:relative}
-.offer-urgency{display:inline-flex;align-items:center;gap:8px;padding:6px 16px;border:1px solid rgba(255,255,255,.2);border-radius:20px;font-size:12px;color:#fff;font-weight:700;margin-bottom:20px;position:relative}
-.offer-urgency svg{width:14px;height:14px;fill:none;stroke:var(--ca);stroke-width:2}
 
 /* ===== COMPANY ===== */
 .company-box{max-width:720px;margin:0 auto;padding:32px;border:1px solid var(--bd);border-radius:var(--r);display:flex;align-items:center;gap:24px}
@@ -608,12 +618,10 @@ ${FAQ}
 @media(max-width:750px){
 .hd{height:56px}.hd-logo{font-size:15px;max-width:60%}.hd-nav{gap:0}.hd-nav a:not(.btn){display:none}
 .fv{min-height:auto;padding-top:56px}.fv .inner{padding-top:48px;padding-bottom:100px;max-width:100%}
-.fv-name{font-size:clamp(26px,7vw,36px)}.fv-role{font-size:13px}.fv-headline{font-size:14px;margin-bottom:20px}
+.fv-headline{font-size:clamp(20px,5.5vw,28px)}.fv-sub{font-size:14px}.fv-name{font-size:13px}
 .fv-badge{font-size:11px;padding:5px 14px}.fv-features{gap:6px;margin-bottom:24px}
 .fv-features span{padding:6px 12px;font-size:11px}.fv-stats{grid-template-columns:repeat(2,1fr);position:relative}
 .fv-stat{padding:16px 12px}.fv-stat-num{font-size:clamp(20px,5vw,28px)}.fv-stat-label{font-size:10px}
-.about-grid{grid-template-columns:1fr;gap:24px}.about-visual{order:-1;min-height:200px!important}
-.about-avatar{width:120px;height:120px;font-size:48px}.about-txt{font-size:14px}
 .offer{padding:48px 0}.offer-accent{padding:56px 0}.offer-tit{font-size:clamp(16px,4.5vw,22px)}
 .company-box{flex-direction:column;text-align:center;padding:24px;gap:16px}
 .company-logo{width:52px;height:52px;font-size:20px}.company-info strong{font-size:15px}.company-info p{font-size:13px}
@@ -622,14 +630,14 @@ ${FAQ}
 .btn-lg{padding:14px 32px;font-size:14px}
 .flow-item{gap:14px;padding:14px 0}.flow-num{width:44px;height:44px;font-size:16px}
 .flow-list::before{left:22px}.flow-h3{font-size:14px}.flow-desc{font-size:13px}
+.sol-text{font-size:14px}
 }
 @media(max-width:480px){
 .inner{padding:0 16px}.hd-logo{font-size:14px}
-.fv-name{font-size:24px}.fv-features span{padding:5px 8px;font-size:10px}
+.fv-headline{font-size:20px}.fv-features span{padding:5px 8px;font-size:10px}
 .fv-stats{grid-template-columns:1fr 1fr}.fv-stat{padding:12px 8px}.fv-stat-num{font-size:20px}
-.about-avatar{width:100px;height:100px;font-size:36px}
 .btn-lg{padding:12px 24px;font-size:13px}.btn-md{padding:10px 20px;font-size:12px}
-.offer-urgency{font-size:11px}.offer-tit{font-size:16px}
+.offer-tit{font-size:16px}
 .flow-num{width:36px;height:36px;font-size:14px}.flow-list::before{left:18px}
 .cta-tit{font-size:18px}.m-cta a{padding:12px;font-size:13px}
 }
@@ -638,31 +646,28 @@ ${FAQ}
 
 <!-- HEADER -->
 <header class="hd"><div class="inner">
-<p class="hd-logo">${esc(pName)}</p>
+<p class="hd-logo">${esc(d.company_name)}</p>
 <nav class="hd-nav">
-<a href="#about">About</a>
-<a href="#expertise">Expertise</a>
-<a href="#voice">Voice</a>
+<a href="#solution">Solution</a>
+<a href="#service">Service</a>
 <a href="#contact" class="btn btn-md btn-accent">${esc(c.cta_text)}</a>
 </nav>
 </div></header>
 
-<!-- HERO -->
+<!-- HERO: 課題提起 + 信頼の人物 -->
 <section class="fv"${hasImg && images[0] ? ` style="background-image:url('${esc(images[0].url.replace(/w=\d+/, "w=1600").replace(/h=\d+/, "h=1000"))}')"` : ""}>
 <div class="fv-overlay"></div>
 <div class="inner">
-<div class="fv-txt">
 <div class="fv-badge">${esc(c.badge_text || d.industry)}</div>
-<h1 class="fv-name">${esc(pName)}</h1>
-<p class="fv-role">${esc(pTitle)} / ${esc(d.company_name)}</p>
-<p class="fv-headline">${esc(c.hero_headline)}</p>
+<p class="fv-name">${esc(pName)} / ${esc(pTitle)} / ${esc(d.company_name)}</p>
+<h1 class="fv-headline">${esc(c.hero_headline)}</h1>
+<p class="fv-sub">${esc(c.hero_sub)}</p>
 <div class="fv-features">
 ${hf.map(ft => `<span>${esc(ft)}</span>`).join("")}
 </div>
 <div style="display:flex;flex-direction:column;align-items:center;gap:10px">
-<a href="#contact" class="btn btn-lg btn-white">${esc(c.cta_text)} <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/></svg></a>
+<a href="#contact" class="btn btn-lg btn-white">${esc(c.cta_text)} ${arrowSvg}</a>
 ${microHtml}
-</div>
 </div>
 </div>
 <div class="fv-stats">
@@ -670,114 +675,113 @@ ${s.map(st => `<div class="fv-stat"><div class="fv-stat-num">${esc(st.number)}</
 </div>
 </section>
 
-<!-- ABOUT -->
-<section class="sec about" id="about">
+<!-- PROBLEMS: ターゲットの課題 (PROBLEM_CARD) -->
+<section class="sec dot-bg" style="background:var(--bg2)">
 <div class="inner">
-<div class="sec-hd"><p class="sec-bg-txt">About</p><p class="sec-eng">About</p><h2 class="sec-tit fi">${esc(c.about_title || `${pName}について`)}</h2></div>
-<div class="about-grid fi">
-<div>
-<p class="about-txt">${esc(c.about_text || c.about || "")}</p>
-<div class="about-strengths">
-${str.map(item => `<div class="str">
+<div class="sec-hd"><p class="sec-bg-txt">Problems</p><p class="sec-eng">Problems</p><h2 class="sec-tit fi">こんな課題はありませんか？</h2></div>
+<div class="prob-grid">
+${prob.map(item => `<div class="prob fi">
+<div class="prob-ico">${alertSvg}</div>
+<p>${esc(item.title)}<br/><span>${esc(item.desc)}</span></p>
+</div>`).join("")}
+</div>
+</div>
+</section>
+
+<!-- WAVE: problems(bg2) → solution(white) -->
+<div class="dvd"><svg viewBox="0 0 1200 72" preserveAspectRatio="none"><rect width="1200" height="72" fill="var(--bg)"/><path d="M0,0 C300,55 600,70 800,40 C1000,10 1150,45 1200,25 L1200,0 L0,0 Z" fill="var(--bg2)"/></svg></div>
+
+<!-- SOLUTION: 解決アプローチ (STRENGTH_CARD) -->
+<section class="sec" id="solution">
+<div class="inner">
+<div class="sec-hd"><p class="sec-bg-txt">Solution</p><p class="sec-eng">Solution</p><h2 class="sec-tit fi">${esc(c.solution_title || `${d.company_name}が解決します`)}</h2></div>
+<p class="sol-text fi">${esc(c.solution_text || "")}</p>
+<div class="str-grid">
+${str.map(item => `<div class="str fi">
 <div class="str-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div>
 <p>${esc(item.title)}<br/><span>${esc(item.desc)}</span></p>
 </div>`).join("")}
 </div>
 </div>
-<div class="about-visual">
-${hasImg && images[1] ? `<img class="about-img" src="${esc(images[1].url)}" alt="${esc(pName)}" loading="lazy" onerror="this.style.display='none'">` : `<div class="about-avatar">${esc(pName.charAt(0))}</div>`}
-</div>
-</div>
-</div>
 </section>
 
-<!-- DIVIDER: about → expertise -->
-<div class="dvd"><svg viewBox="0 0 1200 72" preserveAspectRatio="none"><rect width="1200" height="72" fill="var(--bg)"/><path d="M0,0 C300,55 600,70 800,40 C1000,10 1150,45 1200,25 L1200,0 L0,0 Z" fill="var(--bg2)"/></svg></div>
-
-<!-- EXPERTISE (CARD_BORDERED + CARD_STAT) -->
-<section class="sec dot-bg" id="expertise">
+<!-- SERVICES: 提供サービス (CARD_BORDERED + CARD_GRID) -->
+<section class="sec dot-bg" id="service" style="background:var(--bg2)">
 <div class="inner">
-<div class="sec-hd"><p class="sec-bg-txt">Expertise</p><p class="sec-eng">Expertise</p><h2 class="sec-tit fi">${esc(pName)}の専門領域</h2></div>
+<div class="sec-hd"><p class="sec-bg-txt">Service</p><p class="sec-eng">Service</p><h2 class="sec-tit fi">提供サービス</h2></div>
 <div class="card-grid">
-${exp.map((item, i) => `<div class="card card-accent fi">
+${svc.map((item, i) => `<div class="card card-accent fi">
 <div class="card-ico">${ico[i] || ico[0]}</div>
 <h3>${esc(item.title)}</h3>
 <p>${esc(item.desc)}</p>
 </div>`).join("")}
 </div>
-${s.length > 0 ? `<div class="stats-grid">
-${s.map(st => `<div class="card stat-card fi">
-<div class="stat-num">${esc(st.number)}</div>
-<div class="stat-label">${esc(st.label)}</div>
-</div>`).join("")}
-</div>` : ""}
 </div>
 </section>
 
-<!-- DIVIDER: expertise → cta1 -->
-<div class="dvd"><svg viewBox="0 0 1200 72" preserveAspectRatio="none"><rect width="1200" height="72" fill="var(--c)"/><path d="M0,0 C250,65 550,20 750,55 C950,72 1100,30 1200,45 L1200,0 L0,0 Z" fill="var(--bg)"/></svg></div>
+<!-- WAVE: services(bg2) → CTA1(accent) -->
+<div class="dvd"><svg viewBox="0 0 1200 72" preserveAspectRatio="none"><rect width="1200" height="72" fill="var(--c)"/><path d="M0,0 C250,65 550,20 750,55 C950,72 1100,30 1200,45 L1200,0 L0,0 Z" fill="var(--bg2)"/></svg></div>
 
-<!-- CTA 1 (accent) -->
+<!-- CTA (accent) -->
 <section class="offer offer-accent">
 <div class="inner" style="position:relative;z-index:1">
-${c.urgency_text ? `<div class="offer-urgency">${clockSvg}${esc(c.urgency_text)}</div>` : ""}
 <p class="offer-tit">${esc(c.cta_sub || "まずはお気軽にご相談ください")}</p>
-<p class="offer-sub" style="color:rgba(255,255,255,.7)">${esc(c.guarantee_text || "無料相談・営業電話なし")}</p>
-<a href="#contact" class="btn btn-lg btn-white">${esc(c.cta_text)} <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/></svg></a>
+<p class="offer-sub" style="color:rgba(255,255,255,.7)">${esc(pName)}が直接対応します</p>
+<a href="#contact" class="btn btn-lg btn-white">${esc(c.cta_text)} ${arrowSvg}</a>
 ${microHtml}
 </div>
 </section>
 
-<!-- DIVIDER: cta1 → voice -->
+<!-- WAVE: CTA1(accent) → comparison(white) -->
 <div class="dvd"><svg viewBox="0 0 1200 72" preserveAspectRatio="none"><rect width="1200" height="72" fill="var(--bg)"/><path d="M0,0 C200,50 500,72 750,35 C1000,0 1150,40 1200,20 L1200,0 L0,0 Z" fill="var(--c)"/></svg></div>
 
-<!-- TESTIMONIALS (TESTIMONIAL_CARD component) -->
-${tm.length > 0 ? `<section class="sec" id="voice">
+<!-- COMPARISON (COMPARISON component) -->
+${cmp.length > 0 ? `<section class="sec">
 <div class="inner">
-<div class="sec-hd"><p class="sec-bg-txt">Voice</p><p class="sec-eng">Client Voice</p><h2 class="sec-tit fi">${esc(pName)}に依頼した方の声</h2></div>
+<div class="sec-hd"><p class="sec-bg-txt">Compare</p><p class="sec-eng">Comparison</p><h2 class="sec-tit fi">一般的な方法との比較</h2></div>
+<div class="cmp-grid">
+<div class="cmp-card cmp-muted">
+<div class="cmp-title">一般的な方法</div>
+${cmp.map(row => `<div class="cmp-row">${cmpCross} <span>${esc(row.feature)}: ${esc(row.other)}</span></div>`).join("")}
+</div>
+<div class="cmp-card cmp-us" style="position:relative">
+<div class="cmp-title">${esc(d.company_name)}の場合</div>
+${cmp.map(row => `<div class="cmp-row">${cmpCheck} <span><strong>${esc(row.feature)}</strong>: ${esc(row.us)}</span></div>`).join("")}
+</div>
+</div>
+</div>
+</section>` : ""}
+
+<!-- CASES: 実績事例 (TESTIMONIAL_CARD repurposed) -->
+${cas.length > 0 ? `<section class="sec" style="background:var(--bg2)">
+<div class="inner">
+<div class="sec-hd"><p class="sec-bg-txt">Results</p><p class="sec-eng">Case Results</p><h2 class="sec-tit fi">実績事例</h2></div>
 <div class="tm-grid">
-${tm.map(t => `<div class="tm-card fi">
-<div class="tm-stars">${starSvg}${starSvg}${starSvg}${starSvg}${starSvg}</div>
-<p class="tm-text">${esc(t.text)}</p>
-<div class="tm-result">${esc(t.result)}</div>
+${cas.map(item => `<div class="tm-card fi">
+<div class="tm-result">${esc(item.result)}</div>
+<p class="tm-text">${esc(item.detail)}</p>
 <div class="tm-author">
-<div class="tm-avatar">${esc(t.name.charAt(0))}</div>
-<div><div class="tm-name">${esc(t.name)}</div><div class="tm-role">${esc(t.role)}</div></div>
+<div class="tm-avatar" style="font-size:12px">${esc(item.category.slice(0,2))}</div>
+<div><div class="tm-name">${esc(item.category)}</div></div>
 </div>
 </div>`).join("")}
 </div>
 </div>
 </section>` : ""}
 
-<!-- WHY CHOOSE ME (CARD_BORDERED highlight) -->
-<section class="sec dot-bg" style="background:var(--bg2)">
+<!-- STATS: 実績数字 (CARD_STAT + STATS_GRID) -->
+<section class="sec${cas.length > 0 ? "" : " dot-bg"}"${cas.length > 0 ? "" : ` style="background:var(--bg2)"`}>
 <div class="inner">
-<div class="sec-hd"><p class="sec-bg-txt">Merit</p><p class="sec-eng">Why Choose Me</p><h2 class="sec-tit fi">${esc(pName)}が選ばれる理由</h2></div>
-<div class="card-grid">
-${m.map((item, i) => `<div class="card card-highlight fi">
-<div class="card-ico">${ico[i] || ico[0]}</div>
-<h3>${esc(item.title)}</h3>
-<p>${esc(item.desc)}</p>
+<div class="sec-hd"><p class="sec-bg-txt">Results</p><p class="sec-eng">Track Record</p><h2 class="sec-tit fi">数字で見る実績</h2></div>
+<div class="stats-grid" style="margin-top:0">
+${s.map(st => `<div class="card stat-card fi">
+<div class="stat-num">${esc(st.number)}</div>
+<div class="stat-label">${esc(st.label)}</div>
 </div>`).join("")}
 </div>
+${microDarkHtml}
 </div>
 </section>
-
-<!-- DIVIDER: merit → cta2 -->
-<div class="dvd"><svg viewBox="0 0 1200 72" preserveAspectRatio="none"><rect width="1200" height="72" fill="var(--dark)"/><path d="M0,0 C300,55 600,70 800,40 C1000,10 1150,45 1200,25 L1200,0 L0,0 Z" fill="var(--bg2)"/></svg></div>
-
-<!-- CTA 2 (dark) -->
-<section class="offer">
-<div class="inner" style="position:relative;z-index:1">
-<p class="offer-tit">${esc(c.cta_text)}</p>
-<p class="offer-sub">${esc(c.cta_sub || "まずはお話を聞かせてください")}</p>
-<a href="#contact" class="btn btn-lg btn-white">${esc(c.cta_text)} <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/></svg></a>
-${microHtml}
-</div>
-</section>
-
-<!-- DIVIDER: cta2 → flow -->
-<div class="dvd"><svg viewBox="0 0 1200 72" preserveAspectRatio="none"><rect width="1200" height="72" fill="var(--bg2)"/><path d="M0,0 C250,60 550,25 750,55 C950,72 1100,30 1200,45 L1200,0 L0,0 Z" fill="var(--dark)"/></svg></div>
 
 <!-- FLOW -->
 <section class="sec" style="background:var(--bg2)">
@@ -792,49 +796,42 @@ ${f.map((item, i) => `<div class="flow-item">
 </div>
 </section>
 
-<!-- FAQ (FAQ component) -->
-${faq.length > 0 ? `<section class="sec">
-<div class="inner" style="max-width:720px">
+<!-- COMPANY + FAQ -->
+<section class="sec">
+<div class="inner">
+${c.company_profile ? `<div class="company-box fi" style="margin-bottom:64px">
+<div class="company-logo">${esc(d.company_name.charAt(0))}</div>
+<div class="company-info"><strong>${esc(d.company_name)}</strong><p>${esc(c.company_profile)}</p></div>
+</div>` : ""}
+${faq.length > 0 ? `<div style="max-width:720px;margin:0 auto">
 <div class="sec-hd"><p class="sec-bg-txt">FAQ</p><p class="sec-eng">FAQ</p><h2 class="sec-tit fi">よくある質問</h2></div>
 <div class="faq-list fi">
 ${faq.map(item => `<details class="faq-item"><summary class="faq-q">${esc(item.q)}</summary><div class="faq-a">${esc(item.a)}</div></details>`).join("")}
 </div>
+</div>` : ""}
 </div>
-</section>` : ""}
+</section>
 
-<!-- COMPANY -->
-${c.company_profile ? `<section class="sec" style="background:var(--bg2)">
-<div class="inner">
-<div class="sec-hd"><p class="sec-eng">Company</p><h2 class="sec-tit fi">所属企業</h2></div>
-<div class="company-box fi">
-<div class="company-logo">${esc(d.company_name.charAt(0))}</div>
-<div class="company-info"><strong>${esc(d.company_name)}</strong><p>${esc(c.company_profile)}</p></div>
-</div>
-</div>
-</section>` : ""}
-
-<!-- DIVIDER: → final cta -->
-<div class="dvd"><svg viewBox="0 0 1200 72" preserveAspectRatio="none"><rect width="1200" height="72" fill="var(--dark)"/><path d="M0,0 C200,60 500,72 700,45 C900,18 1100,50 1200,30 L1200,0 L0,0 Z" fill="var(--bg2)"/></svg></div>
+<!-- WAVE: → final CTA -->
+<div class="dvd"><svg viewBox="0 0 1200 72" preserveAspectRatio="none"><rect width="1200" height="72" fill="var(--dark)"/><path d="M0,0 C200,60 500,72 700,45 C900,18 1100,50 1200,30 L1200,0 L0,0 Z" fill="var(--bg)"/></svg></div>
 
 <!-- FINAL CTA -->
 <section class="cta-sec" id="contact">
-<div class="cta-tit">${esc(pName)}に相談する</div>
+<div class="cta-tit" style="position:relative">${esc(pName)}に相談する</div>
 <div class="cta-sub">${esc(c.cta_sub || "")}</div>
-${c.urgency_text ? `<p style="display:inline-flex;align-items:center;gap:8px;padding:8px 20px;border:1px solid rgba(255,255,255,.12);border-radius:20px;font-size:13px;color:var(--ca);margin-bottom:24px;position:relative">${clockSvg}${esc(c.urgency_text)}</p><br>` : ""}
-<a href="#contact" class="btn btn-lg btn-white" style="position:relative">${esc(c.cta_text)} <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/></svg></a>
-<div class="micro micro-light" style="position:relative">${checkSvg}<span>無料</span>${clockSvg}<span>30秒で完了</span>${checkSvg}<span>営業電話なし</span></div>
-<p style="font-size:13px;color:rgba(255,255,255,.55);margin-top:20px;position:relative;padding:10px 24px;border:1px solid rgba(255,255,255,.1);border-radius:var(--r);display:inline-block">${esc(c.guarantee_text || "無料相談・営業電話なし")}</p>
+<a href="#contact" class="btn btn-lg btn-white" style="position:relative">${esc(c.cta_text)} ${arrowSvg}</a>
+${microHtml}
 </section>
 
 <!-- FOOTER -->
 <footer class="ft">&copy; ${esc(d.company_name)} All Rights Reserved.</footer>
 
 <!-- MOBILE CTA -->
-<div class="m-cta"><a href="#contact">${esc(c.cta_text)}</a><p class="m-cta-sub">無料・30秒で完了・営業電話なし</p></div>
+<div class="m-cta"><a href="#contact">${esc(c.cta_text)}</a><p class="m-cta-sub">${esc(pName)} / 相談無料 / オンライン対応</p></div>
 
 <!-- SCROLL ANIMATION -->
 <script>
-(function(){var o=new IntersectionObserver(function(e){e.forEach(function(en){if(en.isIntersecting){en.target.classList.add('vis');o.unobserve(en.target)}})},{threshold:.12,rootMargin:'0px 0px -40px 0px'});document.querySelectorAll('.fi').forEach(function(el){o.observe(el)})})();
+document.addEventListener('DOMContentLoaded',function(){var o=new IntersectionObserver(function(e){e.forEach(function(en){if(en.isIntersecting){en.target.classList.add('vis');o.unobserve(en.target)}})},{threshold:.12,rootMargin:'0px 0px -40px 0px'});document.querySelectorAll('.fi').forEach(function(el){o.observe(el)})});
 </script>
 </body></html>`;
 }
