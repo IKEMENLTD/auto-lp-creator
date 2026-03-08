@@ -490,7 +490,7 @@ function buildLpHtml(c: LpContent, d: FlatData, images: LpImage[] = []): string 
   const starSvg = `<svg width="18" height="18" viewBox="0 0 20 20" fill="#f59e0b"><path d="M10 1l2.39 4.84L18 6.71l-4 3.9.94 5.5L10 13.38 5.06 16.1 6 10.6l-4-3.9 5.61-.87L10 1z"/></svg>`;
 
   return `<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>${esc(c.hero_headline)} | ${esc(d.company_name)}</title>
+<title>${esc(d.service_name)} | ${esc(d.company_name)}</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
@@ -770,7 +770,7 @@ ${hasImg && images[1] ? `<img class="about-img" src="${esc(images[1].url)}" alt=
 <!-- FEATURES -->
 <section class="sec dot-bg" id="features">
 <div class="inner">
-<div class="sec-hd"><p class="sec-bg-txt">Features</p><p class="sec-eng">Features</p><h2 class="sec-tit fi">選ばれる${b.length || 3}つの理由</h2>${c.about ? `<p class="sec-sub fi">${esc(c.about)}</p>` : ""}</div>
+<div class="sec-hd"><p class="sec-bg-txt">Features</p><p class="sec-eng">Features</p><h2 class="sec-tit fi">${esc(d.service_name)}が選ばれる理由</h2></div>
 <div class="features-list">
 ${b.map((item, i) => `<div class="feature-item fi">
 <div>
@@ -787,8 +787,8 @@ ${s[i + 1] ? `<div class="fv-stat-big">${esc(s[i + 1]?.number || "")}</div><div 
 </div>
 </section>
 
-<!-- DIVIDER: features → cta (diagonal, white→dark) -->
-<div class="dvd"><svg viewBox="0 0 1200 80" preserveAspectRatio="none"><polygon points="0,0 1200,0 0,80" fill="var(--bg)"/><polygon points="0,80 1200,0 1200,80" fill="var(--dark)"/></svg></div>
+<!-- DIVIDER: features → cta1 (wave, white→accent) -->
+<div class="dvd"><svg viewBox="0 0 1200 80" preserveAspectRatio="none"><rect width="1200" height="80" fill="var(--c)"/><path d="M0,0 C400,70 800,10 1200,50 L1200,0 L0,0 Z" fill="var(--bg)"/></svg></div>
 
 <!-- MID CTA 1 (OFFER - primary, accent gradient) -->
 <section class="offer" style="background:var(--cg);padding:72px 0">
@@ -801,8 +801,8 @@ ${c.urgency_text ? `<div class="offer-urgency" style="border-color:rgba(255,255,
 </div>
 </section>
 
-<!-- DIVIDER: cta → testimonials (diagonal, dark→white) -->
-<div class="dvd"><svg viewBox="0 0 1200 80" preserveAspectRatio="none"><polygon points="0,0 1200,0 1200,80" fill="var(--dark)"/><polygon points="0,0 0,80 1200,80" fill="var(--bg)"/></svg></div>
+<!-- DIVIDER: cta1 → testimonials (wave, accent→white) -->
+<div class="dvd"><svg viewBox="0 0 1200 80" preserveAspectRatio="none"><rect width="1200" height="80" fill="var(--bg)"/><path d="M0,0 C300,65 900,5 1200,60 L1200,0 L0,0 Z" fill="var(--c)"/></svg></div>
 
 <!-- TESTIMONIALS -->
 ${tm.length > 0 ? `<section class="sec" id="voice">
@@ -835,6 +835,9 @@ ${m.map((item, i) => `<div class="merit-card fi">
 </div>
 </div>
 </section>
+
+<!-- DIVIDER: merit → cta2 (diagonal, gray→dark) -->
+<div class="dvd"><svg viewBox="0 0 1200 80" preserveAspectRatio="none"><polygon points="0,0 1200,0 0,80" fill="var(--bg2)"/><polygon points="0,80 1200,0 1200,80" fill="var(--dark)"/></svg></div>
 
 <!-- MID CTA 2 -->
 <section class="offer">
