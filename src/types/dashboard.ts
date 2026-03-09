@@ -9,7 +9,7 @@
 // 制作物関連
 // ============================================================
 
-/** 制作物タイプ (7種) */
+/** 制作物タイプ (8種) */
 export type DeliverableType =
   | 'lp'
   | 'ad_creative'
@@ -17,7 +17,8 @@ export type DeliverableType =
   | 'hearing_form'
   | 'line_design'
   | 'minutes'
-  | 'profile';
+  | 'profile'
+  | 'system_proposal';
 
 /** 制作物カードの4ステータス */
 export type DeliverableStatus = 'insufficient' | 'ready' | 'generating' | 'completed';

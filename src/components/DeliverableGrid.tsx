@@ -13,6 +13,7 @@ import {
   MessageCircle,
   NotebookPen,
   User,
+  Code,
 } from 'lucide-react';
 import { DeliverableCard } from './DeliverableCard';
 import type { DeliverableType, DeliverableStatus, GenerationJob } from '../types/dashboard';
@@ -36,6 +37,7 @@ const DELIVERABLES: readonly DeliverableEntry[] = [
   { type: 'line_design', label: 'LINE設計', icon: MessageCircle },
   { type: 'minutes', label: '議事録', icon: NotebookPen },
   { type: 'profile', label: 'プロフィール', icon: User },
+  { type: 'system_proposal', label: 'システム提案', icon: Code },
 ] as const;
 
 // ============================================================

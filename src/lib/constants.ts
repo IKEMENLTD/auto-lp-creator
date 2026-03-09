@@ -32,6 +32,7 @@ export const REQUIRED_FIELDS: Record<DeliverableType, readonly string[]> = {
   line_design: ['company_name', 'service_name', 'target_customer'],
   minutes: ['company_name'],
   profile: ['company_name', 'service_name', 'strengths', 'target_customer'],
+  system_proposal: ['company_name', 'service_name', 'target_customer', 'pain_points'],
 } as const;
 
 /** 制作物の表示順 */
@@ -43,6 +44,7 @@ export const DELIVERABLE_ORDER: readonly DeliverableType[] = [
   'line_design',
   'minutes',
   'profile',
+  'system_proposal',
 ] as const;
 
 /** 制作物ラベル */
@@ -54,4 +56,5 @@ export const DELIVERABLE_LABELS: Record<DeliverableType, string> = {
   line_design: 'LINE設計',
   minutes: '議事録',
   profile: 'プロフィール',
+  system_proposal: 'システム提案',
 } as const;

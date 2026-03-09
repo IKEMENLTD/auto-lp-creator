@@ -20,7 +20,7 @@ import { SCROLL_ANIM, SEC_HEADER, WAVE_DIVIDER, DOT_BG, CARD_BORDERED, CARD_STAT
 // 型定義
 // ============================================================
 
-type DeliverableType = "lp" | "ad_creative" | "flyer" | "hearing_form" | "line_design" | "minutes" | "profile";
+type DeliverableType = "lp" | "ad_creative" | "flyer" | "hearing_form" | "line_design" | "minutes" | "profile" | "system_proposal";
 
 interface FlatData {
   company_name: string;
@@ -105,7 +105,7 @@ const CORS: Record<string, string> = {
 const LP_MODEL = "claude-haiku-4-5-20251001";
 // LP以外（ad, minutes等）は出力が少ないのでSonnetでOK
 const CLAUDE_MODEL = "claude-sonnet-4-20250514";
-const VALID_TYPES = new Set<string>(["lp", "ad_creative", "flyer", "hearing_form", "line_design", "minutes", "profile"]);
+const VALID_TYPES = new Set<string>(["lp", "ad_creative", "flyer", "hearing_form", "line_design", "minutes", "profile", "system_proposal"]);
 
 // ============================================================
 // データ変換
@@ -1070,6 +1070,18 @@ Day1-7の配信計画。JSONのみ出力。`,
   profile: `プロフィールシートをJSON生成:
 {"headline":"キャッチコピー","sub":"サービス概要","sections":[{"title":"セクション名","content":"内容"}]}
 強み・ターゲット・実績・連絡先を含める。JSONのみ出力。`,
+  system_proposal: `システム開発提案書をJSON生成:
+{"headline":"提案タイトル","sub":"提案概要（1行）","sections":[{"title":"セクション名","content":"内容"}]}
+以下のセクションを含めること:
+1. 現状の課題整理（商談で言及された業務課題・非効率を具体的に）
+2. 提案システム概要（課題を解決するシステムの全体像）
+3. 主要機能一覧（機能名と説明を箇条書き形式で）
+4. 技術スタック（推奨する技術構成）
+5. 開発スケジュール（フェーズ分けと期間目安）
+6. 概算見積（規模感に基づく概算。補助金活用時の実質負担も記載）
+7. 期待される効果（定量的に。工数削減率、コスト削減額など）
+8. 補助金活用プラン（対象となる補助金名と申請の流れ）
+商談中の具体的な数字・要望を最大限反映すること。JSONのみ出力。`,
 };
 
 const GENERIC_TITLES: Record<string, string> = {
@@ -1077,6 +1089,7 @@ const GENERIC_TITLES: Record<string, string> = {
   hearing_form: "ヒアリングフォーム",
   line_design: "LINE導線設計書",
   profile: "プロフィールシート",
+  system_proposal: "システム開発提案書",
 };
 
 async function generateGeneric(type: string, d: FlatData, transcript: string, apiKey: string): Promise<string> {
