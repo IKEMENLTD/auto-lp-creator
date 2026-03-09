@@ -5,7 +5,7 @@
  */
 
 import React from 'react';
-import { Activity, Clock } from 'lucide-react';
+import { Activity, Clock, ArrowLeft } from 'lucide-react';
 import type { SessionStatus } from '../types/dashboard';
 
 // ============================================================
@@ -18,6 +18,7 @@ interface StatusBarProps {
   readonly totalFields: number;
   readonly status: SessionStatus;
   readonly isRecording: boolean;
+  readonly onBack?: () => void;
 }
 
 // ============================================================
@@ -52,13 +53,23 @@ export const StatusBar: React.FC<StatusBarProps> = ({
   totalFields,
   status,
   isRecording,
+  onBack,
 }) => {
   const isAnalyzing = status === 'active' && isRecording;
 
   return (
     <header className="sticky top-0 z-50 flex items-center justify-between px-4 py-3 bg-gray-900 border-b border-gray-800">
-      {/* 左: ステータス + パルス */}
+      {/* 左: 戻るボタン + ステータス + パルス */}
       <div className="flex items-center gap-2">
+        {onBack && (
+          <button
+            type="button"
+            className="p-1.5 -ml-1 text-gray-400 hover:text-white transition-colors"
+            onClick={onBack}
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+        )}
         <div className="relative flex items-center justify-center w-8 h-8">
           <Activity className="w-5 h-5 text-blue-500" />
           {isAnalyzing && (

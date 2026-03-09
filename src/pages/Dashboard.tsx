@@ -170,6 +170,17 @@ export const Dashboard: React.FC = () => {
     setDetectedCompanies([]);
   }, []);
 
+  const handleBackToHome = useCallback(() => {
+    if (audio.isRecording) {
+      audio.stop();
+    }
+    setSessionId(null);
+    setRecordingState('idle');
+    setGlobalError(null);
+    setPasteText('');
+    setDetectedCompanies([]);
+  }, [audio]);
+
   // ================================================================
   // テキスト貼り付けフロー
   // ================================================================
@@ -441,6 +452,7 @@ export const Dashboard: React.FC = () => {
         totalFields={session.totalFields}
         status={recordingState === 'ended' ? 'ended' : recordingState === 'paused' ? 'paused' : session.status}
         isRecording={audio.isRecording}
+        onBack={handleBackToHome}
       />
 
       {/* 中央スクロールエリア */}
