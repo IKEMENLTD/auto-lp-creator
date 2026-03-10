@@ -33,6 +33,7 @@ export const REQUIRED_FIELDS: Record<DeliverableType, readonly string[]> = {
   minutes: ['company_name'],
   profile: ['company_name', 'service_name', 'strengths', 'target_customer'],
   system_proposal: ['company_name', 'service_name', 'target_customer', 'pain_points'],
+  proposal: ['company_name', 'service_name', 'target_customer', 'strengths', 'pain_points'],
 } as const;
 
 /** 制作物の表示順 */
@@ -45,6 +46,7 @@ export const DELIVERABLE_ORDER: readonly DeliverableType[] = [
   'minutes',
   'profile',
   'system_proposal',
+  'proposal',
 ] as const;
 
 /** 制作物ラベル */
@@ -57,4 +59,5 @@ export const DELIVERABLE_LABELS: Record<DeliverableType, string> = {
   minutes: '議事録',
   profile: 'プロフィール',
   system_proposal: 'システム提案',
+  proposal: '提案資料',
 } as const;

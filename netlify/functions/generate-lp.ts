@@ -20,7 +20,7 @@ import { SCROLL_ANIM, SEC_HEADER, WAVE_DIVIDER, DOT_BG, CARD_BORDERED, CARD_STAT
 // 型定義
 // ============================================================
 
-type DeliverableType = "lp" | "ad_creative" | "flyer" | "hearing_form" | "line_design" | "minutes" | "profile" | "system_proposal";
+type DeliverableType = "lp" | "ad_creative" | "flyer" | "hearing_form" | "line_design" | "minutes" | "profile" | "system_proposal" | "proposal";
 
 interface FlatData {
   company_name: string;
@@ -105,7 +105,7 @@ const CORS: Record<string, string> = {
 const LP_MODEL = "claude-haiku-4-5-20251001";
 // LP以外（ad, minutes等）は出力が少ないのでSonnetでOK
 const CLAUDE_MODEL = "claude-sonnet-4-20250514";
-const VALID_TYPES = new Set<string>(["lp", "ad_creative", "flyer", "hearing_form", "line_design", "minutes", "profile", "system_proposal"]);
+const VALID_TYPES = new Set<string>(["lp", "ad_creative", "flyer", "hearing_form", "line_design", "minutes", "profile", "system_proposal", "proposal"]);
 
 // ============================================================
 // データ変換
@@ -1082,6 +1082,26 @@ Day1-7の配信計画。JSONのみ出力。`,
 7. 期待される効果（定量的に。工数削減率、コスト削減額など）
 8. 補助金活用プラン（対象となる補助金名と申請の流れ）
 商談中の具体的な数字・要望を最大限反映すること。JSONのみ出力。`,
+  proposal: `商談後に送る提案資料をJSON生成:
+{"headline":"提案タイトル（相手企業名+提案内容）","sub":"提案の一言サマリー","sections":[{"title":"セクション名","content":"内容"}]}
+以下のセクションを必ず含めること:
+1. ご挨拶・本日のお打ち合わせ御礼（商談の要点を簡潔に振り返り、感謝を伝える）
+2. 貴社の現状と課題の整理（商談で聞いた相手の課題・悩みを具体的に列挙。「○○とのこと」形式で相手の言葉を引用）
+3. ご提案内容（課題に対する解決策を具体的に。サービス名・手法・対象範囲を明記）
+4. 弊社の強み・実績（数字付きの実績。採択率、対応件数、事例など商談で言及したもの）
+5. ご提供プラン・料金（価格帯、プラン構成、支払い条件。商談で話した内容ベース。不明なら「別途お見積り」）
+6. 導入スケジュール（フェーズ分け。初回相談→○○→○○→完了の流れ）
+7. 期待される効果（定量的に。コスト削減額、売上向上率、業務効率化など）
+8. 次のステップ（具体的なアクション。「○日までにご返答」「次回お打ち合わせ日程」など）
+9. 会社概要（簡潔に。社名、代表、所在地、設立、主要事業）
+
+【重要ルール】
+- 商談中の具体的な数字・固有名詞・エピソードを最大限反映
+- 相手企業の課題は相手の言葉で書く（「御社では○○が課題とのこと」）
+- 自社の実績は商談で実際に言及したものだけ使う。捏造厳禁
+- フォーマルだが堅すぎないトーン。「です/ます」調
+- 各セクションは箇条書きを活用し読みやすく
+JSONのみ出力。`,
 };
 
 const GENERIC_TITLES: Record<string, string> = {
@@ -1090,6 +1110,7 @@ const GENERIC_TITLES: Record<string, string> = {
   line_design: "LINE導線設計書",
   profile: "プロフィールシート",
   system_proposal: "システム開発提案書",
+  proposal: "提案資料",
 };
 
 async function generateGeneric(type: string, d: FlatData, transcript: string, apiKey: string): Promise<string> {

@@ -14,6 +14,7 @@ import {
   NotebookPen,
   User,
   Code,
+  Presentation,
 } from 'lucide-react';
 import { DeliverableCard } from './DeliverableCard';
 import type { DeliverableType, DeliverableStatus, GenerationJob } from '../types/dashboard';
@@ -38,6 +39,7 @@ const DELIVERABLES: readonly DeliverableEntry[] = [
   { type: 'minutes', label: '議事録', icon: NotebookPen },
   { type: 'profile', label: 'プロフィール', icon: User },
   { type: 'system_proposal', label: 'システム提案', icon: Code },
+  { type: 'proposal', label: '提案資料', icon: Presentation },
 ] as const;
 
 // ============================================================
