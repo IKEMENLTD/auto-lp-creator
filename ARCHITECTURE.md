@@ -11,7 +11,7 @@
 | リポジトリ | `github.com/IKEMENLTD/auto-lp-creator` |
 | デプロイ | `auto-lp-creator.netlify.app` |
 | ローカル | `/tmp/lp_engine/netlify/` |
-| スタック | React + Netlify Functions v2 + Claude API + Whisper(Groq) + Supabase |
+| スタック | React + Netlify Functions v2 + Claude API + Whisper(Groq) + Gemini Imagen + Supabase |
 
 ---
 
@@ -30,11 +30,11 @@
 │   │   ├── CompanySelector.tsx            # 企業選択モーダル
 │   │   ├── ExtractionCards.tsx            # 抽出情報カード（confidence表示）
 │   │   ├── DeliverableGrid.tsx            # 制作物9種グリッド
-│   │   ├── DeliverableCard.tsx            # 個別カード（4ステータス）
+│   │   ├── DeliverableCard.tsx            # 個別カード（4ステータス + PDF出力）
 │   │   ├── EditFieldModal.tsx             # フィールド手動編集
-│   │   └── ActionBar.tsx                  # アクションバー
+│   │   └── ActionBar.tsx                  # アクションバー（共有: LINE/メール/QR/クリップボード）
 │   ├── hooks/
-│   │   ├── useSession.ts                  # セッション状態管理（抽出・生成・ジョブ）
+│   │   ├── useSession.ts                  # セッション状態管理（抽出・生成・ジョブ・localStorage永続化）
 │   │   └── useAudioCapture.ts             # デュアルストリーム音声キャプチャ
 │   ├── lib/
 │   │   ├── api.ts                         # HTTP client（fetchWithTimeout 120s）
@@ -48,7 +48,8 @@
 │   └── index.css                          # グローバルCSS
 │
 ├── netlify/functions/                      # Netlify Functions v2（サーバーレス）
-│   ├── generate-lp.ts                     # POST /api/generate-lp  ★メインオーケストレータ（~1290行）
+│   ├── generate-lp.ts                     # POST /api/generate-lp  ★メインオーケストレータ（~1430行）
+│   ├── generate-images.ts                 # POST /api/generate-images（Haiku→Gemini Imagen画像生成）
 │   ├── extract-preview.ts                 # POST /api/extract-preview（Haiku抽出）
 │   ├── detect-companies.ts                # POST /api/detect-companies（Sonnet企業検出）
 │   ├── transcribe-chunk.ts                # POST /api/transcribe-chunk（Whisper文字起こし）
@@ -60,7 +61,7 @@
 │   ├── session-share.ts                   # POST /api/session/:id/share（stub）
 │   ├── webhook-tldv.ts                    # POST /api/webhook/tldv（tl;dv連携）
 │   ├── templates/
-│   │   └── lp-components.ts               # CSSコンポーネント集（17種）
+│   │   └── lp-components.ts               # CSSコンポーネント集（18種: 17種 + CORPORATE_THEME）
 │   └── lib/
 │       ├── types.ts                       # バックエンド型定義
 │       ├── haiku-client.ts                # Haiku抽出エンジン（confidence付きマージ）
@@ -76,7 +77,7 @@
 │   ├── 002_realtime_and_functions.sql
 │   └── seed.sql
 │
-├── tests/                                  # Jest ESMテスト（10ファイル）
+├── tests/                                  # Jest ESMテスト（11ファイル）
 ├── dist/                                   # Viteビルド出力（index.html + assets/）
 │
 ├── netlify.toml                            # Netlify設定（ルーティング・タイムアウト・ヘッダー）
@@ -143,6 +144,17 @@
      └───────┬────────┘
              ▼
      GET /view/{sessionId}/{type} → HTML配信（Cache 1h）
+
+             │ （非同期・オプション）
+             ▼
+     ┌─────────────────────────────────────────┐
+     │ generate-images (POST /api/generate-images)│
+     │                                           │
+     │  Step 1: Haiku → 英語画像プロンプト生成    │
+     │  Step 2: Gemini Imagen 3.0 → 画像生成(並列) │
+     │  Step 3: Netlify Blobs → 画像保存          │
+     │  Step 4: 既存HTML → data-img属性で画像埋込  │
+     └───────────────────────────────────────────┘
 ```
 
 ---
@@ -153,6 +165,7 @@
 |--------|------|-----------|------|------|
 | `claude-haiku-4-5-20251001` | LP draft/evaluate, extract-preview | 2000-4000 | 200-400 tok/s | 26秒制限内に確実に収まる |
 | `claude-sonnet-4-20250514` | detect-companies, ad_creative, minutes, generic | 1000-2500 | 60-100 tok/s | 出力量が少ない用途のみ |
+| `gemini-imagen-3.0-generate-002` | LP画像生成（hero/about/reason等） | - | 5-15s/枚 | Haiku→プロンプト→Gemini Imagen（REST直接） |
 
 ---
 
@@ -203,8 +216,21 @@
 ### Step 3: Build（HTML構築）
 - **API不要**（テンプレート置換のみ）
 - **入力**: 修正済みLpContent + FlatData + 業種別画像
-- **出力**: 完全なHTML（CSSコンポーネント内包）
+- **出力**: 完全なHTML（CSSコンポーネント内包）+ テーマ自動選択（dark/corporate）
 - **後処理**: sanitizePersonName() → Netlify Blobs保存
+
+### Step 4: 画像生成（非同期・オプション）
+- **エンドポイント**: POST /api/generate-images（フロントエンドから非同期呼び出し）
+- **パイプライン**: Haiku（英語プロンプト生成）→ Gemini Imagen 3.0（画像生成）→ Blob保存 → HTML更新
+- **制約**: 1回最大3枚並列、GOOGLE_API_KEY未設定時はスキップ
+- **画像スロット**: hero(16:9), about(1:1), reason1-3(1:1), badge(1:1)
+- **HTML埋め込み**: data-img属性で識別、background-imageとして設定
+
+### LPテーマシステム
+- **dark**: デフォルト（暗い背景、ネオンアクセント）
+- **corporate**: 業種自動判定で選択（白背景、ティールグリーン#1ab394、pillボタン）
+- **判定ロジック**: `selectTheme()` — コンサル/金融/IT/医療等 → corporate、それ以外 → dark
+- **実装方式**: CORPORATE_THEMEをCSS cascadeでdarkテーマの後に追記して上書き
 
 ### LpContent インターフェース
 ```typescript
@@ -276,7 +302,7 @@ Footer
 Mobile CTA Bar (固定下部: 750px以下で表示)
 ```
 
-### CSSコンポーネント（17種 / lp-components.ts）
+### CSSコンポーネント（18種 / lp-components.ts）
 
 | コンポーネント | 用途 |
 |--------------|------|
@@ -297,6 +323,7 @@ Mobile CTA Bar (固定下部: 750px以下で表示)
 | STATS_GRID | 4列→2列レスポンシブグリッド |
 | FLOW | フローステップ（タイムライン + 番号バッジ） |
 | FAQ | アコーディオン（details/summary） |
+| CORPORATE_THEME | コーポレートテーマ上書き（白背景/ティール/pill/ソフトシャドウ） |
 
 ---
 
@@ -359,6 +386,13 @@ idle --+--> recording <-> paused --> selecting --> ended
 | extract max_tokens | 2000 | Haiku抽出 |
 | Confidence閾値 | 0.6 | フィールド充足判定 |
 | Blob Cache | 3600秒 | /view/* の Cache-Control |
+| Claude APIリトライ | 3回 | 指数バックオフ 1s→2s→4s（overloaded/rate_limit/5xx） |
+| Rate Limit (generate-lp) | 20回/分/session | インメモリMap（サーバーレスのためベストエフォート） |
+| Rate Limit (extract-preview) | 30回/分/session | 同上 |
+| Rate Limit (generate-images) | 5回/分/session | 画像生成は重いため厳しめ |
+| MAX_IMAGES_PER_REQUEST | 3枚 | タイムアウト対策で1回3枚まで並列 |
+| Gemini API Timeout | 20秒 | 画像生成1枚あたり |
+| localStorage TTL | 24時間 | セッション永続化（最大10セッション） |
 
 ---
 
@@ -368,6 +402,7 @@ idle --+--> recording <-> paused --> selecting --> ended
 ANTHROPIC_API_KEY          # Claude API（必須）
 GROQ_API_KEY               # Whisper文字起こし
 OPENAI_API_KEY             # Whisperフォールバック
+GOOGLE_API_KEY             # Gemini Imagen画像生成（オプション、未設定時はスキップ）
 NETLIFY_AUTH_TOKEN         # デプロイAPI
 SUPABASE_URL               # DB接続
 SUPABASE_ANON_KEY          # ブラウザ用
@@ -399,4 +434,11 @@ npm run test               # Jest ESMテスト
 5. **evaluateにtranscript**: 情報帰属チェックに原文が必要（先頭4000字）
 6. **デュアルストリーム**: Google Meet等で自分/相手の音声を分離キャプチャ
 7. **Netlify Blobs**: 生成HTMLの永続化。URLは `/view/{sessionId}/{type}`
-8. **CSSコンポーネント分離**: lp-components.tsで17種を管理、generate-lp.tsのHTML内にインライン展開
+8. **CSSコンポーネント分離**: lp-components.tsで18種を管理、generate-lp.tsのHTML内にインライン展開
+9. **テーマ自動選択**: 業種/サービス名でdark/corporateを判定、CSS cascade overrideで実装
+10. **画像生成分離**: 別エンドポイント（generate-images）で非同期実行、LP生成の26秒制限に影響しない
+11. **localStorage永続化**: セッション状態をlocalStorageに自動保存（24h TTL、最大10件）、ブラウザリロード耐性
+12. **PDF出力**: window.print()によるブラウザネイティブPDF（LP/提案資料/議事録対応）
+13. **共有機能**: Web Share API（モバイル）→ clipboard fallback（デスクトップ）、LINE/メール直接共有
+14. **APIリトライ**: Claude API呼び出しに指数バックオフ（overloaded/rate_limit/5xx検出）
+15. **esc()安全性**: null/undefined安全 + HTMLエンティティ5種（&, <, >, ", '）
