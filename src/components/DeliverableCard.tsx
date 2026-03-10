@@ -27,6 +27,24 @@ interface DeliverableCardProps {
 }
 
 // ============================================================
+// PDF対応制作物
+// ============================================================
+
+const PDF_TYPES = new Set<DeliverableType>([
+  'minutes', 'proposal', 'system_proposal', 'profile',
+]);
+
+/** 新しいウィンドウでページを開き、印刷ダイアログ(PDF保存)を表示 */
+function printToPdf(url: string): void {
+  const w = window.open(url, '_blank');
+  if (w) {
+    w.addEventListener('load', () => {
+      setTimeout(() => w.print(), 500);
+    });
+  }
+}
+
+// ============================================================
 // ステータス別スタイル
 // ============================================================
 
@@ -157,6 +175,16 @@ export const DeliverableCard: React.FC<DeliverableCardProps> = ({
               <Download className="w-3 h-3" />
               DL
             </a>
+          )}
+          {resultUrl && PDF_TYPES.has(type) && (
+            <button
+              type="button"
+              className="flex items-center gap-1 px-2 py-1 text-[10px] text-purple-400 bg-purple-500/10 border border-purple-500/30 rounded active:scale-95 transition-transform min-h-[28px]"
+              onClick={() => printToPdf(resultUrl)}
+            >
+              <Download className="w-3 h-3" />
+              PDF
+            </button>
           )}
           <button
             type="button"

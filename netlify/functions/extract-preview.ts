@@ -159,6 +159,25 @@ function mergeExtractions(results: ExtractedData[]): ExtractedData {
 // メインハンドラー
 // ============================================================
 
+// ============================================================
+// レート制限
+// ============================================================
+
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+const RATE_LIMIT_WINDOW_MS = 60_000;
+const RATE_LIMIT_MAX = 30; // プレビュー抽出は頻度が高いので緩め
+
+function checkRateLimit(key: string): boolean {
+  const now = Date.now();
+  const entry = rateLimitMap.get(key);
+  if (!entry || now > entry.resetAt) {
+    rateLimitMap.set(key, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
+    return true;
+  }
+  entry.count++;
+  return entry.count <= RATE_LIMIT_MAX;
+}
+
 export default async function handler(request: Request): Promise<Response> {
   if (request.method === "OPTIONS") {
     return new Response(null, { status: 204, headers: CORS });
@@ -173,6 +192,13 @@ export default async function handler(request: Request): Promise<Response> {
 
   try {
     const body = (await request.json()) as Record<string, unknown>;
+    const sessionId = (body["session_id"] as string) || "unknown";
+    if (!checkRateLimit(sessionId)) {
+      return new Response(
+        JSON.stringify({ error: "リクエスト頻度が高すぎます" }),
+        { status: 429, headers: { "Content-Type": "application/json", ...CORS } },
+      );
+    }
     const transcript = body["transcript"] as string | undefined;
 
     if (!transcript || typeof transcript !== "string" || transcript.trim().length === 0) {

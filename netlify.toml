@@ -19,6 +19,9 @@
 [functions."generate-lp"]
   timeout = 26
 
+[functions."generate-images"]
+  timeout = 26
+
 # Netlify Functions v2 uses config.path for routing
 # No API redirects needed - functions handle their own paths
 

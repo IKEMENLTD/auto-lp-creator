@@ -73,37 +73,192 @@ const POLL_INTERVAL_MS = 4000;
 const PREVIEW_EXTRACT_INTERVAL_MS = 15000; // 15秒ごとにプレビュー抽出
 
 // ============================================================
+// localStorage永続化
+// ============================================================
+
+const STORAGE_KEY_PREFIX = 'session_';
+
+interface PersistedSessionState {
+  extractedData: ExtractedDataMap;
+  jobs: GenerationJob[];
+  transcriptChunks: TranscriptChunk[];
+  targetCompany: string | null;
+  status: SessionStatus;
+  elapsed: number;
+  startTime: number;
+  savedAt: number;
+}
+
+function getStorageKey(sessionId: string): string {
+  return `${STORAGE_KEY_PREFIX}${sessionId}`;
+}
+
+function saveSessionState(sessionId: string, state: PersistedSessionState): void {
+  try {
+    // blob URLは保存不可 — result_urlがblob:で始まるジョブはURLをnullにして保存
+    const cleanJobs = state.jobs.map(j => ({
+      ...j,
+      result_url: j.result_url?.startsWith('blob:') ? null : j.result_url,
+      // blob URLジョブのstatusはreadyに戻す（再生成が必要）
+      status: (j.result_url?.startsWith('blob:') && j.status === 'completed') ? 'queued' as const : j.status,
+    }));
+    const toSave: PersistedSessionState = { ...state, jobs: cleanJobs, savedAt: Date.now() };
+    localStorage.setItem(getStorageKey(sessionId), JSON.stringify(toSave));
+  } catch {
+    // localStorage容量超過などは無視
+  }
+}
+
+function loadSessionState(sessionId: string): PersistedSessionState | null {
+  try {
+    const raw = localStorage.getItem(getStorageKey(sessionId));
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as PersistedSessionState;
+    // 24時間以上前のデータは破棄
+    if (Date.now() - parsed.savedAt > 24 * 60 * 60 * 1000) {
+      localStorage.removeItem(getStorageKey(sessionId));
+      return null;
+    }
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+function clearOldSessions(): void {
+  try {
+    const keys: string[] = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key?.startsWith(STORAGE_KEY_PREFIX)) keys.push(key);
+    }
+    // 最大10セッション保持、古いものから削除
+    if (keys.length > 10) {
+      const entries = keys.map(k => {
+        try {
+          const d = JSON.parse(localStorage.getItem(k) ?? '{}') as { savedAt?: number };
+          return { key: k, savedAt: d.savedAt ?? 0 };
+        } catch { return { key: k, savedAt: 0 }; }
+      });
+      entries.sort((a, b) => a.savedAt - b.savedAt);
+      for (let i = 0; i < entries.length - 10; i++) {
+        localStorage.removeItem(entries[i].key);
+      }
+    }
+  } catch {
+    // 無視
+  }
+}
+
+// ============================================================
+// 画像生成ヘルパー（LP完了後に非同期呼び出し）
+// ============================================================
+
+function getExtractedValue(data: ExtractedDataMap, key: string): string {
+  const field = data[key] as ConfidenceFieldValue | undefined;
+  if (!field) return '';
+  if (typeof field.value === 'string') return field.value;
+  if (Array.isArray(field.value)) return field.value.join(', ');
+  return '';
+}
+
+async function triggerImageGeneration(
+  sessionId: string,
+  data: ExtractedDataMap,
+): Promise<void> {
+  try {
+    const sections = [
+      { section: 'hero', context: `${getExtractedValue(data, 'service_name')} - ${getExtractedValue(data, 'industry')}` },
+      { section: 'about', context: getExtractedValue(data, 'strengths') },
+      { section: 'reason1', context: getExtractedValue(data, 'strengths') },
+    ];
+
+    await fetch('/api/generate-images', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        session_id: sessionId,
+        type: 'lp',
+        sections,
+        color_primary: '#1ab394',
+        industry: getExtractedValue(data, 'industry'),
+        service_name: getExtractedValue(data, 'service_name'),
+        company_name: getExtractedValue(data, 'company_name'),
+      }),
+    });
+    console.log('[useSession] Image generation triggered');
+  } catch {
+    console.log('[useSession] Image generation skipped (non-critical)');
+  }
+}
+
+// ============================================================
 // フック本体
 // ============================================================
 
 export function useSession(sessionId: string): UseSessionReturn {
-  const [extractedData, setExtractedData] = useState<ExtractedDataMap>({});
-  const [jobs, setJobs] = useState<GenerationJob[]>([]);
-  const [transcriptChunks, setTranscriptChunks] = useState<TranscriptChunk[]>([]);
-  const [elapsed, setElapsed] = useState(0);
-  const [status, setStatus] = useState<SessionStatus>('active');
+  // 初期状態をlocalStorageから復元
+  const restored = sessionId !== '__none__' ? loadSessionState(sessionId) : null;
+
+  const [extractedData, setExtractedData] = useState<ExtractedDataMap>(restored?.extractedData ?? {});
+  const [jobs, setJobs] = useState<GenerationJob[]>(restored?.jobs ?? []);
+  const [transcriptChunks, setTranscriptChunks] = useState<TranscriptChunk[]>(restored?.transcriptChunks ?? []);
+  const [elapsed, setElapsed] = useState(restored?.elapsed ?? 0);
+  const [status, setStatus] = useState<SessionStatus>(restored?.status ?? 'active');
   const [error, setError] = useState<string | null>(null);
-  const [targetCompany, setTargetCompanyState] = useState<string | null>(null);
+  const [targetCompany, setTargetCompanyState] = useState<string | null>(restored?.targetCompany ?? null);
 
-  const startTimeRef = useRef<number>(Date.now());
-  const lastExtractedChunkCount = useRef<number>(0);
+  const startTimeRef = useRef<number>(restored?.startTime ?? Date.now());
+  const lastExtractedChunkCount = useRef<number>(restored?.transcriptChunks?.length ?? 0);
 
-  // sessionId変更時にリセット
+  // sessionId変更時にリセット（初回マウントではなく、実際にIDが変わった時のみ）
+  const prevSessionIdRef = useRef<string>(sessionId);
   useEffect(() => {
-    setExtractedData({});
-    setJobs([]);
-    setTranscriptChunks([]);
-    setElapsed(0);
-    setStatus('active');
+    if (prevSessionIdRef.current === sessionId) return;
+    prevSessionIdRef.current = sessionId;
+
+    const saved = sessionId !== '__none__' ? loadSessionState(sessionId) : null;
+    if (saved) {
+      // 保存済みデータを復元
+      setExtractedData(saved.extractedData);
+      setJobs(saved.jobs);
+      setTranscriptChunks(saved.transcriptChunks);
+      setElapsed(saved.elapsed);
+      setStatus(saved.status);
+      setTargetCompanyState(saved.targetCompany);
+      startTimeRef.current = saved.startTime;
+      lastExtractedChunkCount.current = saved.transcriptChunks.length;
+    } else {
+      setExtractedData({});
+      setJobs([]);
+      setTranscriptChunks([]);
+      setElapsed(0);
+      setStatus('active');
+      setTargetCompanyState(null);
+      startTimeRef.current = Date.now();
+      lastExtractedChunkCount.current = 0;
+    }
     setError(null);
-    setTargetCompanyState(null);
-    startTimeRef.current = Date.now();
-    lastExtractedChunkCount.current = 0;
+    clearOldSessions();
   }, [sessionId]);
+
+  // 状態変更時にlocalStorageへ自動保存
+  useEffect(() => {
+    if (sessionId === '__none__') return;
+    saveSessionState(sessionId, {
+      extractedData,
+      jobs,
+      transcriptChunks,
+      targetCompany,
+      status,
+      elapsed,
+      startTime: startTimeRef.current,
+      savedAt: Date.now(),
+    });
+  }, [sessionId, extractedData, jobs, transcriptChunks, targetCompany, status]);
 
   // 経過時間タイマー
   useEffect(() => {
-    startTimeRef.current = Date.now();
     const timer = setInterval(() => {
       if (status === 'active') {
         setElapsed(Math.floor((Date.now() - startTimeRef.current) / 1000));
@@ -374,6 +529,11 @@ export function useSession(sessionId: string): UseSessionReturn {
             : j
         );
       });
+
+      // LP完了後にGemini画像生成を非同期起動（UIをブロックしない）
+      if (type === 'lp' && result.view_url) {
+        void triggerImageGeneration(sessionId, extractedData);
+      }
     } catch (err) {
       const msg = err instanceof Error ? err.message : '制作物の生成に失敗しました';
       setError(msg);

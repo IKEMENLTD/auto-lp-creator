@@ -14,7 +14,7 @@
 import type { Config } from "@netlify/functions";
 import { getStore } from "@netlify/blobs";
 import Anthropic from "@anthropic-ai/sdk";
-import { SCROLL_ANIM, SEC_HEADER, WAVE_DIVIDER, DOT_BG, CARD_BORDERED, CARD_STAT, BTN_PRIMARY, MICRO_COPY, PROBLEM_CARD, STRENGTH_CARD, SERVICE_CARD, TESTIMONIAL_CARD, COMPARISON, CARD_GRID, STATS_GRID, FLOW, FAQ } from "./templates/lp-components";
+import { SCROLL_ANIM, SEC_HEADER, WAVE_DIVIDER, DOT_BG, CARD_BORDERED, CARD_STAT, BTN_PRIMARY, MICRO_COPY, PROBLEM_CARD, STRENGTH_CARD, SERVICE_CARD, TESTIMONIAL_CARD, COMPARISON, CARD_GRID, STATS_GRID, FLOW, FAQ, CORPORATE_THEME } from "./templates/lp-components";
 
 // ============================================================
 // 型定義
@@ -149,6 +149,35 @@ function flatten(raw: Record<string, unknown>): FlatData {
 
 async function callClaudeJson<T>(system: string, user: string, apiKey: string, maxTokens = 4000, model = CLAUDE_MODEL): Promise<T> {
   const client = new Anthropic({ apiKey });
+
+  const MAX_RETRIES = 3;
+  let lastError: Error | null = null;
+
+  for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+    if (attempt > 0) {
+      const delay = Math.min(1000 * Math.pow(2, attempt - 1), 8000);
+      console.log(`[generate] Retry ${attempt}/${MAX_RETRIES} after ${delay}ms`);
+      await new Promise(r => setTimeout(r, delay));
+    }
+
+    try {
+      return await callClaudeJsonOnce<T>(client, system, user, maxTokens, model);
+    } catch (err) {
+      lastError = err instanceof Error ? err : new Error(String(err));
+      const msg = lastError.message;
+      // リトライ対象: ネットワーク系・レート制限・サーバーエラー
+      const isRetryable = msg.includes('overloaded') || msg.includes('rate_limit') ||
+        msg.includes('529') || msg.includes('500') || msg.includes('502') ||
+        msg.includes('503') || msg.includes('timeout') || msg.includes('ECONNRESET') ||
+        msg.includes('fetch failed');
+      if (!isRetryable) throw lastError;
+      console.warn(`[generate] Retryable error (attempt ${attempt + 1}): ${msg}`);
+    }
+  }
+  throw lastError ?? new Error('Claude API呼び出しに失敗しました');
+}
+
+async function callClaudeJsonOnce<T>(client: Anthropic, system: string, user: string, maxTokens: number, model: string): Promise<T> {
   const res = await client.messages.create({
     model,
     max_tokens: maxTokens,
@@ -544,10 +573,27 @@ function sanitizePersonName(name: string | undefined, keyPersons: string[]): str
 }
 
 // ============================================================
+// LP テーマ自動選択
+// ============================================================
+
+type LpTheme = "dark" | "corporate";
+
+/** 業種・サービス名からコーポレートテーマを自動判定 */
+function selectTheme(d: FlatData): LpTheme {
+  const industry = d.industry.toLowerCase();
+  const service = d.service_name.toLowerCase();
+  // BtoB/コーポレート向けはcorporate
+  if (/コンサル|法律|会計|金融|保険|不動産|建設|製造|医療|IT|システム|SaaS|saas/.test(industry)) return "corporate";
+  // サービス名にBtoB感があるもの
+  if (/システム|ツール|プラットフォーム|ソリューション|クラウド|管理/.test(service)) return "corporate";
+  return "dark";
+}
+
+// ============================================================
 // LP Step 3: Build HTML (高品質テンプレート)
 // ============================================================
 
-function buildLpHtml(c: LpContent, d: FlatData, images: LpImage[] = []): string {
+function buildLpHtml(c: LpContent, d: FlatData, images: LpImage[] = [], theme: LpTheme = "dark"): string {
   const prob = c.problems || [];
   const str = c.strengths || [];
   const svc = c.services || [];
@@ -615,6 +661,7 @@ ${CARD_GRID}
 ${STATS_GRID}
 ${FLOW}
 ${FAQ}
+${theme === "corporate" ? CORPORATE_THEME : ""}
 
 /* ===== HEADER ===== */
 .hd{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(255,255,255,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--bd);height:64px;display:flex;align-items:center}
@@ -808,12 +855,12 @@ ${prob.map(item => `<div class="prob fi">
 <div class="dvd"><svg viewBox="0 0 1200 72" preserveAspectRatio="none"><rect width="1200" height="72" fill="var(--bg)"/><path d="M0,0 C300,55 600,70 800,40 C1000,10 1150,45 1200,25 L1200,0 L0,0 Z" fill="var(--bg2)"/></svg></div>
 
 <!-- SOLUTION: 解決アプローチ (STRENGTH_CARD premium) -->
-<section class="sec" id="solution">
+<section class="sec" id="solution" data-img="about">
 <div class="inner">
 <div class="sec-hd"><p class="sec-bg-txt">Solution</p><p class="sec-eng">Solution</p><h2 class="sec-tit fi">${esc(c.solution_title || `${d.company_name}が解決します`)}</h2></div>
 <p class="sol-text fi">${esc(c.solution_text || "")}</p>
 <div class="str-grid">
-${str.map((item, i) => `<div class="str fi">
+${str.map((item, i) => `<div class="str fi" data-img="reason${i + 1}">
 <span class="str-num">${String(i + 1).padStart(2, "0")}</span>
 <div class="str-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div>
 <h4>${esc(item.title)}</h4>
@@ -822,6 +869,12 @@ ${str.map((item, i) => `<div class="str fi">
 </div>
 </div>
 </section>
+
+${theme === "corporate" ? `<!-- MID-CTA: Solution後 -->
+<div class="mid-cta">
+<a href="#contact" class="trial">${esc(c.cta_text)}</a>
+<a href="#contact" class="doc">資料ダウンロード</a>
+</div>` : ""}
 
 <!-- SERVICES: 提供サービス (SERVICE_CARD premium) -->
 <section class="sec dot-bg" id="service" style="background:var(--bg2)">
@@ -840,6 +893,12 @@ ${svc.map((item, i) => `<div class="svc-card fi">
 </div>
 </div>
 </section>
+
+${theme === "corporate" ? `<!-- MID-CTA: Service後 -->
+<div class="mid-cta">
+<a href="#contact" class="trial">${esc(c.cta_text)}</a>
+<a href="#contact" class="doc">資料ダウンロード</a>
+</div>` : ""}
 
 <!-- WAVE: services(bg2) → CTA1(accent) — concave dip -->
 <div class="dvd dvd-tall"><svg viewBox="0 0 1200 120" preserveAspectRatio="none"><rect width="1200" height="120" fill="var(--c)"/><path d="M0,0 Q600,140 1200,0 L1200,0 L0,0 Z" fill="var(--bg2)"/></svg></div>
@@ -1122,26 +1181,72 @@ async function generateGeneric(type: string, d: FlatData, transcript: string, ap
 
   const title = GENERIC_TITLES[type] || type;
 
+  // 制作物タイプ別のアクセントカラー
+  const accentColors: Record<string, string> = {
+    flyer: '#e74c3c',
+    hearing_form: '#27ae60',
+    line_design: '#06c755',
+    profile: '#3b82f6',
+    system_proposal: '#8b5cf6',
+    proposal: '#2563eb',
+    minutes: '#6b7280',
+    ad_creative: '#f59e0b',
+  };
+  const accent = accentColors[type] || '#3b82f6';
+
   return `<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>${esc(title)} - ${esc(d.service_name)}</title>
-<script src="https://cdn.tailwindcss.com"></script>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
-<style>body{font-family:'Noto Sans JP',sans-serif}@media print{.no-print{display:none}}</style>
-</head><body class="bg-white text-gray-900 min-h-screen">
-<div class="max-w-3xl mx-auto px-6 py-12">
-<div class="text-center mb-12">
-<p class="text-sm text-blue-600 font-semibold mb-2">${esc(d.company_name)}</p>
-<h1 class="text-3xl md:text-4xl font-black mb-3">${esc(content.headline)}</h1>
-<p class="text-gray-500">${esc(content.sub)}</p>
-</div>
-<div class="space-y-6">${(content.sections || []).map((s, i) => `
-<div class="p-6 rounded-xl ${i % 2 === 0 ? "bg-gray-50" : "bg-blue-50/50"} border border-gray-100">
-<h2 class="text-lg font-bold mb-3 flex items-center gap-2"><span class="w-7 h-7 rounded-lg bg-blue-600 text-white flex items-center justify-center text-sm font-bold">${i + 1}</span>${esc(s.title)}</h2>
-<div class="text-gray-600 leading-relaxed whitespace-pre-line">${esc(s.content)}</div>
-</div>`).join("")}
-</div>
-<p class="text-center text-xs text-gray-400 mt-12">${esc(d.company_name)}</p>
-</div></body></html>`;
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--ac:${accent};--ac-rgb:${hexToRgb(accent)}}
+body{font-family:'Noto Sans JP',sans-serif;background:#fafafa;color:#1a1a1a;min-height:100vh}
+@media print{.no-print{display:none}body{background:#fff}}
+
+/* ヘッダー */
+.doc-header{background:linear-gradient(135deg,var(--ac),color-mix(in srgb,var(--ac) 70%,#000));color:#fff;padding:48px 24px 40px;text-align:center}
+.doc-header .company{font-size:13px;opacity:.8;letter-spacing:2px;text-transform:uppercase;margin-bottom:12px}
+.doc-header h1{font-size:clamp(22px,5vw,32px);font-weight:900;line-height:1.3;margin-bottom:8px}
+.doc-header .sub{font-size:15px;opacity:.85;max-width:600px;margin:0 auto}
+
+/* コンテナ */
+.doc-body{max-width:760px;margin:-24px auto 0;padding:0 16px 48px;position:relative;z-index:1}
+
+/* セクションカード */
+.sec-card{background:#fff;border-radius:12px;padding:28px 24px;margin-bottom:20px;box-shadow:0 1px 3px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04);border:1px solid #f0f0f0;transition:box-shadow .2s}
+.sec-card:hover{box-shadow:0 4px 12px rgba(0,0,0,.08)}
+.sec-head{display:flex;align-items:flex-start;gap:14px;margin-bottom:16px}
+.sec-num{width:36px;height:36px;background:linear-gradient(135deg,var(--ac),color-mix(in srgb,var(--ac) 80%,#000));color:#fff;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;flex-shrink:0}
+.sec-head h2{font-size:17px;font-weight:700;line-height:1.4;padding-top:6px}
+.sec-content{color:#4a4a4a;font-size:14.5px;line-height:1.85;white-space:pre-line;padding-left:50px}
+
+/* フッター */
+.doc-footer{text-align:center;padding:24px 16px 32px;color:#aaa;font-size:12px;border-top:1px solid #eee;max-width:760px;margin:0 auto}
+
+/* モバイル */
+@media(max-width:600px){
+  .doc-header{padding:32px 16px 28px}
+  .sec-card{padding:20px 16px;border-radius:8px}
+  .sec-content{padding-left:0;margin-top:8px}
+  .sec-head{gap:10px}
+  .sec-num{width:30px;height:30px;font-size:13px;border-radius:8px}
+  .sec-head h2{font-size:15px}
+}
+</style>
+</head><body>
+<header class="doc-header">
+<p class="company">${esc(d.company_name)}</p>
+<h1>${esc(content.headline)}</h1>
+<p class="sub">${esc(content.sub)}</p>
+</header>
+<main class="doc-body">
+${(content.sections || []).map((s, i) => `<article class="sec-card">
+<div class="sec-head"><span class="sec-num">${i + 1}</span><h2>${esc(s.title)}</h2></div>
+<div class="sec-content">${esc(s.content)}</div>
+</article>`).join("\n")}
+</main>
+<footer class="doc-footer">${esc(d.company_name)}</footer>
+</body></html>`;
 }
 
 // ============================================================
@@ -1149,12 +1254,47 @@ async function generateGeneric(type: string, d: FlatData, transcript: string, ap
 // ============================================================
 
 function esc(s: string): string {
-  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  return (s ?? '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+}
+
+function hexToRgb(hex: string): string {
+  const h = hex.replace('#', '');
+  const r = parseInt(h.substring(0, 2), 16);
+  const g = parseInt(h.substring(2, 4), 16);
+  const b = parseInt(h.substring(4, 6), 16);
+  return `${r},${g},${b}`;
 }
 
 // ============================================================
 // メインハンドラー
 // ============================================================
+
+// ============================================================
+// レート制限 (インメモリ — Netlify Function単位)
+// ============================================================
+
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+const RATE_LIMIT_WINDOW_MS = 60_000; // 1分
+const RATE_LIMIT_MAX = 20; // 1分あたり最大20リクエスト/セッション
+
+function checkRateLimit(key: string): boolean {
+  const now = Date.now();
+  const entry = rateLimitMap.get(key);
+  if (!entry || now > entry.resetAt) {
+    rateLimitMap.set(key, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
+    return true;
+  }
+  entry.count++;
+  return entry.count <= RATE_LIMIT_MAX;
+}
+
+// 古いエントリをクリーンアップ（メモリリーク防止）
+function cleanupRateLimitMap(): void {
+  const now = Date.now();
+  for (const [key, entry] of rateLimitMap) {
+    if (now > entry.resetAt) rateLimitMap.delete(key);
+  }
+}
 
 export default async function handler(request: Request): Promise<Response> {
   if (request.method === "OPTIONS") {
@@ -1163,6 +1303,9 @@ export default async function handler(request: Request): Promise<Response> {
   if (request.method !== "POST") {
     return new Response(JSON.stringify({ success: false, error: "POST only" }), { status: 405, headers: { "Content-Type": "application/json", ...CORS } });
   }
+
+  // 定期クリーンアップ
+  if (rateLimitMap.size > 100) cleanupRateLimitMap();
 
   try {
     const body = (await request.json()) as Record<string, unknown>;
@@ -1175,6 +1318,11 @@ export default async function handler(request: Request): Promise<Response> {
 
     if (!sessionId) return new Response(JSON.stringify({ success: false, error: "session_id必須" }), { status: 400, headers: { "Content-Type": "application/json", ...CORS } });
     if (!type || !VALID_TYPES.has(type)) return new Response(JSON.stringify({ success: false, error: "無効なtype" }), { status: 400, headers: { "Content-Type": "application/json", ...CORS } });
+
+    // レート制限チェック
+    if (!checkRateLimit(sessionId)) {
+      return new Response(JSON.stringify({ success: false, error: "リクエスト頻度が高すぎます。しばらく待ってから再試行してください。" }), { status: 429, headers: { "Content-Type": "application/json", ...CORS } });
+    }
 
     const apiKey = process.env["ANTHROPIC_API_KEY"];
     if (!apiKey) return new Response(JSON.stringify({ success: false, error: "ANTHROPIC_API_KEY未設定" }), { status: 500, headers: { "Content-Type": "application/json", ...CORS } });
@@ -1216,7 +1364,9 @@ export default async function handler(request: Request): Promise<Response> {
         const images = selectImages(data);
         console.log(`[generate] images: ${images.length} selected for industry="${data.industry}"`);
 
-        const html = buildLpHtml(draftContent as LpContent, data, images);
+        const theme = selectTheme(data);
+        console.log(`[generate] theme: ${theme}`);
+        const html = buildLpHtml(draftContent as LpContent, data, images, theme);
 
         // Blobsに保存
         const blobKey = `${sessionId}/${type}`;
@@ -1246,7 +1396,8 @@ export default async function handler(request: Request): Promise<Response> {
     if (type === "lp") {
       const draft = await lpDraft(data, processedTranscript, apiKey, rawData);
       const images = selectImages(data);
-      html = buildLpHtml(draft, data, images);
+      const lpTheme = selectTheme(data);
+      html = buildLpHtml(draft, data, images, lpTheme);
     } else if (type === "ad_creative") html = await generateAd(data, processedTranscript, apiKey);
     else if (type === "minutes") html = await generateMinutes(data, processedTranscript, apiKey);
     else html = await generateGeneric(type, data, processedTranscript, apiKey);

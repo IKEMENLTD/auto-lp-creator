@@ -276,14 +276,62 @@ export const Dashboard: React.FC = () => {
     }
   }, [session]);
 
-  const handleShareDeliverable = useCallback((_type: DeliverableType) => {}, []);
+  const handleShareDeliverable = useCallback((type: DeliverableType) => {
+    const job = session.getJobForType(type);
+    if (!job?.result_url) return;
+
+    const url = job.result_url;
+    const title = `${session.targetCompany ?? ''} - ${type}`;
+
+    // Web Share API対応（モバイル/LINE共有向け）
+    if (navigator.share) {
+      void navigator.share({ title, url }).catch(() => {
+        // ユーザーがキャンセルした場合は無視
+      });
+    } else {
+      // フォールバック: クリップボードにコピー
+      void navigator.clipboard.writeText(url).then(() => {
+        alert('URLをコピーしました');
+      }).catch(() => {
+        // clipboard API非対応 — window.prompt で表示
+        window.prompt('URLをコピーしてください:', url);
+      });
+    }
+  }, [session]);
 
   const handleShareAll = useCallback(async (method: ShareMethod) => {
     if (!sessionId) return;
-    try {
-      await api.shareAll(sessionId, method);
-    } catch {}
-  }, [sessionId]);
+
+    // 完了済み制作物のURLを収集
+    const completedUrls: string[] = [];
+    const types: DeliverableType[] = ['lp', 'ad_creative', 'flyer', 'hearing_form', 'line_design', 'minutes', 'profile', 'system_proposal', 'proposal'];
+    for (const t of types) {
+      const job = session.getJobForType(t);
+      if (job?.status === 'completed' && job.result_url) {
+        completedUrls.push(job.result_url);
+      }
+    }
+    if (completedUrls.length === 0) return;
+
+    const text = `${session.targetCompany ?? '制作物'}\n${completedUrls.join('\n')}`;
+
+    if (method === 'line') {
+      // LINEシェア
+      const lineUrl = `https://line.me/R/share?text=${encodeURIComponent(text)}`;
+      window.open(lineUrl, '_blank', 'noopener');
+    } else if (method === 'email') {
+      const subject = encodeURIComponent(`${session.targetCompany ?? ''} 制作物`);
+      const body = encodeURIComponent(text);
+      window.location.href = `mailto:?subject=${subject}&body=${body}`;
+    } else {
+      // QR — クリップボードコピーにフォールバック
+      void navigator.clipboard.writeText(completedUrls.join('\n')).then(() => {
+        alert('全URLをコピーしました');
+      }).catch(() => {
+        window.prompt('URLをコピーしてください:', completedUrls.join('\n'));
+      });
+    }
+  }, [sessionId, session]);
 
   // ================================================================
   // 表示判定
