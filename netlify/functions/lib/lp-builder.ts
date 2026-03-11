@@ -346,15 +346,13 @@ ${theme === "corporate" ? CORPORATE_THEME : ""}
 
 /* ===== FEATURES (できること) ===== */
 .feat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;max-width:1000px;margin:0 auto}
-.feat-card{overflow:hidden;border-radius:var(--r);background:var(--bg);border:1px solid var(--bd);transition:box-shadow .4s,transform .4s}
+.feat-card{overflow:hidden;border-radius:var(--r);background:var(--bg);border:1px solid var(--bd);box-shadow:0 2px 8px rgba(0,0,0,.06);transition:box-shadow .4s,transform .4s}
 .feat-card:hover{box-shadow:0 12px 36px rgba(0,0,0,.08);transform:translateY(-4px)}
-.feat-card-img{width:100%;height:160px;object-fit:cover;display:block}
+.feat-card-img{width:100%;height:200px;object-fit:cover;display:block}
 .feat-body{padding:20px}
-.feat-ico{width:44px;height:44px;display:flex;align-items:center;justify-content:center;background:rgba(var(--c-rgb),.08);border-radius:12px;margin-bottom:12px}
-.feat-ico svg{width:22px;height:22px;color:var(--c)}
-.feat-body h4{font-size:15px;font-weight:800;margin-bottom:6px}
+.feat-body h4{font-size:16px;font-weight:800;margin-bottom:8px}
 .feat-body p{font-size:13px;color:var(--t2);line-height:1.8;margin:0}
-@media(max-width:750px){.feat-grid{grid-template-columns:1fr;gap:16px}.feat-card-img{height:140px}.feat-body{padding:16px}}
+@media(max-width:750px){.feat-grid{grid-template-columns:1fr;gap:16px}.feat-card-img{height:180px}.feat-body{padding:16px}}
 
 /* ===== REASONS (選ばれる理由) ===== */
 .reason-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;max-width:1000px;margin:0 auto}
@@ -624,7 +622,6 @@ ${svc.map((item, i) => {
   return `<div class="feat-card fi">
 <img class="feat-card-img" src="${esc(featImg)}" alt="${esc(item.title)}" loading="lazy">
 <div class="feat-body">
-<div class="feat-ico">${ico[i] || ico[0]}</div>
 <h4>${esc(item.title)}</h4>
 <p>${esc(item.desc)}</p>
 </div>
