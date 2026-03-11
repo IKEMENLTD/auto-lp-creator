@@ -95,12 +95,14 @@ export const PROBLEM_CARD = `
 .prob span{font-weight:400;font-size:13px;color:var(--t2)}
 `;
 
-/** テスティモニアルカード */
+/** テスティモニアルカード（画像付き） */
 export const TESTIMONIAL_CARD = `
 .tm-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
-.tm-card{padding:32px;background:var(--bg);border:1px solid var(--bd);border-radius:var(--r);position:relative;transition:box-shadow .3s,transform .3s}
+.tm-card{overflow:hidden;background:var(--bg);border:1px solid var(--bd);border-radius:var(--r);position:relative;transition:box-shadow .3s,transform .3s}
 .tm-card:hover{box-shadow:0 12px 40px rgba(0,0,0,.08);transform:translateY(-4px)}
-.tm-card::before{content:'"';position:absolute;top:12px;right:20px;font-family:Georgia,serif;font-size:64px;color:var(--c);opacity:.1;line-height:1}
+.tm-card-img{width:100%;height:180px;object-fit:cover;display:block}
+.tm-card-body{padding:24px;position:relative}
+.tm-card-body::before{content:'"';position:absolute;top:8px;right:16px;font-family:Georgia,serif;font-size:56px;color:var(--c);opacity:.1;line-height:1}
 .tm-stars{display:flex;gap:3px;margin-bottom:14px}
 .tm-text{font-size:15px;color:var(--t1);line-height:1.9;margin-bottom:18px;font-style:italic}
 .tm-result{display:inline-block;padding:6px 16px;background:rgba(var(--c-rgb),.1);color:var(--c);font-size:13px;font-weight:800;border-radius:20px;margin-bottom:16px}
@@ -108,7 +110,7 @@ export const TESTIMONIAL_CARD = `
 .tm-avatar{width:48px;height:48px;border-radius:50%;background:var(--cg);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:16px}
 .tm-name{font-size:14px;font-weight:800}
 .tm-role{font-size:12px;color:var(--t3)}
-@media(max-width:750px){.tm-grid{grid-template-columns:1fr}}
+@media(max-width:750px){.tm-grid{grid-template-columns:1fr}.tm-card-img{height:160px}}
 `;
 
 /** 比較テーブル */
@@ -137,16 +139,16 @@ export const FLOW = `
 .flow-body{padding-top:14px}
 `;
 
-/** FAQアコーディオン */
+/** FAQアコーディオン（dl/dt/dd + JSトグル） */
 export const FAQ = `
 .faq-list{display:flex;flex-direction:column;gap:10px}
 .faq-item{border:1px solid var(--bd);border-radius:var(--r);overflow:hidden}
-.faq-q{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px 20px;cursor:pointer;font-weight:700;font-size:15px;list-style:none;transition:background .15s}
+.faq-q{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px 20px;cursor:pointer;font-weight:700;font-size:15px;transition:background .15s;-webkit-user-select:none;user-select:none}
 .faq-q:hover{background:var(--bg2)}
-.faq-q::-webkit-details-marker{display:none}
-.faq-q::after{content:'+';font-size:20px;color:var(--t3);transition:transform .25s}
-details[open] .faq-q::after{transform:rotate(45deg)}
-.faq-a{padding:0 20px 18px;font-size:15px;color:var(--t2);line-height:1.9;border-top:1px solid var(--bd)}
+.faq-q::after{content:'+';font-size:20px;color:var(--t3);transition:transform .3s;flex-shrink:0}
+.faq-item.open .faq-q::after{transform:rotate(45deg)}
+.faq-a{display:none;padding:0 20px 18px;font-size:15px;color:var(--t2);line-height:1.9;border-top:1px solid var(--bd)}
+.faq-item.open .faq-a{display:block}
 `;
 
 /** カードグリッド（3列→1列レスポンシブ） */
@@ -296,7 +298,7 @@ section.sec:nth-of-type(odd) { background:var(--bg); }
 .flow-desc { color:var(--muted); }
 /* 事例カード */
 .tm-card { background:var(--card-bg); border:1px solid #f0f0f0; box-shadow:var(--card-shadow); }
-.tm-card::before { color:var(--c); }
+.tm-card-body::before { color:var(--c); }
 .tm-result { background:rgba(26,179,148,.1); color:var(--c); }
 .tm-text { color:var(--fg); }
 .tm-name { color:var(--fg); }
@@ -306,7 +308,7 @@ section.sec:nth-of-type(odd) { background:var(--bg); }
 .faq-item { background:var(--card-bg); border:1px solid var(--bd); }
 .faq-q { color:var(--fg); }
 .faq-q::after { color:var(--c); }
-.faq-a { color:var(--muted); }
+.faq-a { color:var(--muted); border-top-color:var(--bd); }
 /* CTA中間 */
 .offer { background:var(--c); }
 .offer::before { display:none; }
@@ -353,10 +355,10 @@ section.sec:nth-of-type(odd) { background:var(--bg); }
 .reason-body p { color:var(--muted); }
 /* 活用シーン */
 .uc-card { background:var(--card-bg); border:1px solid #f0f0f0; box-shadow:var(--card-shadow); border-radius:12px; }
-.uc-ico { background:rgba(26,179,148,.08); }
-.uc-ico svg { color:var(--c); }
-.uc-card h4 { color:var(--fg); }
-.uc-card p { color:var(--muted); }
+.uc-ico { background:rgba(255,255,255,.2); backdrop-filter:blur(8px); }
+.uc-ico svg { color:#fff; }
+.uc-card-body h4 { color:var(--fg); }
+.uc-card-body p { color:var(--muted); }
 /* コラム記事 */
 .col-card { background:var(--card-bg); border:1px solid #f0f0f0; box-shadow:var(--card-shadow); }
 .col-body h4 { color:var(--fg); }
@@ -364,6 +366,11 @@ section.sec:nth-of-type(odd) { background:var(--bg); }
 .col-tag { color:var(--c); }
 /* フッター */
 .ft { background:#2c3e50; color:rgba(255,255,255,.7); border-top:none; }
+.ft-company { color:rgba(255,255,255,.9); }
+.ft-address { color:rgba(255,255,255,.5); }
+.ft-copy { color:rgba(255,255,255,.4); }
+.ft-links a { color:rgba(255,255,255,.5); }
+.ft-links a:hover { color:#fff; }
 /* 波ディバイダーを非表示（コーポレートはborder線に） */
 .dvd { display:none; }
 /* マイクロコピー */

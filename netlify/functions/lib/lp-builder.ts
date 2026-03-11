@@ -370,13 +370,16 @@ ${theme === "corporate" ? CORPORATE_THEME : ""}
 
 /* ===== USE CASES (活用シーン) ===== */
 .uc-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;max-width:960px;margin:0 auto}
-.uc-card{padding:28px 24px;background:var(--bg);border:1px solid var(--bd);border-radius:var(--r);text-align:center;transition:box-shadow .3s,transform .3s}
-.uc-card:hover{box-shadow:0 12px 36px rgba(0,0,0,.06);transform:translateY(-3px)}
-.uc-ico{width:64px;height:64px;margin:0 auto 16px;display:flex;align-items:center;justify-content:center;background:rgba(var(--c-rgb),.08);border-radius:16px}
-.uc-ico svg{width:28px;height:28px;color:var(--c)}
-.uc-card h4{font-size:15px;font-weight:800;margin-bottom:8px}
-.uc-card p{font-size:13px;color:var(--t2);line-height:1.8;margin:0}
-@media(max-width:750px){.uc-grid{grid-template-columns:1fr;gap:16px}.uc-card{padding:24px 20px}}
+.uc-card{position:relative;overflow:hidden;border-radius:var(--r);border:1px solid var(--bd);transition:box-shadow .3s,transform .3s}
+.uc-card:hover{box-shadow:0 12px 36px rgba(0,0,0,.08);transform:translateY(-3px)}
+.uc-card-img{width:100%;height:200px;object-fit:cover;display:block}
+.uc-card-overlay{position:absolute;top:0;left:0;right:0;height:200px;background:linear-gradient(180deg,rgba(0,0,0,.1) 0%,rgba(0,0,0,.45) 100%);display:flex;align-items:center;justify-content:center}
+.uc-ico{width:64px;height:64px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.2);backdrop-filter:blur(8px);border-radius:16px;border:1px solid rgba(255,255,255,.25)}
+.uc-ico svg{width:28px;height:28px;color:#fff}
+.uc-card-body{padding:20px}
+.uc-card-body h4{font-size:15px;font-weight:800;margin-bottom:8px}
+.uc-card-body p{font-size:13px;color:var(--t2);line-height:1.8;margin:0}
+@media(max-width:750px){.uc-grid{grid-template-columns:1fr;gap:16px}.uc-card-img{height:160px}.uc-card-overlay{height:160px}}
 
 /* ===== FUNCTIONS (主な機能) ===== */
 .func-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;max-width:1000px;margin:0 auto}
@@ -425,7 +428,15 @@ ${theme === "corporate" ? CORPORATE_THEME : ""}
 .cta-sub{font-size:14px;color:rgba(255,255,255,.5);margin-bottom:24px;position:relative}
 
 /* ===== FOOTER ===== */
-.ft{padding:28px;text-align:center;border-top:1px solid var(--bd);font-size:12px;color:var(--t3)}
+.ft{padding:40px 24px;border-top:1px solid var(--bd);font-size:12px;color:var(--t3)}
+.ft-inner{max-width:1100px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap}
+.ft-company{font-size:14px;font-weight:700;color:var(--t1);margin-bottom:4px}
+.ft-address{font-size:12px;color:var(--t3)}
+.ft-links{display:flex;gap:20px;flex-wrap:wrap}
+.ft-links a{font-size:12px;color:var(--t3);text-decoration:none;transition:color .2s}
+.ft-links a:hover{color:var(--c)}
+.ft-copy{font-size:11px;color:var(--t3);margin-top:4px}
+@media(max-width:750px){.ft-inner{flex-direction:column;text-align:center}.ft-links{justify-content:center}}
 
 /* ===== MOBILE CTA BAR ===== */
 .m-cta{display:none;position:fixed;bottom:0;left:0;right:0;padding:10px 16px;background:rgba(255,255,255,.95);backdrop-filter:blur(12px);border-top:1px solid var(--bd);z-index:100}
@@ -654,7 +665,7 @@ ${useCases.length > 0 ? `<section class="sec" style="background:var(--bg2)">
 <div class="inner">
 <div class="sec-hd"><p class="sec-bg-txt">UseCase</p><p class="sec-eng">Use Cases</p><h2 class="sec-tit fi">活用シーン</h2></div>
 <div class="uc-grid">
-${useCases.map(item => {
+${useCases.map((item, i) => {
   const ucIcoMap: Record<string, string> = {
     search: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>',
     chart: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>',
@@ -664,10 +675,14 @@ ${useCases.map(item => {
     target: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>',
   };
   const ucIcon = ucIcoMap[item.icon_keyword] || ucIcoMap["zap"];
+  const ucImg = images[i + 1] ? images[i + 1].url.replace(/w=\d+/, "w=600").replace(/h=\d+/, "h=400") : unsplashUrl(PHOTO_LIBRARY["business"][(i + 2) % 5], 600, 400);
   return `<div class="uc-card fi">
-<div class="uc-ico">${ucIcon}</div>
+<img class="uc-card-img" src="${esc(ucImg)}" alt="${esc(item.title)}" loading="lazy">
+<div class="uc-card-overlay"><div class="uc-ico">${ucIcon}</div></div>
+<div class="uc-card-body">
 <h4>${esc(item.title)}</h4>
 <p>${esc(item.desc)}</p>
+</div>
 </div>`;
 }).join("")}
 </div>
@@ -751,14 +766,20 @@ ${cas.length > 0 ? `<section class="sec" style="background:var(--bg2)">
 <div class="inner">
 <div class="sec-hd"><p class="sec-bg-txt">Results</p><p class="sec-eng">Case Results</p><h2 class="sec-tit fi">実績事例</h2></div>
 <div class="tm-grid">
-${cas.map(item => `<div class="tm-card fi">
+${cas.map((item, i) => {
+  const caseImg = images[i + 1] ? images[i + 1].url.replace(/w=\d+/, "w=600").replace(/h=\d+/, "h=400") : unsplashUrl(PHOTO_LIBRARY["business"][(i + 3) % 5], 600, 400);
+  return `<div class="tm-card fi">
+<img class="tm-card-img" src="${esc(caseImg)}" alt="${esc(item.category)}" loading="lazy">
+<div class="tm-card-body">
 <div class="tm-result">${esc(item.result)}</div>
 <p class="tm-text">${esc(item.detail)}</p>
 <div class="tm-author">
 <div class="tm-avatar" style="font-size:12px">${esc(item.category.slice(0,2))}</div>
 <div><div class="tm-name">${esc(item.category)}</div></div>
 </div>
-</div>`).join("")}
+</div>
+</div>`;
+}).join("")}
 </div>
 </div>
 </section>` : ""}
@@ -800,7 +821,7 @@ ${c.company_profile ? `<div class="company-box fi" style="margin-bottom:64px">
 ${faq.length > 0 ? `<div style="max-width:720px;margin:0 auto">
 <div class="sec-hd"><p class="sec-bg-txt">FAQ</p><p class="sec-eng">FAQ</p><h2 class="sec-tit fi">よくある質問</h2></div>
 <div class="faq-list fi">
-${faq.map(item => `<details class="faq-item"><summary class="faq-q">${esc(item.q)}</summary><div class="faq-a">${esc(item.a)}</div></details>`).join("")}
+${faq.map(item => `<dl class="faq-item"><dt class="faq-q">${esc(item.q)}</dt><dd class="faq-a">${esc(item.a)}</dd></dl>`).join("")}
 </div>
 </div>` : ""}
 </div>
@@ -818,14 +839,27 @@ ${microHtml}
 </section>
 
 <!-- FOOTER -->
-<footer class="ft">&copy; ${esc(d.company_name)} All Rights Reserved.</footer>
+<footer class="ft">
+<div class="ft-inner">
+<div>
+<div class="ft-company">${esc(d.company_name)}</div>
+<div class="ft-address">〒〇〇〇-〇〇〇〇 〇〇〇〇〇〇〇〇〇〇</div>
+<div class="ft-copy">&copy; ${esc(d.company_name)} All Rights Reserved.</div>
+</div>
+<div class="ft-links">
+<a href="#">運営会社</a>
+<a href="#">プライバシーポリシー</a>
+<a href="#">利用規約</a>
+</div>
+</div>
+</footer>
 
 <!-- MOBILE CTA -->
 <div class="m-cta"><a href="#contact">${esc(c.cta_text)}</a><p class="m-cta-sub">${esc(pName)} / 相談無料 / オンライン対応</p></div>
 
-<!-- SCROLL ANIMATION -->
+<!-- SCROLL ANIMATION + FAQ TOGGLE -->
 <script>
-document.addEventListener('DOMContentLoaded',function(){var o=new IntersectionObserver(function(e){e.forEach(function(en){if(en.isIntersecting){en.target.classList.add('vis');o.unobserve(en.target)}})},{threshold:.12,rootMargin:'0px 0px -40px 0px'});document.querySelectorAll('.fi').forEach(function(el){o.observe(el)})});
+document.addEventListener('DOMContentLoaded',function(){var o=new IntersectionObserver(function(e){e.forEach(function(en){if(en.isIntersecting){en.target.classList.add('vis');o.unobserve(en.target)}})},{threshold:.12,rootMargin:'0px 0px -40px 0px'});document.querySelectorAll('.fi').forEach(function(el){o.observe(el)});document.querySelectorAll('.faq-q').forEach(function(dt){dt.addEventListener('click',function(){var dl=this.parentElement;if(dl.classList.contains('open')){dl.classList.remove('open')}else{dl.classList.add('open')}})})});
 </script>
 </body></html>`;
 }
