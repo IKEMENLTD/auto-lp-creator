@@ -317,6 +317,29 @@ ${theme === "corporate" ? CORPORATE_THEME : ""}
 @media(max-width:750px){.logo-strip{padding:28px 0}.logo-strip-list{gap:20px 32px}.logo-strip-item{font-size:13px}}
 @media(max-width:480px){.logo-strip-list{gap:16px 24px}.logo-strip-item{font-size:12px}}
 
+/* ===== ABOUT (〇〇とは) ===== */
+.about-pain{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-bottom:40px}
+.about-pain-item{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:var(--bg2);border:1px solid var(--bd);border-radius:20px;font-size:13px;font-weight:600;color:var(--t2)}
+.about-pain-item svg{width:16px;height:16px;color:var(--c);flex-shrink:0}
+.about-grid{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center;max-width:960px;margin:0 auto}
+.about-text h3{font-size:clamp(18px,3vw,24px);font-weight:900;margin-bottom:12px;line-height:1.4}
+.about-text p{font-size:15px;color:var(--t2);line-height:2}
+.about-img{border-radius:12px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.08)}
+.about-img img{width:100%;height:auto;display:block}
+@media(max-width:750px){.about-grid{grid-template-columns:1fr;gap:24px}.about-text h3{font-size:20px}.about-img{order:-1}}
+
+/* ===== FEATURES (できること) ===== */
+.feat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;max-width:1000px;margin:0 auto}
+.feat-card{overflow:hidden;border-radius:var(--r);background:var(--bg);border:1px solid var(--bd);transition:box-shadow .4s,transform .4s}
+.feat-card:hover{box-shadow:0 12px 36px rgba(0,0,0,.08);transform:translateY(-4px)}
+.feat-card-img{width:100%;height:160px;object-fit:cover;display:block}
+.feat-body{padding:20px}
+.feat-ico{width:44px;height:44px;display:flex;align-items:center;justify-content:center;background:rgba(var(--c-rgb),.08);border-radius:12px;margin-bottom:12px}
+.feat-ico svg{width:22px;height:22px;color:var(--c)}
+.feat-body h4{font-size:15px;font-weight:800;margin-bottom:6px}
+.feat-body p{font-size:13px;color:var(--t2);line-height:1.8;margin:0}
+@media(max-width:750px){.feat-grid{grid-template-columns:1fr;gap:16px}.feat-card-img{height:140px}.feat-body{padding:16px}}
+
 /* ===== REASONS (選ばれる理由) ===== */
 .reason-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;max-width:1000px;margin:0 auto}
 .reason-card{position:relative;overflow:hidden;border-radius:var(--r);background:var(--bg);border:1px solid var(--bd);transition:box-shadow .4s,transform .4s}
@@ -528,63 +551,52 @@ ${s.map(st => `<div class="fv-stat"><div class="fv-stat-num">${esc(st.number)}</
 </div>
 </div>
 
-<!-- PROBLEMS: ターゲットの課題 (PROBLEM_CARD) -->
-<section class="sec dot-bg" style="background:var(--bg2)">
+<!-- ABOUT: 〇〇とは（課題 + 解決アプローチ） -->
+<section class="sec" id="solution">
 <div class="inner">
-<div class="sec-hd"><p class="sec-bg-txt">Problems</p><p class="sec-eng">Problems</p><h2 class="sec-tit fi">こんな課題はありませんか？</h2></div>
-<div class="prob-grid">
-${prob.map(item => `<div class="prob fi">
-<div class="prob-ico">${alertSvg}</div>
-<p>${esc(item.title)}<br/><span>${esc(item.desc)}</span></p>
-</div>`).join("")}
+<div class="sec-hd"><p class="sec-bg-txt">About</p><p class="sec-eng">About</p><h2 class="sec-tit fi">${esc(d.service_name)}とは</h2></div>
+${prob.length > 0 ? `<div class="about-pain fi">
+${prob.map(item => `<span class="about-pain-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/></svg>${esc(item.title)}</span>`).join("")}
+</div>` : ""}
+<div class="about-grid fi">
+<div class="about-text">
+<h3>${esc(c.solution_title || `${d.company_name}が解決します`)}</h3>
+<p>${esc(c.solution_text || "")}</p>
+</div>
+<div class="about-img">
+${hasImg && images[0] ? `<img src="${esc(images[0].url.replace(/w=\d+/, "w=800").replace(/h=\d+/, "h=600"))}" alt="${esc(d.service_name)}" loading="lazy">` : ""}
+</div>
 </div>
 </div>
 </section>
 
-<!-- WAVE: problems(bg2) → solution(white) -->
-<div class="dvd"><svg viewBox="0 0 1200 72" preserveAspectRatio="none"><rect width="1200" height="72" fill="var(--bg)"/><path d="M0,0 C300,55 600,70 800,40 C1000,10 1150,45 1200,25 L1200,0 L0,0 Z" fill="var(--bg2)"/></svg></div>
-
-<!-- SOLUTION: 解決アプローチ (STRENGTH_CARD premium) -->
-<section class="sec" id="solution" data-img="about">
-<div class="inner">
-<div class="sec-hd"><p class="sec-bg-txt">Solution</p><p class="sec-eng">Solution</p><h2 class="sec-tit fi">${esc(c.solution_title || `${d.company_name}が解決します`)}</h2></div>
-<p class="sol-text fi">${esc(c.solution_text || "")}</p>
-<div class="str-grid">
-${str.map((item, i) => `<div class="str fi" data-img="reason${i + 1}">
-<span class="str-num">${String(i + 1).padStart(2, "0")}</span>
-<div class="str-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div>
-<h4>${esc(item.title)}</h4>
-<p>${esc(item.desc)}</p>
-</div>`).join("")}
-</div>
-</div>
-</section>
-
-${theme === "corporate" ? `<!-- MID-CTA: Solution後 -->
+${theme === "corporate" ? `<!-- MID-CTA: About後 -->
 <div class="mid-cta">
 <a href="#contact" class="trial">${esc(c.cta_text)}</a>
 <a href="#contact" class="doc">資料ダウンロード</a>
 </div>` : ""}
 
-<!-- SERVICES: 提供サービス (SERVICE_CARD premium) -->
+<!-- FEATURES: できること（サービス + 強み統合） -->
 <section class="sec dot-bg" id="service" style="background:var(--bg2)">
 <div class="inner">
-<div class="sec-hd"><p class="sec-bg-txt">Service</p><p class="sec-eng">Service</p><h2 class="sec-tit fi">提供サービス</h2></div>
-<div class="svc-grid">
-${svc.map((item, i) => `<div class="svc-card fi">
-<div class="svc-head">
-<div class="svc-ico-ring">${ico[i] || ico[0]}</div>
-<h3>${esc(item.title)}</h3>
-</div>
-<div class="svc-body">
+<div class="sec-hd"><p class="sec-bg-txt">Features</p><p class="sec-eng">Features</p><h2 class="sec-tit fi">${esc(d.service_name)}でできること</h2></div>
+<div class="feat-grid">
+${svc.map((item, i) => {
+  const featImg = images[i + 1] ? images[i + 1].url.replace(/w=\d+/, "w=600").replace(/h=\d+/, "h=400") : unsplashUrl(PHOTO_LIBRARY["business"][(i + 1) % 5], 600, 400);
+  return `<div class="feat-card fi">
+<img class="feat-card-img" src="${esc(featImg)}" alt="${esc(item.title)}" loading="lazy">
+<div class="feat-body">
+<div class="feat-ico">${ico[i] || ico[0]}</div>
+<h4>${esc(item.title)}</h4>
 <p>${esc(item.desc)}</p>
 </div>
-</div>`).join("")}
+</div>`;
+}).join("")}
 </div>
 </div>
 </section>
 
-${theme === "corporate" ? `<!-- MID-CTA: Service後 -->
+${theme === "corporate" ? `<!-- MID-CTA: Features後 -->
 <div class="mid-cta">
 <a href="#contact" class="trial">${esc(c.cta_text)}</a>
 <a href="#contact" class="doc">資料ダウンロード</a>

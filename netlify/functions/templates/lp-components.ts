@@ -259,20 +259,18 @@ section.sec:nth-of-type(odd) { background:var(--bg); }
 .prob { background:var(--card-bg); border:1px solid #f0f0f0; box-shadow:var(--card-shadow); }
 .prob p { color:var(--fg); }
 .prob span { color:var(--muted); }
-/* 強みカード: REASON風番号バッジ */
-.str { background:var(--card-bg); border:none; box-shadow:var(--card-shadow); border-radius:12px; }
-.str::before { background:var(--cg); }
-.str-num { color:var(--c); opacity:.08; font-size:56px; }
-.str-ico { background:var(--sec-alt-bg); border-radius:50%; width:64px; height:64px; }
-.str-ico svg { color:var(--c); }
-.str h4 { color:var(--fg); }
-.str p { color:var(--muted); }
-/* サービスカード: 丸アイコン風 */
-.svc-card { background:var(--card-bg); border:1px solid #f0f0f0; box-shadow:var(--card-shadow); border-radius:12px; overflow:hidden; }
-.svc-head { background:var(--sec-alt-bg); }
-.svc-ico-ring { background:var(--card-bg); border:2px solid var(--bd); border-radius:50%; width:80px; height:80px; box-shadow:none; }
-.svc-card h3 { color:var(--fg); }
-.svc-card p { color:var(--muted); }
+/* About: 課題ピル + 解決テキスト */
+.about-pain-item { background:var(--sec-alt-bg); border:1px solid var(--bd); color:var(--fg); }
+.about-pain-item svg { color:var(--c); }
+.about-text h3 { color:var(--fg); }
+.about-text p { color:var(--muted); }
+.about-img { box-shadow:0 8px 32px rgba(0,0,0,.06); }
+/* Features: 画像+アイコン付きカード */
+.feat-card { background:var(--card-bg); border:1px solid #f0f0f0; box-shadow:var(--card-shadow); border-radius:12px; overflow:hidden; }
+.feat-ico { background:rgba(26,179,148,.08); }
+.feat-ico svg { color:var(--c); }
+.feat-body h4 { color:var(--fg); }
+.feat-body p { color:var(--muted); }
 /* ボタン: ピル型 */
 .btn { border-radius:34px; }
 .btn-lg, .btn-md { border-radius:34px; position:relative; padding-right:40px; }
