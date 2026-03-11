@@ -426,15 +426,17 @@ ${theme === "corporate" ? CORPORATE_THEME : ""}
 .cta-sub{font-size:14px;color:rgba(255,255,255,.5);margin-bottom:24px;position:relative}
 
 /* ===== FOOTER ===== */
-.ft{padding:40px 24px;border-top:1px solid var(--bd);font-size:12px;color:var(--t3)}
-.ft-inner{max-width:1100px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap}
-.ft-company{font-size:14px;font-weight:700;color:var(--t1);margin-bottom:4px}
-.ft-address{font-size:12px;color:var(--t3)}
-.ft-links{display:flex;gap:20px;flex-wrap:wrap}
+.ft{padding:48px 24px;border-top:1px solid var(--bd);font-size:12px;color:var(--t3)}
+.ft-inner{max-width:1100px;margin:0 auto;display:flex;align-items:flex-start;justify-content:space-between;gap:32px;flex-wrap:wrap}
+.ft-brand{display:flex;align-items:center;gap:14px;margin-bottom:12px}
+.ft-logo{width:40px;height:40px;border-radius:8px;background:var(--cg);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:18px;flex-shrink:0}
+.ft-company{font-size:16px;font-weight:800;color:var(--t1)}
+.ft-address{font-size:12px;color:var(--t3);line-height:1.8}
+.ft-links{display:flex;gap:20px;flex-wrap:wrap;padding-top:6px}
 .ft-links a{font-size:12px;color:var(--t3);text-decoration:none;transition:color .2s}
 .ft-links a:hover{color:var(--c)}
-.ft-copy{font-size:11px;color:var(--t3);margin-top:4px}
-@media(max-width:750px){.ft-inner{flex-direction:column;text-align:center}.ft-links{justify-content:center}}
+.ft-copy{font-size:11px;color:var(--t3);margin-top:12px}
+@media(max-width:750px){.ft-inner{flex-direction:column;align-items:center;text-align:center}.ft-brand{justify-content:center}.ft-links{justify-content:center}}
 
 /* ===== MOBILE CTA BAR ===== */
 .m-cta{display:none;position:fixed;bottom:0;left:0;right:0;padding:10px 16px;background:rgba(255,255,255,.95);backdrop-filter:blur(12px);border-top:1px solid var(--bd);z-index:100}
@@ -839,8 +841,11 @@ ${microHtml}
 <footer class="ft">
 <div class="ft-inner">
 <div>
+<div class="ft-brand">
+<div class="ft-logo">${esc(d.company_name.charAt(0))}</div>
 <div class="ft-company">${esc(d.company_name)}</div>
-<div class="ft-address">〒〇〇〇-〇〇〇〇 〇〇〇〇〇〇〇〇〇〇</div>
+</div>
+<div class="ft-address">${esc(d.industry)}</div>
 <div class="ft-copy">&copy; ${esc(d.company_name)} All Rights Reserved.</div>
 </div>
 <div class="ft-links">
