@@ -469,7 +469,6 @@ ${theme === "corporate" ? CORPORATE_THEME : ""}
 <div class="inner">
 <div class="fv-left">
 <div class="fv-badge">${esc(c.badge_text || d.industry)}</div>
-<p class="fv-name">${esc(pName)} / ${esc(pTitle)} / ${esc(d.company_name)}</p>
 <h1 class="fv-headline">${esc(c.hero_headline)}</h1>
 <p class="fv-sub">${esc(c.hero_sub)}</p>
 <div class="fv-features">
