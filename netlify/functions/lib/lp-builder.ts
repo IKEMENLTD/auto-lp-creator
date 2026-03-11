@@ -342,7 +342,7 @@ ${theme === "corporate" ? CORPORATE_THEME : ""}
 .about-text p{font-size:15px;color:var(--t2);line-height:2}
 .about-img{border-radius:12px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.08)}
 .about-img img{width:100%;height:auto;display:block}
-@media(max-width:750px){.about-grid{grid-template-columns:1fr;gap:24px}.about-text h3{font-size:20px}.about-img{order:-1}}
+@media(max-width:750px){.about-grid{grid-template-columns:1fr;gap:24px}.about-text h3{font-size:20px}}
 
 /* ===== FEATURES (できること) ===== */
 .feat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;max-width:1000px;margin:0 auto}
@@ -597,12 +597,12 @@ ${prob.length > 0 ? `<div class="about-pain fi">
 ${prob.map(item => `<span class="about-pain-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/></svg>${esc(item.title)}</span>`).join("")}
 </div>` : ""}
 <div class="about-grid fi">
+<div class="about-img">
+${hasImg && images[0] ? `<img src="${esc(images[0].url.replace(/w=\d+/, "w=800").replace(/h=\d+/, "h=600"))}" alt="${esc(d.service_name)}" loading="lazy">` : ""}
+</div>
 <div class="about-text">
 <h3>${esc(c.solution_title || `${d.company_name}が解決します`)}</h3>
 <p>${esc(c.solution_text || "")}</p>
-</div>
-<div class="about-img">
-${hasImg && images[0] ? `<img src="${esc(images[0].url.replace(/w=\d+/, "w=800").replace(/h=\d+/, "h=600"))}" alt="${esc(d.service_name)}" loading="lazy">` : ""}
 </div>
 </div>
 </div>
