@@ -689,6 +689,15 @@ ${theme === "corporate" ? CORPORATE_THEME : ""}
 .fv-stat-num{font-family:'Inter',sans-serif;font-size:clamp(22px,3.5vw,40px);font-weight:900;background:var(--cg);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1.1;white-space:nowrap}
 .fv-stat-label{font-size:12px;color:var(--t2);margin-top:4px;letter-spacing:.05em;font-weight:600}
 
+/* ===== LOGO STRIP ===== */
+.logo-strip{padding:40px 0;background:var(--bg);border-bottom:1px solid var(--bd)}
+.logo-strip-label{text-align:center;font-size:13px;color:var(--t3);font-weight:600;letter-spacing:.1em;margin-bottom:20px}
+.logo-strip-list{display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:32px 48px;max-width:900px;margin:0 auto;padding:0 24px}
+.logo-strip-item{font-family:'Inter','Noto Sans JP',sans-serif;font-size:15px;font-weight:800;color:var(--t3);letter-spacing:.05em;white-space:nowrap;opacity:.55;transition:opacity .3s}
+.logo-strip-item:hover{opacity:.85}
+@media(max-width:750px){.logo-strip{padding:28px 0}.logo-strip-list{gap:20px 32px}.logo-strip-item{font-size:13px}}
+@media(max-width:480px){.logo-strip-list{gap:16px 24px}.logo-strip-item{font-size:12px}}
+
 /* ===== PROBLEMS ===== */
 .prob-grid{display:flex;flex-direction:column;gap:10px;max-width:680px;margin:0 auto}
 
@@ -837,6 +846,19 @@ ${microHtml}
 ${s.map(st => `<div class="fv-stat"><div class="fv-stat-num">${esc(st.number)}</div><div class="fv-stat-label">${esc(st.label)}</div></div>`).join("")}
 </div>
 </section>
+
+<!-- LOGO STRIP: 導入企業 -->
+<div class="logo-strip">
+<p class="logo-strip-label">多くの企業様にご導入いただいています</p>
+<div class="logo-strip-list">
+<span class="logo-strip-item">NovaCross</span>
+<span class="logo-strip-item">ZenithFlow</span>
+<span class="logo-strip-item">CrestVision</span>
+<span class="logo-strip-item">SolarisNeo</span>
+<span class="logo-strip-item">TerraGrow</span>
+<span class="logo-strip-item">Verdics</span>
+</div>
+</div>
 
 <!-- PROBLEMS: ターゲットの課題 (PROBLEM_CARD) -->
 <section class="sec dot-bg" style="background:var(--bg2)">

@@ -325,6 +325,11 @@ section.sec:nth-of-type(odd) { background:var(--bg); }
 .mid-cta a.trial { background:var(--c); color:#fff; }
 .mid-cta a.doc { background:var(--card-bg); color:var(--c); border:2px solid var(--c); }
 .mid-cta a:hover { opacity:.85; }
+/* ロゴ帯 */
+.logo-strip { border-bottom:1px solid var(--bd); background:var(--bg); }
+.logo-strip-label { color:var(--muted); }
+.logo-strip-item { color:var(--t2); opacity:.45; }
+.logo-strip-item:hover { opacity:.7; }
 /* フッター */
 .ft { background:#2c3e50; color:rgba(255,255,255,.7); border-top:none; }
 /* 波ディバイダーを非表示（コーポレートはborder線に） */

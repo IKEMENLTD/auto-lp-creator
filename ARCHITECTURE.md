@@ -267,6 +267,8 @@ Header (固定ナビ: ロゴ + Solution/Service + CTAボタン)
 Hero (背景画像 + オーバーレイ + ヘッドライン + バッジ + features)
   ├── fv-stats (実績数字バー: 4列→2x2レスポンシブ)
   |
+Logo Strip (導入企業ロゴ帯: 架空6社テキストロゴ)
+  |
 Wave divider
   |
 Problems セクション (PROBLEM_CARD: 赤左ボーダー)
@@ -302,7 +304,7 @@ Footer
 Mobile CTA Bar (固定下部: 750px以下で表示)
 ```
 
-### CSSコンポーネント（18種 / lp-components.ts）
+### CSSコンポーネント（19種 / lp-components.ts + generate-lp.ts inline）
 
 | コンポーネント | 用途 |
 |--------------|------|
@@ -323,6 +325,7 @@ Mobile CTA Bar (固定下部: 750px以下で表示)
 | STATS_GRID | 4列→2列レスポンシブグリッド |
 | FLOW | フローステップ（タイムライン + 番号バッジ） |
 | FAQ | アコーディオン（details/summary） |
+| LOGO_STRIP | 導入企業ロゴ帯（架空6社テキストロゴ、Hero直後） |
 | CORPORATE_THEME | コーポレートテーマ上書き（白背景/ティール/pill/ソフトシャドウ） |
 
 ---
