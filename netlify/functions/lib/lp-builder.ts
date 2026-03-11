@@ -1,0 +1,882 @@
+/**
+ * LP生成 - HTML構築・画像・カラー・テーマ
+ */
+
+import { SCROLL_ANIM, SEC_HEADER, WAVE_DIVIDER, DOT_BG, CARD_BORDERED, CARD_STAT, BTN_PRIMARY, MICRO_COPY, PROBLEM_CARD, STRENGTH_CARD, SERVICE_CARD, TESTIMONIAL_CARD, COMPARISON, CARD_GRID, STATS_GRID, FLOW, FAQ, CORPORATE_THEME } from "../templates/lp-components";
+import type { FlatData, LpContent, AdContent, MinutesContent, GenericContent } from "./lp-types";
+import { esc, hexToRgb } from "./lp-types";
+import { bizContext } from "./lp-prompts";
+
+// ============================================================
+// Unsplash画像
+// ============================================================
+
+export interface LpImage {
+  url: string;
+  alt: string;
+}
+
+const unsplashUrl = (id: string, w = 800, h = 600): string =>
+  `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=${w}&h=${h}&q=80`;
+
+const PHOTO_LIBRARY: Record<string, string[]> = {
+  business: [
+    "1497366216548-37526070297c",
+    "1553877522-43269d4ea984",
+    "1600880292203-757bb62b4baf",
+    "1521737711867-e3b97375f902",
+    "1542744173-8e7e91415657",
+  ],
+  tech: [
+    "1518770660439-4636190af475",
+    "1531297484001-80022131f5a1",
+    "1504384308090-c894fdcc538d",
+    "1519389950473-47ba0277781c",
+    "1573164713988-8665fc963095",
+  ],
+  medical: [
+    "1576091160550-2173dba999ef",
+    "1579684385127-1ef15d508118",
+    "1551076805-e1869033e561",
+    "1538108149393-fbbd81895907",
+    "1559757175-5700dde675bc",
+  ],
+  food: [
+    "1517248135467-4c7edcad34c4",
+    "1414235077428-338989a2e8c0",
+    "1552566626-52f8b828add9",
+    "1559339352-11d035aa65de",
+    "1466978913421-dad2ebd01d17",
+  ],
+  education: [
+    "1524178232363-1fb2b075b655",
+    "1427504494785-3a9ca7044f45",
+    "1523050854058-8df90110c9f1",
+    "1509062522246-3755977927d7",
+    "1503676260728-1c00da094a0b",
+  ],
+  construction: [
+    "1504307651254-35680f356dfd",
+    "1541888946425-d81bb19240f5",
+    "1503387762-592deb58ef4e",
+    "1486406146926-c627a92ad1ab",
+    "1487958449943-2429e8be8625",
+  ],
+  finance: [
+    "1460925895917-afdab827c52f",
+    "1611974789855-9c2a0a7236a3",
+    "1554224155-6726b3ff858f",
+    "1579532537598-459ecdaf39cc",
+    "1526304640581-d334cdbbf45e",
+  ],
+  beauty: [
+    "1560066984-138dadb4c035",
+    "1522337360788-8b13dee7a37e",
+    "1516975080664-ed2fc6a32937",
+    "1570172619644-dfd03ed5d881",
+    "1487412912498-0447578fcca8",
+  ],
+  manufacturing: [
+    "1565043589221-4e5bfe5a2a3f",
+    "1581091226825-a6a2a5aee158",
+    "1504917595217-d4dc5ebe6122",
+    "1558618666-fcd25c85f82e",
+    "1533417479674-390fca4b5f73",
+  ],
+};
+
+export function selectImages(d: FlatData): LpImage[] {
+  const industry = d.industry.toLowerCase();
+
+  let category = "business";
+  if (industry.includes("医") || industry.includes("健康") || industry.includes("福祉")) category = "medical";
+  else if (industry.includes("it") || industry.includes("テック") || industry.includes("開発") || industry.includes("システム")) category = "tech";
+  else if (industry.includes("飲食") || industry.includes("食") || industry.includes("レストラン")) category = "food";
+  else if (industry.includes("教育") || industry.includes("学") || industry.includes("スクール")) category = "education";
+  else if (industry.includes("建") || industry.includes("不動産") || industry.includes("建築")) category = "construction";
+  else if (industry.includes("金融") || industry.includes("保険") || industry.includes("銀行")) category = "finance";
+  else if (industry.includes("美容") || industry.includes("サロン") || industry.includes("エステ")) category = "beauty";
+  else if (industry.includes("製造") || industry.includes("工場") || industry.includes("メーカー")) category = "manufacturing";
+
+  const photos = PHOTO_LIBRARY[category] || PHOTO_LIBRARY["business"]!;
+
+  let hash = 0;
+  for (let i = 0; i < d.company_name.length; i++) {
+    hash = ((hash << 5) - hash + d.company_name.charCodeAt(i)) | 0;
+  }
+  const offset = Math.abs(hash) % photos.length;
+
+  return [
+    { url: unsplashUrl(photos[offset % photos.length]!, 1920, 1080), alt: `${d.company_name} ヒーロー画像` },
+    { url: unsplashUrl(photos[(offset + 1) % photos.length]!, 800, 600), alt: `${d.service_name} サービス画像` },
+    { url: unsplashUrl(photos[(offset + 2) % photos.length]!, 800, 600), alt: `${d.service_name} 特徴1` },
+    { url: unsplashUrl(photos[(offset + 3) % photos.length]!, 800, 600), alt: `${d.service_name} 特徴2` },
+    { url: unsplashUrl(photos[(offset + 4) % photos.length]!, 800, 600), alt: `${d.service_name} 特徴3` },
+  ];
+}
+
+// ============================================================
+// カラーパレット
+// ============================================================
+
+function getDecoColors(industry: string): { primary: string; gradient: string; accent: string } {
+  const i = industry.toLowerCase();
+  if (i.includes("医") || i.includes("健康") || i.includes("福祉")) return { primary: "#0891b2", gradient: "linear-gradient(135deg,#0891b2,#06b6d4)", accent: "#06b6d4" };
+  if (i.includes("it") || i.includes("テック") || i.includes("開発") || i.includes("システム")) return { primary: "#7c3aed", gradient: "linear-gradient(135deg,#7c3aed,#a78bfa)", accent: "#a78bfa" };
+  if (i.includes("飲食") || i.includes("食")) return { primary: "#ea580c", gradient: "linear-gradient(135deg,#ea580c,#f97316)", accent: "#fb923c" };
+  if (i.includes("教育") || i.includes("学")) return { primary: "#0d9488", gradient: "linear-gradient(135deg,#0d9488,#2dd4bf)", accent: "#2dd4bf" };
+  if (i.includes("建") || i.includes("不動産")) return { primary: "#b45309", gradient: "linear-gradient(135deg,#92400e,#b45309)", accent: "#d97706" };
+  if (i.includes("金融") || i.includes("保険")) return { primary: "#1e40af", gradient: "linear-gradient(135deg,#1e3a8a,#2563eb)", accent: "#3b82f6" };
+  return { primary: "#1d4ed8", gradient: "linear-gradient(135deg,#1e3a8a,#2563eb)", accent: "#3b82f6" };
+}
+
+// ============================================================
+// 人名バリデーション（Whisper誤認識対策）
+// ============================================================
+
+export function sanitizePersonName(name: string | undefined, keyPersons: string[]): string {
+  if (!name || name.trim().length === 0) return "";
+
+  const trimmed = name.trim();
+
+  if (keyPersons.some(kp => kp.includes(trimmed) || trimmed.includes(kp))) {
+    const match = keyPersons
+      .filter(kp => trimmed.includes(kp))
+      .sort((a, b) => b.length - a.length)[0];
+    if (match) return match;
+  }
+
+  if (trimmed.length > 6) {
+    for (const kp of keyPersons) {
+      if (trimmed.startsWith(kp) || kp.startsWith(trimmed.slice(0, 4))) {
+        return kp;
+      }
+    }
+    return trimmed.slice(0, 4);
+  }
+
+  return trimmed;
+}
+
+// ============================================================
+// LP テーマ自動選択
+// ============================================================
+
+export type LpTheme = "dark" | "corporate";
+
+export function selectTheme(d: FlatData): LpTheme {
+  const industry = d.industry.toLowerCase();
+  const service = d.service_name.toLowerCase();
+  if (/コンサル|法律|会計|金融|保険|不動産|建設|製造|医療|IT|システム|SaaS|saas/.test(industry)) return "corporate";
+  if (/システム|ツール|プラットフォーム|ソリューション|クラウド|管理/.test(service)) return "corporate";
+  return "dark";
+}
+
+// ============================================================
+// LP Step 3: Build HTML (高品質テンプレート)
+// ============================================================
+
+export function buildLpHtml(c: LpContent, d: FlatData, images: LpImage[] = [], theme: LpTheme = "dark"): string {
+  const prob = c.problems || [];
+  const str = c.strengths || [];
+  const svc = c.services || [];
+  const s = c.stats || [];
+  const cmp = c.comparison || [];
+  const cas = c.cases || [];
+  const reasons = c.reasons || [];
+  const useCases = c.use_cases || [];
+  const dm = c.dashboard_metrics || [{ label: "効率", pct: 85 }, { label: "削減", pct: 72 }, { label: "満足度", pct: 93 }];
+  const f = c.flow || [];
+  const faq = c.faq || [];
+  const hf = c.hero_features || [];
+  const colors = getDecoColors(d.industry);
+  const hasImg = images.length > 0;
+  const pName = sanitizePersonName(c.person_name, d.key_persons) || d.company_name;
+  const pTitle = c.person_title || d.industry;
+
+  const ico = [
+    `<svg width="40" height="40" viewBox="0 0 40 40" fill="none"><rect width="40" height="40" rx="8" fill="var(--c)" opacity=".12"/><path d="M14 20l4 4 8-10" stroke="var(--c)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+    `<svg width="40" height="40" viewBox="0 0 40 40" fill="none"><rect width="40" height="40" rx="8" fill="var(--c)" opacity=".12"/><path d="M20 12v8l5 3" stroke="var(--c)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+    `<svg width="40" height="40" viewBox="0 0 40 40" fill="none"><rect width="40" height="40" rx="8" fill="var(--c)" opacity=".12"/><path d="M14 26l5-10 5 6 5-8" stroke="var(--c)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+  ];
+
+  const checkSvg = `<svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`;
+  const clockSvg = `<svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`;
+  const shieldSvg = `<svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"/></svg>`;
+  const alertSvg = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/></svg>`;
+  const microHtml = `<p class="micro micro-light"><span>${checkSvg}相談無料</span><span>${shieldSvg}秘密厳守</span><span>${clockSvg}オンライン対応</span></p>`;
+  const microDarkHtml = `<p class="micro micro-dark"><span>${checkSvg}相談無料</span><span>${shieldSvg}秘密厳守</span><span>${clockSvg}オンライン対応</span></p>`;
+  const cmpCheck = `<svg width="16" height="16" viewBox="0 0 20 20" fill="var(--c)"><path d="M16.7 5.3a1 1 0 010 1.4l-8 8a1 1 0 01-1.4 0l-4-4a1 1 0 111.4-1.4L8 12.6l7.3-7.3a1 1 0 011.4 0z"/></svg>`;
+  const cmpCross = `<svg width="16" height="16" viewBox="0 0 20 20" fill="#94a3b8"><path d="M6.3 6.3a1 1 0 011.4 0L10 8.6l2.3-2.3a1 1 0 111.4 1.4L11.4 10l2.3 2.3a1 1 0 01-1.4 1.4L10 11.4l-2.3 2.3a1 1 0 01-1.4-1.4L8.6 10 6.3 7.7a1 1 0 010-1.4z"/></svg>`;
+  const arrowSvg = `<svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/></svg>`;
+
+  const cRgb = `${parseInt(colors.primary.slice(1,3),16)},${parseInt(colors.primary.slice(3,5),16)},${parseInt(colors.primary.slice(5,7),16)}`;
+
+  return `<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>${esc(d.company_name)} - ${esc(d.service_name)} | ${esc(pName)}</title>
+<meta property="og:title" content="${esc(d.company_name)} - ${esc(pName)}">
+<meta property="og:description" content="${esc(c.hero_headline)}">
+<meta property="og:type" content="website">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{--c:${colors.primary};--cg:${colors.gradient};--ca:${colors.accent};--c-rgb:${cRgb};--dark:#0f172a;--t1:#1e293b;--t2:#475569;--t3:#94a3b8;--bg:#fff;--bg2:#f1f5f9;--bd:#e2e8f0;--r:10px}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{font-family:'Noto Sans JP','Inter',sans-serif;color:var(--t1);background:var(--bg);line-height:1.8;-webkit-font-smoothing:antialiased}
+a{text-decoration:none;color:inherit}
+img{max-width:100%;display:block}
+.inner{max-width:1100px;margin:0 auto;padding:0 24px}
+
+/* ===== ALL COMPONENTS ===== */
+${SCROLL_ANIM}
+${SEC_HEADER}
+${WAVE_DIVIDER}
+${DOT_BG}
+${CARD_BORDERED}
+${CARD_STAT}
+${BTN_PRIMARY}
+${MICRO_COPY}
+${PROBLEM_CARD}
+${STRENGTH_CARD}
+${SERVICE_CARD}
+${TESTIMONIAL_CARD}
+${COMPARISON}
+${CARD_GRID}
+${STATS_GRID}
+${FLOW}
+${FAQ}
+${theme === "corporate" ? CORPORATE_THEME : ""}
+
+/* ===== HEADER ===== */
+.hd{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(255,255,255,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--bd);height:64px;display:flex;align-items:center}
+.hd .inner{display:flex;align-items:center;justify-content:space-between;width:100%}
+.hd-logo{font-weight:800;font-size:18px;color:var(--c);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:50%}
+.hd-nav{display:flex;gap:24px;align-items:center;flex-shrink:0}
+.hd-nav a{font-size:13px;color:var(--t2);font-weight:500;transition:color .2s;white-space:nowrap}
+.hd-nav a:hover{color:var(--c)}
+.hd-nav a.btn-accent{color:#fff}
+
+/* ===== HERO ===== */
+.fv{position:relative;min-height:100svh;display:flex;align-items:center;overflow:hidden;padding-top:64px;background-size:cover;background-position:center;background-repeat:no-repeat}
+.fv-overlay{position:absolute;inset:0;background:linear-gradient(135deg,rgba(15,23,42,.88) 0%,rgba(15,23,42,.72) 50%,rgba(15,23,42,.55) 100%);z-index:0}
+.fv .inner{position:relative;z-index:1;display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center;padding-top:80px;padding-bottom:120px}
+.fv-left{text-align:left}
+.fv-right{display:flex;align-items:center;justify-content:center}
+.fv-badge{display:inline-block;padding:6px 18px;border:1px solid rgba(255,255,255,.25);border-radius:20px;font-size:12px;font-weight:700;letter-spacing:.15em;color:var(--ca);text-transform:uppercase;margin-bottom:20px}
+.fv-name{font-size:clamp(14px,1.6vw,16px);color:var(--ca);font-weight:700;margin-bottom:8px;letter-spacing:.05em}
+.fv-headline{font-size:clamp(24px,4vw,42px);font-weight:900;line-height:1.3;color:#fff;margin-bottom:16px}
+.fv-sub{font-size:clamp(14px,1.6vw,17px);color:rgba(255,255,255,.75);margin-bottom:28px;line-height:1.8}
+.fv-features{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:36px;justify-content:flex-start}
+.fv-features span{display:inline-flex;align-items:center;gap:6px;padding:8px 18px;background:rgba(255,255,255,.12);backdrop-filter:blur(4px);color:#fff;font-size:13px;font-weight:700;letter-spacing:.03em;border-radius:var(--r);border:1px solid rgba(255,255,255,.1)}
+.fv-features span::before{content:'';width:5px;height:5px;background:var(--ca);border-radius:50%}
+.fv-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:0;position:absolute;bottom:0;left:0;right:0;background:rgba(255,255,255,.95);backdrop-filter:blur(10px);z-index:2}
+.fv-stat{padding:24px 16px;text-align:center;border-right:1px solid var(--bd)}
+.fv-stat:last-child{border-right:none}
+.fv-stat-num{font-family:'Inter',sans-serif;font-size:clamp(22px,3.5vw,40px);font-weight:900;background:var(--cg);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1.1;white-space:nowrap}
+.fv-stat-label{font-size:12px;color:var(--t2);margin-top:4px;letter-spacing:.05em;font-weight:600}
+
+/* ===== HERO DASHBOARD MOCKUP ===== */
+@keyframes heroFadeUp{0%{opacity:0;transform:translateY(20px)}100%{opacity:1;transform:translateY(0)}}
+@keyframes heroBarGrow{0%{width:0}100%{width:var(--bar-w)}}
+@keyframes heroPulse{0%,100%{opacity:.6}50%{opacity:1}}
+@keyframes heroFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.hero-dash{width:100%;max-width:420px;background:rgba(255,255,255,.07);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:24px;animation:heroFloat 4s ease-in-out infinite}
+.hero-dash-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.hero-dash-title{font-size:13px;font-weight:700;color:rgba(255,255,255,.9);display:flex;align-items:center;gap:8px}
+.hero-dash-title::before{content:'';width:8px;height:8px;background:var(--ca);border-radius:50%;animation:heroPulse 2s ease-in-out infinite}
+.hero-dash-badge{font-size:10px;padding:3px 10px;background:rgba(255,255,255,.12);border-radius:12px;color:rgba(255,255,255,.6)}
+.hero-dash-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px}
+.hero-dash-stat{background:rgba(255,255,255,.06);border-radius:10px;padding:14px 10px;text-align:center;animation:heroFadeUp .6s ease both}
+.hero-dash-stat:nth-child(2){animation-delay:.15s}
+.hero-dash-stat:nth-child(3){animation-delay:.3s}
+.hero-dash-stat-num{font-family:'Inter',sans-serif;font-size:20px;font-weight:900;color:var(--ca);line-height:1}
+.hero-dash-stat-label{font-size:10px;color:rgba(255,255,255,.5);margin-top:4px}
+.hero-dash-bars{display:flex;flex-direction:column;gap:10px;margin-bottom:16px}
+.hero-dash-bar-row{display:flex;align-items:center;gap:10px;animation:heroFadeUp .6s ease both}
+.hero-dash-bar-row:nth-child(1){animation-delay:.4s}
+.hero-dash-bar-row:nth-child(2){animation-delay:.55s}
+.hero-dash-bar-row:nth-child(3){animation-delay:.7s}
+.hero-dash-bar-label{font-size:10px;color:rgba(255,255,255,.5);width:48px;flex-shrink:0;text-align:right}
+.hero-dash-bar-track{flex:1;height:8px;background:rgba(255,255,255,.08);border-radius:4px;overflow:hidden}
+.hero-dash-bar-fill{height:100%;border-radius:4px;background:var(--cg);animation:heroBarGrow 1.2s ease both}
+.hero-dash-bar-fill.b1{animation-delay:.6s}
+.hero-dash-bar-fill.b2{animation-delay:.75s}
+.hero-dash-bar-fill.b3{animation-delay:.9s}
+.hero-dash-bar-pct{font-size:10px;color:rgba(255,255,255,.6);width:32px;font-weight:700}
+.hero-dash-footer{display:flex;align-items:center;gap:8px;padding-top:14px;border-top:1px solid rgba(255,255,255,.08)}
+.hero-dash-footer-dot{width:6px;height:6px;border-radius:50%;background:var(--ca)}
+.hero-dash-footer-text{font-size:10px;color:rgba(255,255,255,.45)}
+
+/* ===== LOGO STRIP ===== */
+.logo-strip{padding:40px 0;background:var(--bg);border-bottom:1px solid var(--bd)}
+.logo-strip-label{text-align:center;font-size:13px;color:var(--t3);font-weight:600;letter-spacing:.1em;margin-bottom:20px}
+.logo-strip-list{display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:32px 48px;max-width:900px;margin:0 auto;padding:0 24px}
+.logo-strip-item{font-family:'Inter','Noto Sans JP',sans-serif;font-size:15px;font-weight:800;color:var(--t3);letter-spacing:.05em;white-space:nowrap;opacity:.55;transition:opacity .3s}
+.logo-strip-item:hover{opacity:.85}
+@media(max-width:750px){.logo-strip{padding:28px 0}.logo-strip-list{gap:20px 32px}.logo-strip-item{font-size:13px}}
+@media(max-width:480px){.logo-strip-list{gap:16px 24px}.logo-strip-item{font-size:12px}}
+
+/* ===== REASONS (選ばれる理由) ===== */
+.reason-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;max-width:1000px;margin:0 auto}
+.reason-card{position:relative;overflow:hidden;border-radius:var(--r);background:var(--bg);border:1px solid var(--bd);transition:box-shadow .4s,transform .4s}
+.reason-card:hover{box-shadow:0 16px 48px rgba(0,0,0,.08);transform:translateY(-4px)}
+.reason-img{width:100%;height:180px;object-fit:cover;display:block}
+.reason-body{padding:24px}
+.reason-num-badge{position:absolute;top:12px;left:12px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;background:var(--c);color:#fff;font-family:'Inter',sans-serif;font-weight:900;font-size:14px;border-radius:8px;z-index:1}
+.reason-body h4{font-size:16px;font-weight:800;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.reason-body h4 span{font-family:'Inter',sans-serif;font-size:11px;font-weight:700;color:var(--c);letter-spacing:.15em;text-transform:uppercase}
+.reason-body p{font-size:14px;color:var(--t2);line-height:1.8;margin:0}
+@media(max-width:750px){.reason-grid{grid-template-columns:1fr;gap:16px}.reason-img{height:160px}.reason-body{padding:20px}}
+
+/* ===== USE CASES (活用シーン) ===== */
+.uc-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;max-width:960px;margin:0 auto}
+.uc-card{padding:28px 24px;background:var(--bg);border:1px solid var(--bd);border-radius:var(--r);text-align:center;transition:box-shadow .3s,transform .3s}
+.uc-card:hover{box-shadow:0 12px 36px rgba(0,0,0,.06);transform:translateY(-3px)}
+.uc-ico{width:64px;height:64px;margin:0 auto 16px;display:flex;align-items:center;justify-content:center;background:rgba(var(--c-rgb),.08);border-radius:16px}
+.uc-ico svg{width:28px;height:28px;color:var(--c)}
+.uc-card h4{font-size:15px;font-weight:800;margin-bottom:8px}
+.uc-card p{font-size:13px;color:var(--t2);line-height:1.8;margin:0}
+@media(max-width:750px){.uc-grid{grid-template-columns:1fr;gap:16px}.uc-card{padding:24px 20px}}
+
+/* ===== PROBLEMS ===== */
+.prob-grid{display:flex;flex-direction:column;gap:10px;max-width:680px;margin:0 auto}
+
+/* ===== SOLUTION ===== */
+.sol-text{font-size:15px;color:var(--t2);line-height:2;max-width:640px;margin:0 auto 40px;text-align:center}
+
+/* ===== OFFER / CTA ===== */
+.offer{padding:56px 0;background:var(--dark);color:#fff;text-align:center;position:relative;overflow:hidden}
+.offer::before{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:600px;height:400px;background:radial-gradient(circle,rgba(255,255,255,.04),transparent 70%)}
+.offer-accent{background:var(--c);padding:72px 0}
+.offer-tit{font-size:clamp(18px,3vw,24px);font-weight:800;margin-bottom:8px;position:relative}
+.offer-sub{font-size:14px;color:rgba(255,255,255,.55);margin-bottom:20px;position:relative}
+
+/* ===== COMPANY ===== */
+.company-box{max-width:720px;margin:0 auto;padding:32px;border:1px solid var(--bd);border-radius:var(--r);display:flex;align-items:center;gap:24px}
+.company-logo{flex-shrink:0;width:64px;height:64px;border-radius:var(--r);background:var(--cg);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:24px}
+.company-info p{font-size:14px;color:var(--t2);line-height:1.8}
+.company-info strong{color:var(--t1);font-size:16px;display:block;margin-bottom:4px}
+
+/* ===== FINAL CTA ===== */
+.cta-sec{padding:100px 24px;background:var(--dark);text-align:center;position:relative;overflow:hidden}
+.cta-sec::before{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:700px;height:500px;background:radial-gradient(circle,rgba(255,255,255,.04),transparent 70%)}
+.cta-tit{font-size:clamp(22px,3.5vw,30px);font-weight:900;color:#fff;margin-bottom:10px;position:relative}
+.cta-sub{font-size:14px;color:rgba(255,255,255,.5);margin-bottom:24px;position:relative}
+
+/* ===== FOOTER ===== */
+.ft{padding:28px;text-align:center;border-top:1px solid var(--bd);font-size:12px;color:var(--t3)}
+
+/* ===== MOBILE CTA BAR ===== */
+.m-cta{display:none;position:fixed;bottom:0;left:0;right:0;padding:10px 16px;background:rgba(255,255,255,.95);backdrop-filter:blur(12px);border-top:1px solid var(--bd);z-index:100}
+.m-cta a{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;padding:14px;background:var(--c);color:#fff;font-weight:800;font-size:14px;border-radius:var(--r)}
+.m-cta-sub{font-size:10px;color:var(--t3);text-align:center;margin-top:4px}
+
+/* ============================== */
+/* RESPONSIVE 750px               */
+/* ============================== */
+@media(max-width:750px){
+/* header */
+.hd{height:56px}.hd-logo{font-size:15px;max-width:60%}.hd-nav{gap:0}.hd-nav a:not(.btn){display:none}
+/* hero */
+.fv{min-height:auto;padding-top:56px}.fv .inner{padding-top:48px;padding-bottom:24px;max-width:100%;grid-template-columns:1fr;text-align:center}
+.fv-left{text-align:center}
+.fv-left .fv-features{justify-content:center}
+.fv-left>div:last-child{align-items:center}
+.fv-right{margin-top:24px}
+.hero-dash{max-width:100%;padding:16px}
+.hero-dash-stat-num{font-size:16px}
+.hero-dash-bar-label{font-size:9px;width:40px}
+.fv-headline{font-size:clamp(20px,5.5vw,28px)}.fv-sub{font-size:14px}.fv-name{font-size:13px}
+.fv-badge{font-size:11px;padding:5px 14px}.fv-features{gap:6px;margin-bottom:24px}
+.fv-features span{padding:6px 12px;font-size:11px}
+/* stats: 2×2 grid, relative position */
+.fv-stats{grid-template-columns:repeat(2,1fr);position:relative;bottom:auto}
+.fv-stat{padding:16px 12px}.fv-stat-num{font-size:clamp(18px,5vw,26px)}.fv-stat-label{font-size:10px}
+/* problems */
+.prob p{font-size:13px}.prob span{font-size:12px}.prob{padding:14px 16px;gap:10px}
+.prob-ico{width:32px;height:32px}.prob-ico svg{width:16px;height:16px}
+/* solution */
+.sol-text{font-size:14px}
+/* service */
+.svc-head{padding:22px 20px 16px}.svc-ico-ring{width:44px;height:44px;border-radius:10px}
+.svc-body{padding:16px 20px 22px}.svc-body p{font-size:13px}
+/* CTA */
+.offer{padding:40px 0}.offer-accent{padding:48px 0}.offer-tit{font-size:clamp(16px,4.5vw,20px)}
+.offer-sub{font-size:13px;margin-bottom:16px}
+/* micro copy: stack on mobile */
+.micro{flex-wrap:wrap;gap:8px 14px}
+/* comparison */
+.cmp-card{padding:22px}
+/* testimonial */
+.tm-card{padding:22px}
+/* mobile CTA bar */
+.m-cta{display:block}
+/* stats grid */
+.stats-grid{grid-template-columns:repeat(2,1fr)}
+}
+
+/* ============================== */
+/* RESPONSIVE 480px               */
+/* ============================== */
+@media(max-width:480px){
+.inner{padding:0 16px}.hd-logo{font-size:14px}
+/* hero */
+.fv-headline{font-size:20px}.fv-features span{padding:5px 8px;font-size:10px}
+.hero-dash{padding:14px}.hero-dash-stats{gap:8px}.hero-dash-stat{padding:10px 6px}
+.hero-dash-stat-num{font-size:14px}.hero-dash-bar-pct{font-size:9px}
+/* stats: keep 2×2 but tighter */
+.fv-stats{grid-template-columns:1fr 1fr}.fv-stat{padding:12px 8px}.fv-stat-num{font-size:18px}
+.fv-stat-label{font-size:9px}
+/* section headers */
+.sec-bg-txt{font-size:36px;margin-bottom:-12px}
+/* buttons */
+.btn-lg{padding:12px 24px;font-size:13px}.btn-md{padding:10px 20px;font-size:12px}
+/* CTA */
+.offer-tit{font-size:16px}.offer-accent{padding:40px 0}
+/* flow */
+.flow-num{width:36px;height:36px;font-size:14px}.flow-list::before{left:18px}
+/* final CTA */
+.cta-tit{font-size:18px}.m-cta a{padding:12px;font-size:13px}
+/* stats grid (separate section) */
+.stats-grid .stat-num{font-size:clamp(22px,6vw,32px)}
+/* wave */
+.dvd-tall{height:56px}
+/* FAQ tighter */
+.faq-q{padding:12px 14px;font-size:13px}.faq-a{font-size:13px}
+/* testimonial */
+.tm-card{padding:20px}.tm-text{font-size:13px}.tm-result{font-size:11px}
+/* comparison */
+.cmp-card{padding:18px}.cmp-title{font-size:14px}.cmp-row{font-size:13px}
+/* service */
+.svc-card h3{font-size:15px}.svc-body p{font-size:12px}
+}
+</style>
+</head><body>
+
+<!-- HEADER -->
+<header class="hd"><div class="inner">
+<p class="hd-logo">${esc(d.company_name)}</p>
+<nav class="hd-nav">
+<a href="#solution">Solution</a>
+<a href="#service">Service</a>
+<a href="#contact" class="btn btn-md btn-accent">${esc(c.cta_text)}</a>
+</nav>
+</div></header>
+
+<!-- HERO: 課題提起 + 信頼の人物 -->
+<section class="fv"${hasImg && images[0] ? ` style="background-image:url('${esc(images[0].url.replace(/w=\d+/, "w=1600").replace(/h=\d+/, "h=1000"))}')"` : ""}>
+<div class="fv-overlay"></div>
+<div class="inner">
+<div class="fv-left">
+<div class="fv-badge">${esc(c.badge_text || d.industry)}</div>
+<p class="fv-name">${esc(pName)} / ${esc(pTitle)} / ${esc(d.company_name)}</p>
+<h1 class="fv-headline">${esc(c.hero_headline)}</h1>
+<p class="fv-sub">${esc(c.hero_sub)}</p>
+<div class="fv-features">
+${hf.map(ft => `<span>${esc(ft)}</span>`).join("")}
+</div>
+<div style="display:flex;flex-direction:column;align-items:flex-start;gap:10px">
+<a href="#contact" class="btn btn-lg btn-white">${esc(c.cta_text)} ${arrowSvg}</a>
+${microHtml}
+</div>
+</div>
+<div class="fv-right">
+<div class="hero-dash">
+<div class="hero-dash-header">
+<span class="hero-dash-title">Dashboard</span>
+<span class="hero-dash-badge">Live</span>
+</div>
+<div class="hero-dash-stats">
+<div class="hero-dash-stat"><div class="hero-dash-stat-num">${s[0] ? esc(s[0].number) : "98%"}</div><div class="hero-dash-stat-label">${s[0] ? esc(s[0].label) : "満足度"}</div></div>
+<div class="hero-dash-stat"><div class="hero-dash-stat-num">${s[1] ? esc(s[1].number) : "3.2x"}</div><div class="hero-dash-stat-label">${s[1] ? esc(s[1].label) : "効率化"}</div></div>
+<div class="hero-dash-stat"><div class="hero-dash-stat-num">${s[2] ? esc(s[2].number) : "500+"}</div><div class="hero-dash-stat-label">${s[2] ? esc(s[2].label) : "導入社数"}</div></div>
+</div>
+<div class="hero-dash-bars">
+${dm.map((m, i) => `<div class="hero-dash-bar-row"><span class="hero-dash-bar-label">${esc(m.label)}</span><div class="hero-dash-bar-track"><div class="hero-dash-bar-fill b${i+1}" style="--bar-w:${Math.min(Math.max(m.pct,20),99)}%"></div></div><span class="hero-dash-bar-pct">${m.pct}%</span></div>`).join("\n")}
+</div>
+<div class="hero-dash-footer"><span class="hero-dash-footer-dot"></span><span class="hero-dash-footer-text">リアルタイム更新中</span></div>
+</div>
+</div>
+</div>
+<div class="fv-stats">
+${s.map(st => `<div class="fv-stat"><div class="fv-stat-num">${esc(st.number)}</div><div class="fv-stat-label">${esc(st.label)}</div></div>`).join("")}
+</div>
+</section>
+
+<!-- LOGO STRIP: 導入企業 -->
+<div class="logo-strip">
+<p class="logo-strip-label">多くの企業様にご導入いただいています</p>
+<div class="logo-strip-list">
+<span class="logo-strip-item">NovaCross</span>
+<span class="logo-strip-item">ZenithFlow</span>
+<span class="logo-strip-item">CrestVision</span>
+<span class="logo-strip-item">SolarisNeo</span>
+<span class="logo-strip-item">TerraGrow</span>
+<span class="logo-strip-item">Verdics</span>
+</div>
+</div>
+
+<!-- PROBLEMS: ターゲットの課題 (PROBLEM_CARD) -->
+<section class="sec dot-bg" style="background:var(--bg2)">
+<div class="inner">
+<div class="sec-hd"><p class="sec-bg-txt">Problems</p><p class="sec-eng">Problems</p><h2 class="sec-tit fi">こんな課題はありませんか？</h2></div>
+<div class="prob-grid">
+${prob.map(item => `<div class="prob fi">
+<div class="prob-ico">${alertSvg}</div>
+<p>${esc(item.title)}<br/><span>${esc(item.desc)}</span></p>
+</div>`).join("")}
+</div>
+</div>
+</section>
+
+<!-- WAVE: problems(bg2) → solution(white) -->
+<div class="dvd"><svg viewBox="0 0 1200 72" preserveAspectRatio="none"><rect width="1200" height="72" fill="var(--bg)"/><path d="M0,0 C300,55 600,70 800,40 C1000,10 1150,45 1200,25 L1200,0 L0,0 Z" fill="var(--bg2)"/></svg></div>
+
+<!-- SOLUTION: 解決アプローチ (STRENGTH_CARD premium) -->
+<section class="sec" id="solution" data-img="about">
+<div class="inner">
+<div class="sec-hd"><p class="sec-bg-txt">Solution</p><p class="sec-eng">Solution</p><h2 class="sec-tit fi">${esc(c.solution_title || `${d.company_name}が解決します`)}</h2></div>
+<p class="sol-text fi">${esc(c.solution_text || "")}</p>
+<div class="str-grid">
+${str.map((item, i) => `<div class="str fi" data-img="reason${i + 1}">
+<span class="str-num">${String(i + 1).padStart(2, "0")}</span>
+<div class="str-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div>
+<h4>${esc(item.title)}</h4>
+<p>${esc(item.desc)}</p>
+</div>`).join("")}
+</div>
+</div>
+</section>
+
+${theme === "corporate" ? `<!-- MID-CTA: Solution後 -->
+<div class="mid-cta">
+<a href="#contact" class="trial">${esc(c.cta_text)}</a>
+<a href="#contact" class="doc">資料ダウンロード</a>
+</div>` : ""}
+
+<!-- SERVICES: 提供サービス (SERVICE_CARD premium) -->
+<section class="sec dot-bg" id="service" style="background:var(--bg2)">
+<div class="inner">
+<div class="sec-hd"><p class="sec-bg-txt">Service</p><p class="sec-eng">Service</p><h2 class="sec-tit fi">提供サービス</h2></div>
+<div class="svc-grid">
+${svc.map((item, i) => `<div class="svc-card fi">
+<div class="svc-head">
+<div class="svc-ico-ring">${ico[i] || ico[0]}</div>
+<h3>${esc(item.title)}</h3>
+</div>
+<div class="svc-body">
+<p>${esc(item.desc)}</p>
+</div>
+</div>`).join("")}
+</div>
+</div>
+</section>
+
+${theme === "corporate" ? `<!-- MID-CTA: Service後 -->
+<div class="mid-cta">
+<a href="#contact" class="trial">${esc(c.cta_text)}</a>
+<a href="#contact" class="doc">資料ダウンロード</a>
+</div>` : ""}
+
+<!-- REASONS: 選ばれる理由 -->
+${reasons.length > 0 ? `<section class="sec">
+<div class="inner">
+<div class="sec-hd"><p class="sec-bg-txt">Reason</p><p class="sec-eng">Why Choose Us</p><h2 class="sec-tit fi">${esc(d.company_name)}が選ばれる理由</h2></div>
+<div class="reason-grid">
+${reasons.map((item, i) => {
+  const reasonImg = images[i + 1] ? images[i + 1].url.replace(/w=\d+/, "w=600").replace(/h=\d+/, "h=400") : unsplashUrl(PHOTO_LIBRARY["business"][i] || PHOTO_LIBRARY["business"][0], 600, 400);
+  return `<div class="reason-card fi">
+<div class="reason-num-badge">${i + 1}</div>
+<img class="reason-img" src="${esc(reasonImg)}" alt="${esc(item.title)}" loading="lazy">
+<div class="reason-body">
+<h4><span>REASON</span>${esc(item.title)}</h4>
+<p>${esc(item.desc)}</p>
+</div>
+</div>`;
+}).join("")}
+</div>
+</div>
+</section>` : ""}
+
+<!-- USE CASES: 活用シーン -->
+${useCases.length > 0 ? `<section class="sec" style="background:var(--bg2)">
+<div class="inner">
+<div class="sec-hd"><p class="sec-bg-txt">UseCase</p><p class="sec-eng">Use Cases</p><h2 class="sec-tit fi">活用シーン</h2></div>
+<div class="uc-grid">
+${useCases.map(item => {
+  const ucIcoMap: Record<string, string> = {
+    search: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>',
+    chart: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>',
+    users: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
+    shield: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>',
+    zap: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>',
+    target: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>',
+  };
+  const ucIcon = ucIcoMap[item.icon_keyword] || ucIcoMap["zap"];
+  return `<div class="uc-card fi">
+<div class="uc-ico">${ucIcon}</div>
+<h4>${esc(item.title)}</h4>
+<p>${esc(item.desc)}</p>
+</div>`;
+}).join("")}
+</div>
+</div>
+</section>` : ""}
+
+<!-- WAVE: → CTA1(accent) — concave dip -->
+<div class="dvd dvd-tall"><svg viewBox="0 0 1200 120" preserveAspectRatio="none"><rect width="1200" height="120" fill="var(--c)"/><path d="M0,0 Q600,140 1200,0 L1200,0 L0,0 Z" fill="${useCases.length > 0 ? 'var(--bg2)' : 'var(--bg)'}"/></svg></div>
+
+<!-- CTA (accent) -->
+<section class="offer offer-accent">
+<div class="inner" style="position:relative;z-index:1">
+<p class="offer-tit">${esc(c.cta_sub || "まずはお気軽にご相談ください")}</p>
+<p class="offer-sub" style="color:rgba(255,255,255,.7)">${esc(pName)}が直接対応します</p>
+<a href="#contact" class="btn btn-lg btn-white">${esc(c.cta_text)} ${arrowSvg}</a>
+${microHtml}
+</div>
+</section>
+
+<!-- CTA1(accent) → comparison(white): straight line -->
+<div style="height:0;border-top:1px solid var(--bd)"></div>
+
+<!-- COMPARISON (COMPARISON component) -->
+${cmp.length > 0 ? `<section class="sec">
+<div class="inner">
+<div class="sec-hd"><p class="sec-bg-txt">Compare</p><p class="sec-eng">Comparison</p><h2 class="sec-tit fi">一般的な方法との比較</h2></div>
+<div class="cmp-grid">
+<div class="cmp-card cmp-muted">
+<div class="cmp-title">一般的な方法</div>
+${cmp.map(row => `<div class="cmp-row">${cmpCross} <span>${esc(row.feature)}: ${esc(row.other)}</span></div>`).join("")}
+</div>
+<div class="cmp-card cmp-us" style="position:relative">
+<div class="cmp-title">${esc(d.company_name)}の場合</div>
+${cmp.map(row => `<div class="cmp-row">${cmpCheck} <span><strong>${esc(row.feature)}</strong>: ${esc(row.us)}</span></div>`).join("")}
+</div>
+</div>
+</div>
+</section>` : ""}
+
+<!-- CASES: 実績事例 (TESTIMONIAL_CARD repurposed) -->
+${cas.length > 0 ? `<section class="sec" style="background:var(--bg2)">
+<div class="inner">
+<div class="sec-hd"><p class="sec-bg-txt">Results</p><p class="sec-eng">Case Results</p><h2 class="sec-tit fi">実績事例</h2></div>
+<div class="tm-grid">
+${cas.map(item => `<div class="tm-card fi">
+<div class="tm-result">${esc(item.result)}</div>
+<p class="tm-text">${esc(item.detail)}</p>
+<div class="tm-author">
+<div class="tm-avatar" style="font-size:12px">${esc(item.category.slice(0,2))}</div>
+<div><div class="tm-name">${esc(item.category)}</div></div>
+</div>
+</div>`).join("")}
+</div>
+</div>
+</section>` : ""}
+
+<!-- STATS: 実績数字 (CARD_STAT + STATS_GRID) -->
+<section class="sec${cas.length > 0 ? "" : " dot-bg"}"${cas.length > 0 ? "" : ` style="background:var(--bg2)"`}>
+<div class="inner">
+<div class="sec-hd"><p class="sec-bg-txt">Results</p><p class="sec-eng">Track Record</p><h2 class="sec-tit fi">数字で見る実績</h2></div>
+<div class="stats-grid" style="margin-top:0">
+${s.map(st => `<div class="card stat-card fi">
+<div class="stat-num">${esc(st.number)}</div>
+<div class="stat-label">${esc(st.label)}</div>
+</div>`).join("")}
+</div>
+${microDarkHtml}
+</div>
+</section>
+
+<!-- FLOW -->
+<section class="sec" style="background:var(--bg2)">
+<div class="inner">
+<div class="sec-hd"><p class="sec-bg-txt">Flow</p><p class="sec-eng">Flow</p><h2 class="sec-tit fi">ご依頼の流れ</h2></div>
+<div class="flow-list fi" style="max-width:640px;margin:0 auto">
+${f.map((item, i) => `<div class="flow-item">
+<div class="flow-num">${i + 1}</div>
+<div class="flow-body"><h3 class="flow-h3">${esc(item.title)}</h3><p class="flow-desc">${esc(item.desc)}</p></div>
+</div>`).join("")}
+</div>
+</div>
+</section>
+
+<!-- COMPANY + FAQ -->
+<section class="sec">
+<div class="inner">
+${c.company_profile ? `<div class="company-box fi" style="margin-bottom:64px">
+<div class="company-logo">${esc(d.company_name.charAt(0))}</div>
+<div class="company-info"><strong>${esc(d.company_name)}</strong><p>${esc(c.company_profile)}</p></div>
+</div>` : ""}
+${faq.length > 0 ? `<div style="max-width:720px;margin:0 auto">
+<div class="sec-hd"><p class="sec-bg-txt">FAQ</p><p class="sec-eng">FAQ</p><h2 class="sec-tit fi">よくある質問</h2></div>
+<div class="faq-list fi">
+${faq.map(item => `<details class="faq-item"><summary class="faq-q">${esc(item.q)}</summary><div class="faq-a">${esc(item.a)}</div></details>`).join("")}
+</div>
+</div>` : ""}
+</div>
+</section>
+
+<!-- WAVE: → final CTA (simple valley+peak) -->
+<div class="dvd"><svg viewBox="0 0 1200 72" preserveAspectRatio="none"><rect width="1200" height="72" fill="var(--dark)"/><path d="M0,0 C300,60 600,60 900,20 C1050,0 1150,25 1200,15 L1200,0 L0,0 Z" fill="var(--bg)"/></svg></div>
+
+<!-- FINAL CTA -->
+<section class="cta-sec" id="contact">
+<div class="cta-tit" style="position:relative">${esc(pName)}に相談する</div>
+<div class="cta-sub">${esc(c.cta_sub || "")}</div>
+<a href="#contact" class="btn btn-lg btn-white" style="position:relative">${esc(c.cta_text)} ${arrowSvg}</a>
+${microHtml}
+</section>
+
+<!-- FOOTER -->
+<footer class="ft">&copy; ${esc(d.company_name)} All Rights Reserved.</footer>
+
+<!-- MOBILE CTA -->
+<div class="m-cta"><a href="#contact">${esc(c.cta_text)}</a><p class="m-cta-sub">${esc(pName)} / 相談無料 / オンライン対応</p></div>
+
+<!-- SCROLL ANIMATION -->
+<script>
+document.addEventListener('DOMContentLoaded',function(){var o=new IntersectionObserver(function(e){e.forEach(function(en){if(en.isIntersecting){en.target.classList.add('vis');o.unobserve(en.target)}})},{threshold:.12,rootMargin:'0px 0px -40px 0px'});document.querySelectorAll('.fi').forEach(function(el){o.observe(el)})});
+</script>
+</body></html>`;
+}
+
+// ============================================================
+// 広告クリエイティブ生成
+// ============================================================
+
+export function buildAdHtml(content: AdContent, d: FlatData): string {
+  const pats = content.patterns || [];
+  const colors = ["from-blue-600 to-cyan-500", "from-purple-600 to-pink-500", "from-emerald-600 to-teal-500"];
+
+  return `<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>広告クリエイティブ - ${esc(d.service_name)}</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>body{font-family:'Noto Sans JP',sans-serif}</style>
+</head><body class="bg-gray-50 text-gray-900 min-h-screen p-6 md:p-12">
+<div class="max-w-4xl mx-auto">
+<h1 class="text-2xl font-bold mb-2">${esc(d.service_name)} 広告クリエイティブ案</h1>
+<p class="text-gray-500 mb-8">${esc(d.company_name)} | ${esc(d.target_customer)}向け</p>
+<div class="space-y-8">${pats.map((p, i) => `
+<div class="rounded-xl border border-gray-200 overflow-hidden bg-white shadow-sm">
+<div class="px-6 py-3 bg-gradient-to-r ${colors[i] || colors[0]} text-white flex items-center gap-2"><span class="font-bold">パターン ${i + 1}</span></div>
+<div class="p-6 space-y-4">
+<div><p class="text-xs text-gray-400 mb-1 font-medium uppercase tracking-wider">Primary Text</p><p class="text-gray-700 leading-relaxed">${esc(p.primary)}</p></div>
+<div><p class="text-xs text-gray-400 mb-1 font-medium uppercase tracking-wider">Headline</p><p class="text-xl font-bold text-gray-900">${esc(p.headline)}</p></div>
+<div><p class="text-xs text-gray-400 mb-1 font-medium uppercase tracking-wider">Description</p><p class="text-gray-600">${esc(p.description)}</p></div>
+<div class="pt-4 border-t border-gray-100 grid grid-cols-2 gap-4">
+<div><p class="text-xs text-gray-400 mb-1 font-medium">Targeting</p><p class="text-sm text-gray-600">${esc(p.targeting)}</p></div>
+<div><p class="text-xs text-gray-400 mb-1 font-medium">Image Direction</p><p class="text-sm text-gray-600">${esc(p.image_direction)}</p></div>
+</div></div></div>`).join("")}
+</div></div></body></html>`;
+}
+
+// ============================================================
+// 議事録HTML生成
+// ============================================================
+
+export function buildMinutesHtml(content: MinutesContent, d: FlatData): string {
+  return `<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>商談議事録 - ${esc(d.company_name)}</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>body{font-family:'Noto Sans JP',sans-serif}@media print{body{background:#fff!important;color:#000!important}.no-print{display:none}}</style>
+</head><body class="bg-white text-gray-900 min-h-screen">
+<div class="max-w-3xl mx-auto px-6 py-12">
+<div class="flex items-center justify-between mb-8 pb-4 border-b-2 border-gray-200">
+<h1 class="text-2xl font-bold">商談議事録</h1>
+<span class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">対応中</span>
+</div>
+<table class="w-full mb-8 text-sm">
+<tr class="border-b"><td class="py-2 text-gray-500 w-32">日時</td><td class="py-2 font-medium">${esc(content.date)}</td></tr>
+<tr class="border-b"><td class="py-2 text-gray-500">自社</td><td class="py-2">${esc(content.participants_self)}</td></tr>
+<tr class="border-b"><td class="py-2 text-gray-500">先方</td><td class="py-2">${esc(content.participants_other)}</td></tr>
+<tr class="border-b"><td class="py-2 text-gray-500">目的</td><td class="py-2">${esc(content.purpose)}</td></tr>
+</table>
+<h2 class="text-lg font-bold mb-4 flex items-center gap-2"><span class="w-1.5 h-6 bg-blue-500 rounded-full inline-block"></span>議題・討議内容</h2>
+<div class="space-y-4 mb-8">${(content.topics || []).map(t => `
+<div class="p-4 bg-gray-50 rounded-lg"><h3 class="font-bold mb-1">${esc(t.title)}</h3><p class="text-gray-600 text-sm">${esc(t.summary)}</p></div>`).join("")}
+</div>
+<h2 class="text-lg font-bold mb-4 flex items-center gap-2"><span class="w-1.5 h-6 bg-green-500 rounded-full inline-block"></span>決定事項</h2>
+<ul class="mb-8 space-y-2">${(content.decisions || []).map(dd => `<li class="flex items-start gap-2"><svg class="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg><span class="text-sm">${esc(dd)}</span></li>`).join("")}</ul>
+<h2 class="text-lg font-bold mb-4 flex items-center gap-2"><span class="w-1.5 h-6 bg-orange-500 rounded-full inline-block"></span>アクションアイテム</h2>
+<table class="w-full mb-8 text-sm"><thead><tr class="border-b-2"><th class="text-left py-2">項目</th><th class="text-left py-2 w-24">担当</th><th class="text-left py-2 w-28">期限</th></tr></thead>
+<tbody>${(content.actions || []).map(a => `<tr class="border-b"><td class="py-2">${esc(a.item)}</td><td class="py-2">${esc(a.owner)}</td><td class="py-2 text-orange-600 font-medium">${esc(a.deadline)}</td></tr>`).join("")}</tbody></table>
+<div class="p-4 bg-blue-50 rounded-lg mb-8"><p class="text-sm text-gray-500 mb-1">次回予定</p><p class="font-medium">${esc(content.next_meeting)}</p></div>
+${content.upsell_notes ? `<div class="p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border border-purple-200"><p class="text-sm text-purple-600 font-medium mb-1">アップセル機会メモ</p><p class="text-sm text-gray-700">${esc(content.upsell_notes)}</p></div>` : ""}
+<p class="text-center text-xs text-gray-400 mt-12">この議事録はAIにより自動生成されました</p>
+</div></body></html>`;
+}
+
+// ============================================================
+// 汎用HTML生成 (flyer, hearing_form, line_design, profile等)
+// ============================================================
+
+export function buildGenericHtml(content: GenericContent, d: FlatData, type: string): string {
+  const accentColors: Record<string, string> = {
+    flyer: '#e74c3c',
+    hearing_form: '#27ae60',
+    line_design: '#06c755',
+    profile: '#3b82f6',
+    system_proposal: '#8b5cf6',
+    proposal: '#2563eb',
+    minutes: '#6b7280',
+    ad_creative: '#f59e0b',
+  };
+  const accent = accentColors[type] || '#3b82f6';
+  const title = { flyer: "チラシ", hearing_form: "ヒアリングフォーム", line_design: "LINE導線設計書", profile: "プロフィールシート", system_proposal: "システム開発提案書", proposal: "提案資料" }[type] || type;
+
+  return `<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>${esc(title)} - ${esc(d.service_name)}</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--ac:${accent};--ac-rgb:${hexToRgb(accent)}}
+body{font-family:'Noto Sans JP',sans-serif;background:#fafafa;color:#1a1a1a;min-height:100vh}
+@media print{.no-print{display:none}body{background:#fff}}
+
+/* ヘッダー */
+.doc-header{background:linear-gradient(135deg,var(--ac),color-mix(in srgb,var(--ac) 70%,#000));color:#fff;padding:48px 24px 40px;text-align:center}
+.doc-header .company{font-size:13px;opacity:.8;letter-spacing:2px;text-transform:uppercase;margin-bottom:12px}
+.doc-header h1{font-size:clamp(22px,5vw,32px);font-weight:900;line-height:1.3;margin-bottom:8px}
+.doc-header .sub{font-size:15px;opacity:.85;max-width:600px;margin:0 auto}
+
+/* コンテナ */
+.doc-body{max-width:760px;margin:-24px auto 0;padding:0 16px 48px;position:relative;z-index:1}
+
+/* セクションカード */
+.sec-card{background:#fff;border-radius:12px;padding:28px 24px;margin-bottom:20px;box-shadow:0 1px 3px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04);border:1px solid #f0f0f0;transition:box-shadow .2s}
+.sec-card:hover{box-shadow:0 4px 12px rgba(0,0,0,.08)}
+.sec-head{display:flex;align-items:flex-start;gap:14px;margin-bottom:16px}
+.sec-num{width:36px;height:36px;background:linear-gradient(135deg,var(--ac),color-mix(in srgb,var(--ac) 80%,#000));color:#fff;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;flex-shrink:0}
+.sec-head h2{font-size:17px;font-weight:700;line-height:1.4;padding-top:6px}
+.sec-content{color:#4a4a4a;font-size:14.5px;line-height:1.85;white-space:pre-line;padding-left:50px}
+
+/* フッター */
+.doc-footer{text-align:center;padding:24px 16px 32px;color:#aaa;font-size:12px;border-top:1px solid #eee;max-width:760px;margin:0 auto}
+
+/* モバイル */
+@media(max-width:600px){
+  .doc-header{padding:32px 16px 28px}
+  .sec-card{padding:20px 16px;border-radius:8px}
+  .sec-content{padding-left:0;margin-top:8px}
+  .sec-head{gap:10px}
+  .sec-num{width:30px;height:30px;font-size:13px;border-radius:8px}
+  .sec-head h2{font-size:15px}
+}
+</style>
+</head><body>
+<header class="doc-header">
+<p class="company">${esc(d.company_name)}</p>
+<h1>${esc(content.headline)}</h1>
+<p class="sub">${esc(content.sub)}</p>
+</header>
+<main class="doc-body">
+${(content.sections || []).map((s, i) => `<article class="sec-card">
+<div class="sec-head"><span class="sec-num">${i + 1}</span><h2>${esc(s.title)}</h2></div>
+<div class="sec-content">${esc(s.content)}</div>
+</article>`).join("\n")}
+</main>
+<footer class="doc-footer">${esc(d.company_name)}</footer>
+</body></html>`;
+}
