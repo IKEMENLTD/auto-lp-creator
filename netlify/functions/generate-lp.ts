@@ -685,12 +685,14 @@ ${theme === "corporate" ? CORPORATE_THEME : ""}
 /* ===== HERO ===== */
 .fv{position:relative;min-height:100svh;display:flex;align-items:center;overflow:hidden;padding-top:64px;background-size:cover;background-position:center;background-repeat:no-repeat}
 .fv-overlay{position:absolute;inset:0;background:linear-gradient(135deg,rgba(15,23,42,.88) 0%,rgba(15,23,42,.72) 50%,rgba(15,23,42,.55) 100%);z-index:0}
-.fv .inner{position:relative;z-index:1;max-width:800px;text-align:center;padding-top:80px;padding-bottom:120px}
+.fv .inner{position:relative;z-index:1;display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center;padding-top:80px;padding-bottom:120px}
+.fv-left{text-align:left}
+.fv-right{display:flex;align-items:center;justify-content:center}
 .fv-badge{display:inline-block;padding:6px 18px;border:1px solid rgba(255,255,255,.25);border-radius:20px;font-size:12px;font-weight:700;letter-spacing:.15em;color:var(--ca);text-transform:uppercase;margin-bottom:20px}
 .fv-name{font-size:clamp(14px,1.6vw,16px);color:var(--ca);font-weight:700;margin-bottom:8px;letter-spacing:.05em}
 .fv-headline{font-size:clamp(24px,4vw,42px);font-weight:900;line-height:1.3;color:#fff;margin-bottom:16px}
 .fv-sub{font-size:clamp(14px,1.6vw,17px);color:rgba(255,255,255,.75);margin-bottom:28px;line-height:1.8}
-.fv-features{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:36px;justify-content:center}
+.fv-features{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:36px;justify-content:flex-start}
 .fv-features span{display:inline-flex;align-items:center;gap:6px;padding:8px 18px;background:rgba(255,255,255,.12);backdrop-filter:blur(4px);color:#fff;font-size:13px;font-weight:700;letter-spacing:.03em;border-radius:var(--r);border:1px solid rgba(255,255,255,.1)}
 .fv-features span::before{content:'';width:5px;height:5px;background:var(--ca);border-radius:50%}
 .fv-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:0;position:absolute;bottom:0;left:0;right:0;background:rgba(255,255,255,.95);backdrop-filter:blur(10px);z-index:2}
@@ -698,6 +700,38 @@ ${theme === "corporate" ? CORPORATE_THEME : ""}
 .fv-stat:last-child{border-right:none}
 .fv-stat-num{font-family:'Inter',sans-serif;font-size:clamp(22px,3.5vw,40px);font-weight:900;background:var(--cg);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1.1;white-space:nowrap}
 .fv-stat-label{font-size:12px;color:var(--t2);margin-top:4px;letter-spacing:.05em;font-weight:600}
+
+/* ===== HERO DASHBOARD MOCKUP ===== */
+@keyframes heroFadeUp{0%{opacity:0;transform:translateY(20px)}100%{opacity:1;transform:translateY(0)}}
+@keyframes heroBarGrow{0%{width:0}100%{width:var(--bar-w)}}
+@keyframes heroPulse{0%,100%{opacity:.6}50%{opacity:1}}
+@keyframes heroFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.hero-dash{width:100%;max-width:420px;background:rgba(255,255,255,.07);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:24px;animation:heroFloat 4s ease-in-out infinite}
+.hero-dash-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.hero-dash-title{font-size:13px;font-weight:700;color:rgba(255,255,255,.9);display:flex;align-items:center;gap:8px}
+.hero-dash-title::before{content:'';width:8px;height:8px;background:var(--ca);border-radius:50%;animation:heroPulse 2s ease-in-out infinite}
+.hero-dash-badge{font-size:10px;padding:3px 10px;background:rgba(255,255,255,.12);border-radius:12px;color:rgba(255,255,255,.6)}
+.hero-dash-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px}
+.hero-dash-stat{background:rgba(255,255,255,.06);border-radius:10px;padding:14px 10px;text-align:center;animation:heroFadeUp .6s ease both}
+.hero-dash-stat:nth-child(2){animation-delay:.15s}
+.hero-dash-stat:nth-child(3){animation-delay:.3s}
+.hero-dash-stat-num{font-family:'Inter',sans-serif;font-size:20px;font-weight:900;color:var(--ca);line-height:1}
+.hero-dash-stat-label{font-size:10px;color:rgba(255,255,255,.5);margin-top:4px}
+.hero-dash-bars{display:flex;flex-direction:column;gap:10px;margin-bottom:16px}
+.hero-dash-bar-row{display:flex;align-items:center;gap:10px;animation:heroFadeUp .6s ease both}
+.hero-dash-bar-row:nth-child(1){animation-delay:.4s}
+.hero-dash-bar-row:nth-child(2){animation-delay:.55s}
+.hero-dash-bar-row:nth-child(3){animation-delay:.7s}
+.hero-dash-bar-label{font-size:10px;color:rgba(255,255,255,.5);width:48px;flex-shrink:0;text-align:right}
+.hero-dash-bar-track{flex:1;height:8px;background:rgba(255,255,255,.08);border-radius:4px;overflow:hidden}
+.hero-dash-bar-fill{height:100%;border-radius:4px;background:var(--cg);animation:heroBarGrow 1.2s ease both}
+.hero-dash-bar-fill.b1{--bar-w:85%;animation-delay:.6s}
+.hero-dash-bar-fill.b2{--bar-w:72%;animation-delay:.75s}
+.hero-dash-bar-fill.b3{--bar-w:93%;animation-delay:.9s}
+.hero-dash-bar-pct{font-size:10px;color:rgba(255,255,255,.6);width:32px;font-weight:700}
+.hero-dash-footer{display:flex;align-items:center;gap:8px;padding-top:14px;border-top:1px solid rgba(255,255,255,.08)}
+.hero-dash-footer-dot{width:6px;height:6px;border-radius:50%;background:var(--ca)}
+.hero-dash-footer-text{font-size:10px;color:rgba(255,255,255,.45)}
 
 /* ===== LOGO STRIP ===== */
 .logo-strip{padding:40px 0;background:var(--bg);border-bottom:1px solid var(--bd)}
@@ -770,7 +804,14 @@ ${theme === "corporate" ? CORPORATE_THEME : ""}
 /* header */
 .hd{height:56px}.hd-logo{font-size:15px;max-width:60%}.hd-nav{gap:0}.hd-nav a:not(.btn){display:none}
 /* hero */
-.fv{min-height:auto;padding-top:56px}.fv .inner{padding-top:48px;padding-bottom:24px;max-width:100%}
+.fv{min-height:auto;padding-top:56px}.fv .inner{padding-top:48px;padding-bottom:24px;max-width:100%;grid-template-columns:1fr;text-align:center}
+.fv-left{text-align:center}
+.fv-left .fv-features{justify-content:center}
+.fv-left>div:last-child{align-items:center}
+.fv-right{margin-top:24px}
+.hero-dash{max-width:100%;padding:16px}
+.hero-dash-stat-num{font-size:16px}
+.hero-dash-bar-label{font-size:9px;width:40px}
 .fv-headline{font-size:clamp(20px,5.5vw,28px)}.fv-sub{font-size:14px}.fv-name{font-size:13px}
 .fv-badge{font-size:11px;padding:5px 14px}.fv-features{gap:6px;margin-bottom:24px}
 .fv-features span{padding:6px 12px;font-size:11px}
@@ -819,6 +860,8 @@ ${theme === "corporate" ? CORPORATE_THEME : ""}
 .inner{padding:0 16px}.hd-logo{font-size:14px}
 /* hero */
 .fv-headline{font-size:20px}.fv-features span{padding:5px 8px;font-size:10px}
+.hero-dash{padding:14px}.hero-dash-stats{gap:8px}.hero-dash-stat{padding:10px 6px}
+.hero-dash-stat-num{font-size:14px}.hero-dash-bar-pct{font-size:9px}
 /* stats: keep 2×2 but tighter */
 .fv-stats{grid-template-columns:1fr 1fr}.fv-stat{padding:12px 8px}.fv-stat-num{font-size:18px}
 .fv-stat-label{font-size:9px}
@@ -862,6 +905,7 @@ ${theme === "corporate" ? CORPORATE_THEME : ""}
 <section class="fv"${hasImg && images[0] ? ` style="background-image:url('${esc(images[0].url.replace(/w=\d+/, "w=1600").replace(/h=\d+/, "h=1000"))}')"` : ""}>
 <div class="fv-overlay"></div>
 <div class="inner">
+<div class="fv-left">
 <div class="fv-badge">${esc(c.badge_text || d.industry)}</div>
 <p class="fv-name">${esc(pName)} / ${esc(pTitle)} / ${esc(d.company_name)}</p>
 <h1 class="fv-headline">${esc(c.hero_headline)}</h1>
@@ -869,9 +913,29 @@ ${theme === "corporate" ? CORPORATE_THEME : ""}
 <div class="fv-features">
 ${hf.map(ft => `<span>${esc(ft)}</span>`).join("")}
 </div>
-<div style="display:flex;flex-direction:column;align-items:center;gap:10px">
+<div style="display:flex;flex-direction:column;align-items:flex-start;gap:10px">
 <a href="#contact" class="btn btn-lg btn-white">${esc(c.cta_text)} ${arrowSvg}</a>
 ${microHtml}
+</div>
+</div>
+<div class="fv-right">
+<div class="hero-dash">
+<div class="hero-dash-header">
+<span class="hero-dash-title">Dashboard</span>
+<span class="hero-dash-badge">Live</span>
+</div>
+<div class="hero-dash-stats">
+<div class="hero-dash-stat"><div class="hero-dash-stat-num">${s[0] ? esc(s[0].number) : "98%"}</div><div class="hero-dash-stat-label">${s[0] ? esc(s[0].label) : "満足度"}</div></div>
+<div class="hero-dash-stat"><div class="hero-dash-stat-num">${s[1] ? esc(s[1].number) : "3.2x"}</div><div class="hero-dash-stat-label">${s[1] ? esc(s[1].label) : "効率化"}</div></div>
+<div class="hero-dash-stat"><div class="hero-dash-stat-num">${s[2] ? esc(s[2].number) : "500+"}</div><div class="hero-dash-stat-label">${s[2] ? esc(s[2].label) : "導入社数"}</div></div>
+</div>
+<div class="hero-dash-bars">
+<div class="hero-dash-bar-row"><span class="hero-dash-bar-label">効率</span><div class="hero-dash-bar-track"><div class="hero-dash-bar-fill b1"></div></div><span class="hero-dash-bar-pct">85%</span></div>
+<div class="hero-dash-bar-row"><span class="hero-dash-bar-label">削減</span><div class="hero-dash-bar-track"><div class="hero-dash-bar-fill b2"></div></div><span class="hero-dash-bar-pct">72%</span></div>
+<div class="hero-dash-bar-row"><span class="hero-dash-bar-label">満足度</span><div class="hero-dash-bar-track"><div class="hero-dash-bar-fill b3"></div></div><span class="hero-dash-bar-pct">93%</span></div>
+</div>
+<div class="hero-dash-footer"><span class="hero-dash-footer-dot"></span><span class="hero-dash-footer-text">リアルタイム更新中</span></div>
+</div>
 </div>
 </div>
 <div class="fv-stats">

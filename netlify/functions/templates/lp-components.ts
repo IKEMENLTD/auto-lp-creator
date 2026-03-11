@@ -325,6 +325,10 @@ section.sec:nth-of-type(odd) { background:var(--bg); }
 .mid-cta a.trial { background:var(--c); color:#fff; }
 .mid-cta a.doc { background:var(--card-bg); color:var(--c); border:2px solid var(--c); }
 .mid-cta a:hover { opacity:.85; }
+/* ヒーローダッシュボード */
+.hero-dash { background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.15); }
+.hero-dash-stat { background:rgba(255,255,255,.08); }
+.hero-dash-stat-num { color:var(--ca); }
 /* ロゴ帯 */
 .logo-strip { border-bottom:1px solid var(--bd); background:var(--bg); }
 .logo-strip-label { color:var(--muted); }
