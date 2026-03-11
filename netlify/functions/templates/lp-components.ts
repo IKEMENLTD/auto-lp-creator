@@ -359,6 +359,11 @@ section.sec:nth-of-type(odd) { background:var(--bg); }
 .uc-ico svg { color:var(--c); }
 .uc-card h4 { color:var(--fg); }
 .uc-card p { color:var(--muted); }
+/* コラム記事 */
+.col-card { background:var(--card-bg); border:1px solid #f0f0f0; box-shadow:var(--card-shadow); }
+.col-body h4 { color:var(--fg); }
+.col-body p { color:var(--muted); }
+.col-tag { color:var(--c); }
 /* フッター */
 .ft { background:#2c3e50; color:rgba(255,255,255,.7); border-top:none; }
 /* 波ディバイダーを非表示（コーポレートはborder線に） */

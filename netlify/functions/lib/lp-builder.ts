@@ -185,6 +185,7 @@ export function buildLpHtml(c: LpContent, d: FlatData, images: LpImage[] = [], t
   const cas = c.cases || [];
   const reasons = c.reasons || [];
   const useCases = c.use_cases || [];
+  const columns = c.columns || [];
   const dm = c.dashboard_metrics || [{ label: "効率", pct: 85 }, { label: "削減", pct: 72 }, { label: "満足度", pct: 93 }];
   const f = c.flow || [];
   const faq = c.faq || [];
@@ -337,6 +338,17 @@ ${theme === "corporate" ? CORPORATE_THEME : ""}
 .uc-card h4{font-size:15px;font-weight:800;margin-bottom:8px}
 .uc-card p{font-size:13px;color:var(--t2);line-height:1.8;margin:0}
 @media(max-width:750px){.uc-grid{grid-template-columns:1fr;gap:16px}.uc-card{padding:24px 20px}}
+
+/* ===== COLUMNS (お役立ち記事) ===== */
+.col-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:24px;max-width:800px;margin:0 auto}
+.col-card{display:flex;gap:16px;padding:20px;background:var(--bg);border:1px solid var(--bd);border-radius:var(--r);transition:box-shadow .3s,transform .3s;cursor:default}
+.col-card:hover{box-shadow:0 8px 24px rgba(0,0,0,.06);transform:translateY(-2px)}
+.col-thumb{flex-shrink:0;width:80px;height:80px;border-radius:8px;object-fit:cover}
+.col-body h4{font-size:14px;font-weight:800;line-height:1.5;margin-bottom:4px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.col-body p{font-size:12px;color:var(--t2);line-height:1.6;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin:0}
+.col-tag{display:inline-block;font-size:10px;font-weight:700;color:var(--c);letter-spacing:.05em;margin-bottom:4px}
+@media(max-width:750px){.col-grid{grid-template-columns:1fr;gap:16px}.col-card{padding:16px}}
+@media(max-width:480px){.col-thumb{width:64px;height:64px}.col-body h4{font-size:13px}}
 
 /* ===== PROBLEMS ===== */
 .prob-grid{display:flex;flex-direction:column;gap:10px;max-width:680px;margin:0 auto}
@@ -623,8 +635,28 @@ ${useCases.map(item => {
 </div>
 </section>` : ""}
 
+<!-- COLUMNS: お役立ち記事 -->
+${columns.length > 0 ? `<section class="sec">
+<div class="inner">
+<div class="sec-hd"><p class="sec-bg-txt">Column</p><p class="sec-eng">Column</p><h2 class="sec-tit fi">お役立ち情報</h2></div>
+<div class="col-grid">
+${columns.map((col, i) => {
+  const colImg = images[i + 2] ? images[i + 2].url.replace(/w=\d+/, "w=200").replace(/h=\d+/, "h=200") : unsplashUrl(PHOTO_LIBRARY["business"][(i + 2) % 5], 200, 200);
+  return `<div class="col-card fi">
+<img class="col-thumb" src="${esc(colImg)}" alt="${esc(col.title)}" loading="lazy">
+<div class="col-body">
+<span class="col-tag">COLUMN</span>
+<h4>${esc(col.title)}</h4>
+<p>${esc(col.desc)}</p>
+</div>
+</div>`;
+}).join("")}
+</div>
+</div>
+</section>` : ""}
+
 <!-- WAVE: → CTA1(accent) — concave dip -->
-<div class="dvd dvd-tall"><svg viewBox="0 0 1200 120" preserveAspectRatio="none"><rect width="1200" height="120" fill="var(--c)"/><path d="M0,0 Q600,140 1200,0 L1200,0 L0,0 Z" fill="${useCases.length > 0 ? 'var(--bg2)' : 'var(--bg)'}"/></svg></div>
+<div class="dvd dvd-tall"><svg viewBox="0 0 1200 120" preserveAspectRatio="none"><rect width="1200" height="120" fill="var(--c)"/><path d="M0,0 Q600,140 1200,0 L1200,0 L0,0 Z" fill="${columns.length > 0 ? 'var(--bg)' : useCases.length > 0 ? 'var(--bg2)' : 'var(--bg)'}"/></svg></div>
 
 <!-- CTA (accent) -->
 <section class="offer offer-accent">

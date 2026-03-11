@@ -45,6 +45,8 @@ export interface LpContent {
   stats: { number: string; label: string }[];
   // Hero dashboard metrics (業種に合わせた指標)
   dashboard_metrics: { label: string; pct: number }[];
+  // Columns (お役立ち記事カード)
+  columns: { title: string; desc: string }[];
   // Cases (real data from transcript only)
   cases: { category: string; detail: string; result: string }[];
   // Comparison
