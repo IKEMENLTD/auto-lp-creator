@@ -354,16 +354,17 @@ ${theme === "corporate" ? CORPORATE_THEME : ""}
 @media(max-width:750px){.feat-grid{grid-template-columns:1fr;gap:16px}.feat-card-img{height:180px}.feat-body{padding:16px}}
 
 /* ===== REASONS (選ばれる理由) ===== */
-.reason-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;max-width:1000px;margin:0 auto}
-.reason-card{position:relative;overflow:hidden;border-radius:var(--r);background:var(--bg);border:1px solid var(--bd);transition:box-shadow .4s,transform .4s}
-.reason-card:hover{box-shadow:0 16px 48px rgba(0,0,0,.08);transform:translateY(-4px)}
-.reason-img{width:100%;height:180px;object-fit:cover;display:block}
-.reason-body{padding:24px}
-.reason-num-badge{position:absolute;top:12px;left:12px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;background:var(--c);color:#fff;font-family:'Inter',sans-serif;font-weight:900;font-size:14px;border-radius:8px;z-index:1}
-.reason-body h4{font-size:16px;font-weight:800;margin-bottom:8px;display:flex;align-items:center;gap:8px}
-.reason-body h4 span{font-family:'Inter',sans-serif;font-size:11px;font-weight:700;color:var(--c);letter-spacing:.15em;text-transform:uppercase}
+.reason-list{display:flex;flex-direction:column;gap:32px;max-width:960px;margin:0 auto}
+.reason-card{display:grid;grid-template-columns:280px 1fr;gap:28px;align-items:center;background:var(--bg);border:1px solid var(--bd);border-radius:var(--r);overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.06);transition:box-shadow .4s,transform .4s}
+.reason-card:hover{box-shadow:0 12px 36px rgba(0,0,0,.08);transform:translateY(-3px)}
+.reason-card:nth-child(even){direction:rtl}.reason-card:nth-child(even)>*{direction:ltr}
+.reason-img{width:100%;height:100%;min-height:200px;object-fit:cover;display:block}
+.reason-body{padding:28px 28px 28px 0}
+.reason-card:nth-child(even) .reason-body{padding:28px 0 28px 28px}
+.reason-num{font-family:'Inter',sans-serif;font-size:12px;font-weight:700;color:var(--c);letter-spacing:.15em;text-transform:uppercase;margin-bottom:8px}
+.reason-body h4{font-size:18px;font-weight:800;margin-bottom:10px;line-height:1.4}
 .reason-body p{font-size:14px;color:var(--t2);line-height:1.8;margin:0}
-@media(max-width:750px){.reason-grid{grid-template-columns:1fr;gap:16px}.reason-img{height:160px}.reason-body{padding:20px}}
+@media(max-width:750px){.reason-card{grid-template-columns:1fr}.reason-card:nth-child(even){direction:ltr}.reason-img{min-height:180px;height:200px}.reason-body,.reason-card:nth-child(even) .reason-body{padding:20px}}
 
 /* ===== USE CASES (活用シーン) ===== */
 .uc-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;max-width:960px;margin:0 auto}
@@ -636,14 +637,14 @@ ${theme === "corporate" ? `<!-- MID-CTA: Features後 -->
 ${reasons.length > 0 ? `<section class="sec">
 <div class="inner">
 <div class="sec-hd"><p class="sec-bg-txt">Reason</p><p class="sec-eng">Why Choose Us</p><h2 class="sec-tit fi">${esc(d.company_name)}が選ばれる理由</h2></div>
-<div class="reason-grid">
+<div class="reason-list">
 ${reasons.map((item, i) => {
   const reasonImg = images[i + 1] ? images[i + 1].url.replace(/w=\d+/, "w=600").replace(/h=\d+/, "h=400") : unsplashUrl(PHOTO_LIBRARY["business"][i] || PHOTO_LIBRARY["business"][0], 600, 400);
   return `<div class="reason-card fi">
-<div class="reason-num-badge">${i + 1}</div>
 <img class="reason-img" src="${esc(reasonImg)}" alt="${esc(item.title)}" loading="lazy">
 <div class="reason-body">
-<h4><span>REASON</span>${esc(item.title)}</h4>
+<div class="reason-num">REASON ${i + 1}</div>
+<h4>${esc(item.title)}</h4>
 <p>${esc(item.desc)}</p>
 </div>
 </div>`;
