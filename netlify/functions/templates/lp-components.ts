@@ -230,9 +230,10 @@ body { background: var(--bg); color: var(--fg); }
 .hd-nav a { color: var(--fg); }
 .hd-nav a.btn-accent { background:var(--c); color:#fff; border:none; border-radius:34px; padding:8px 24px; }
 /* ヒーロー: 白背景ベース */
-.fv { background-color:#f8fafb; min-height:auto; padding:100px 0 60px; }
+.fv { background-color:#f8fafb; min-height:auto; padding:100px 0 120px; }
 .fv-overlay { background:none; }
 .fv .inner { color:var(--fg); }
+.fv-left { text-align:left; }
 .fv-badge { color:var(--c); border-color:var(--bd); }
 .fv-name { color:var(--muted); }
 .fv-headline { color:var(--fg); font-size:clamp(28px,5vw,48px); }
@@ -325,10 +326,23 @@ section.sec:nth-of-type(odd) { background:var(--bg); }
 .mid-cta a.trial { background:var(--c); color:#fff; }
 .mid-cta a.doc { background:var(--card-bg); color:var(--c); border:2px solid var(--c); }
 .mid-cta a:hover { opacity:.85; }
-/* ヒーローダッシュボード */
-.hero-dash { background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.15); }
-.hero-dash-stat { background:rgba(255,255,255,.08); }
-.hero-dash-stat-num { color:var(--ca); }
+/* ヒーローダッシュボード（明るい背景用） */
+.hero-dash { background:#fff; border:1px solid var(--bd); box-shadow:0 8px 32px rgba(0,0,0,.08); }
+.hero-dash-header { border-bottom:1px solid var(--bd); padding-bottom:14px; margin-bottom:16px; }
+.hero-dash-title { color:var(--fg); }
+.hero-dash-title::before { background:var(--c); }
+.hero-dash-badge { background:rgba(26,179,148,.1); color:var(--c); }
+.hero-dash-stat { background:var(--sec-alt-bg); }
+.hero-dash-stat-num { color:var(--c); }
+.hero-dash-stat-label { color:var(--muted); }
+.hero-dash-bars { }
+.hero-dash-bar-label { color:var(--muted); }
+.hero-dash-bar-track { background:var(--bd); }
+.hero-dash-bar-fill { background:var(--cg); }
+.hero-dash-bar-pct { color:var(--fg); }
+.hero-dash-footer { border-top:1px solid var(--bd); }
+.hero-dash-footer-dot { background:var(--c); }
+.hero-dash-footer-text { color:var(--muted); }
 /* ロゴ帯 */
 .logo-strip { border-bottom:1px solid var(--bd); background:var(--bg); }
 .logo-strip-label { color:var(--muted); }
