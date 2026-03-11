@@ -266,12 +266,11 @@ ${theme === "corporate" ? CORPORATE_THEME : ""}
 .fv-left{text-align:left}
 .fv-right{display:flex;align-items:center;justify-content:center}
 .fv-badge{display:inline-block;padding:6px 18px;border:1px solid rgba(255,255,255,.25);border-radius:20px;font-size:12px;font-weight:700;letter-spacing:.15em;color:var(--ca);text-transform:uppercase;margin-bottom:20px}
-.fv-name{font-size:clamp(14px,1.6vw,16px);color:var(--ca);font-weight:700;margin-bottom:8px;letter-spacing:.05em}
-.fv-headline{font-size:clamp(24px,4vw,42px);font-weight:900;line-height:1.3;color:#fff;margin-bottom:16px}
-.fv-sub{font-size:clamp(14px,1.6vw,17px);color:rgba(255,255,255,.75);margin-bottom:28px;line-height:1.8}
-.fv-features{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:36px;justify-content:flex-start}
-.fv-features span{display:inline-flex;align-items:center;gap:6px;padding:8px 18px;background:rgba(255,255,255,.12);backdrop-filter:blur(4px);color:#fff;font-size:13px;font-weight:700;letter-spacing:.03em;border-radius:var(--r);border:1px solid rgba(255,255,255,.1)}
-.fv-features span::before{content:'';width:5px;height:5px;background:var(--ca);border-radius:50%}
+.fv-headline{font-size:clamp(26px,4.5vw,46px);font-weight:900;line-height:1.25;color:#fff;margin-bottom:32px}
+.fv-btns{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:24px}
+.btn-outline{background:transparent;border:2px solid rgba(255,255,255,.4);color:#fff}
+.btn-outline:hover{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.6)}
+.fv-visual{width:100%;max-width:480px;border-radius:12px;box-shadow:0 16px 48px rgba(0,0,0,.3)}
 .fv-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:0;position:absolute;bottom:0;left:0;right:0;background:rgba(255,255,255,.95);backdrop-filter:blur(10px);z-index:2}
 .fv-stat{padding:24px 16px;text-align:center;border-right:1px solid var(--bd)}
 .fv-stat:last-child{border-right:none}
@@ -452,15 +451,14 @@ ${theme === "corporate" ? CORPORATE_THEME : ""}
 /* hero */
 .fv{min-height:auto;padding-top:56px}.fv .inner{padding-top:48px;padding-bottom:24px;max-width:100%;grid-template-columns:1fr;text-align:center}
 .fv-left{text-align:center}
-.fv-left .fv-features{justify-content:center}
-.fv-left>div:last-child{align-items:center}
+.fv-btns{justify-content:center}
 .fv-right{margin-top:24px}
+.fv-visual{max-width:100%}
 .hero-dash{max-width:100%;padding:16px}
 .hero-dash-stat-num{font-size:16px}
 .hero-dash-bar-label{font-size:9px;width:40px}
-.fv-headline{font-size:clamp(20px,5.5vw,28px)}.fv-sub{font-size:14px}.fv-name{font-size:13px}
-.fv-badge{font-size:11px;padding:5px 14px}.fv-features{gap:6px;margin-bottom:24px}
-.fv-features span{padding:6px 12px;font-size:11px}
+.fv-headline{font-size:clamp(20px,5.5vw,28px)}
+.fv-badge{font-size:11px;padding:5px 14px}
 /* stats: 2×2 grid, relative position */
 .fv-stats{grid-template-columns:repeat(2,1fr);position:relative;bottom:auto}
 .fv-stat{padding:16px 12px}.fv-stat-num{font-size:clamp(18px,5vw,26px)}.fv-stat-label{font-size:10px}
@@ -493,7 +491,7 @@ ${theme === "corporate" ? CORPORATE_THEME : ""}
 @media(max-width:480px){
 .inner{padding:0 16px}.hd-logo{font-size:14px}
 /* hero */
-.fv-headline{font-size:20px}.fv-features span{padding:5px 8px;font-size:10px}
+.fv-headline{font-size:20px}.fv-btns{flex-direction:column}.fv-btns .btn{width:100%}
 .hero-dash{padding:14px}.hero-dash-stats{gap:8px}.hero-dash-stat{padding:10px 6px}
 .hero-dash-stat-num{font-size:14px}.hero-dash-bar-pct{font-size:9px}
 /* stats: keep 2×2 but tighter */
@@ -535,26 +533,21 @@ ${theme === "corporate" ? CORPORATE_THEME : ""}
 </nav>
 </div></header>
 
-<!-- HERO: 課題提起 + 信頼の人物 -->
+<!-- HERO -->
 <section class="fv"${hasImg && images[0] ? ` style="background-image:url('${esc(images[0].url.replace(/w=\d+/, "w=1600").replace(/h=\d+/, "h=1000"))}')"` : ""}>
 <div class="fv-overlay"></div>
 <div class="inner">
 <div class="fv-left">
 <div class="fv-badge">${esc(c.badge_text || d.industry)}</div>
-${pName !== d.company_name ? `<p class="fv-name">${esc(pName)} / ${esc(pTitle)} / ${esc(d.company_name)}</p>` : ""}
 <h1 class="fv-headline">${esc(c.hero_headline)}</h1>
-<p class="fv-sub">${esc(c.hero_sub)}</p>
-<div class="fv-features">
-${hf.map(ft => `<span>${esc(ft)}</span>`).join("")}
-</div>
-<div style="display:flex;flex-direction:column;align-items:flex-start;gap:10px">
+<div class="fv-btns">
 <a href="#contact" class="btn btn-lg btn-white">${esc(c.cta_text)} ${arrowSvg}</a>
-${microHtml}
+<a href="#service" class="btn btn-lg btn-outline">詳しく見る ${arrowSvg}</a>
 </div>
 ${badges.length > 0 ? `<div class="trust-badges">${badges.map(b => `<span class="trust-badge-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.746 3.746 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.745 3.745 0 011.043 3.296A3.745 3.745 0 0121 12z"/></svg>${esc(b)}</span>`).join("")}</div>` : ""}
 </div>
 <div class="fv-right">
-<div class="hero-dash">
+${hasImg && images[1] ? `<img class="fv-visual" src="${esc(images[1].url.replace(/w=\d+/, "w=800").replace(/h=\d+/, "h=600"))}" alt="${esc(d.service_name)}" loading="lazy">` : `<div class="hero-dash">
 <div class="hero-dash-header">
 <span class="hero-dash-title">Dashboard</span>
 <span class="hero-dash-badge">Live</span>
@@ -568,7 +561,7 @@ ${badges.length > 0 ? `<div class="trust-badges">${badges.map(b => `<span class=
 ${dm.map((m, i) => `<div class="hero-dash-bar-row"><span class="hero-dash-bar-label">${esc(m.label)}</span><div class="hero-dash-bar-track"><div class="hero-dash-bar-fill b${i+1}" style="--bar-w:${Math.min(Math.max(m.pct,20),99)}%"></div></div><span class="hero-dash-bar-pct">${m.pct}%</span></div>`).join("\n")}
 </div>
 <div class="hero-dash-footer"><span class="hero-dash-footer-dot"></span><span class="hero-dash-footer-text">リアルタイム更新中</span></div>
-</div>
+</div>`}
 </div>
 </div>
 <div class="fv-stats">
