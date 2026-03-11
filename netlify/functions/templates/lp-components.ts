@@ -330,6 +330,17 @@ section.sec:nth-of-type(odd) { background:var(--bg); }
 .logo-strip-label { color:var(--muted); }
 .logo-strip-item { color:var(--t2); opacity:.45; }
 .logo-strip-item:hover { opacity:.7; }
+/* 選ばれる理由 */
+.reason-card { background:var(--card-bg); border:1px solid #f0f0f0; box-shadow:var(--card-shadow); border-radius:12px; }
+.reason-num-badge { background:var(--c); }
+.reason-body h4 span { color:var(--c); }
+.reason-body p { color:var(--muted); }
+/* 活用シーン */
+.uc-card { background:var(--card-bg); border:1px solid #f0f0f0; box-shadow:var(--card-shadow); border-radius:12px; }
+.uc-ico { background:rgba(26,179,148,.08); }
+.uc-ico svg { color:var(--c); }
+.uc-card h4 { color:var(--fg); }
+.uc-card p { color:var(--muted); }
 /* フッター */
 .ft { background:#2c3e50; color:rgba(255,255,255,.7); border-top:none; }
 /* 波ディバイダーを非表示（コーポレートはborder線に） */

@@ -51,6 +51,10 @@ interface LpContent {
   strengths: { title: string; desc: string }[];
   // Services
   services: { title: string; desc: string }[];
+  // Reasons (選ばれる理由)
+  reasons: { title: string; desc: string }[];
+  // Use Cases (活用シーン)
+  use_cases: { title: string; desc: string; icon_keyword: string }[];
   // Stats
   stats: { number: string; label: string }[];
   // Cases (real data from transcript only)
@@ -332,6 +336,8 @@ const LP_DRAFT_PROMPT = `商談トランスクリプトから「課題解決型�
   "solution_text": "解決アプローチ120字。具体的な方法論",
   "strengths": [{"title":"強み15字","desc":"数字入り解決力50字"}],
   "services": [{"title":"サービス名20字","desc":"内容+対象+成果80字"}],
+  "reasons": [{"title":"選ばれる理由15字","desc":"競合ではなく当社を選ぶ具体的理由60字。実績・信頼性・独自性"}],
+  "use_cases": [{"title":"活用シーン15字","desc":"具体的な利用場面50字","icon_keyword":"search|chart|users|shield|zap|target"}],
   "stats": [{"number":"92%","label":"採択率"}],
   "cases": [{"category":"案件カテゴリ","detail":"具体内容50字","result":"成果数字20字"}],
   "comparison": [{"feature":"比較項目","us":"自社の方法","other":"一般的な方法"}],
@@ -341,7 +347,7 @@ const LP_DRAFT_PROMPT = `商談トランスクリプトから「課題解決型�
   "cta_sub": "20字以内",
   "company_profile": "会社概要80字"
 }
-problems3-4,strengths3,services3,stats4,comparison4-5,flow4,faq4。
+problems3-4,strengths3,services3,reasons3,use_cases3,stats4,comparison4-5,flow4,faq4。
 cases:トランスクリプトに具体的事例があれば最大3件（なければ空配列[]）。捏造厳禁。
 JSONのみ出力。`;
 
@@ -364,11 +370,13 @@ const LP_EVALUATE_PROMPT = `あなたは課題解決型ページ専門のコピ�
 4. solution_text: 課題→解決の論理的つながり。120字以内
 5. strengths: 各項目に異なる数字。課題に対する具体的解決力。3個
 6. services: 各サービスの対象と成果を数字で。3個
-7. comparison: 「一般的な方法」vs「この会社の場合」で差を明確に。4-5行
-8. cases: トランスクリプトに言及あればそのまま。なければ空配列[]維持。捏造厳禁
-9. stats: 4つ異なるカテゴリ
-10. faq: 料金・期間・進め方・対象範囲をカバー。4個
-11. cta_text: 8字以内
+7. reasons: 競合ではなく当社を選ぶ理由。実績・信頼性・独自性で差別化。3個
+8. use_cases: 具体的な利用場面。ターゲットがイメージしやすい状況。3個
+9. comparison: 「一般的な方法」vs「この会社の場合」で差を明確に。4-5行
+10. cases: トランスクリプトに言及あればそのまま。なければ空配列[]維持。捏造厳禁
+11. stats: 4つ異なるカテゴリ
+12. faq: 料金・期間・進め方・対象範囲をカバー。4個
+13. cta_text: 8字以内
 
 【情報帰属チェック（厳守）】
 - トランスクリプトの話者ラベルを確認し、各情報の出典を検証せよ
@@ -600,6 +608,8 @@ function buildLpHtml(c: LpContent, d: FlatData, images: LpImage[] = [], theme: L
   const s = c.stats || [];
   const cmp = c.comparison || [];
   const cas = c.cases || [];
+  const reasons = c.reasons || [];
+  const useCases = c.use_cases || [];
   const f = c.flow || [];
   const faq = c.faq || [];
   const hf = c.hero_features || [];
@@ -697,6 +707,28 @@ ${theme === "corporate" ? CORPORATE_THEME : ""}
 .logo-strip-item:hover{opacity:.85}
 @media(max-width:750px){.logo-strip{padding:28px 0}.logo-strip-list{gap:20px 32px}.logo-strip-item{font-size:13px}}
 @media(max-width:480px){.logo-strip-list{gap:16px 24px}.logo-strip-item{font-size:12px}}
+
+/* ===== REASONS (選ばれる理由) ===== */
+.reason-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;max-width:1000px;margin:0 auto}
+.reason-card{position:relative;overflow:hidden;border-radius:var(--r);background:var(--bg);border:1px solid var(--bd);transition:box-shadow .4s,transform .4s}
+.reason-card:hover{box-shadow:0 16px 48px rgba(0,0,0,.08);transform:translateY(-4px)}
+.reason-img{width:100%;height:180px;object-fit:cover;display:block}
+.reason-body{padding:24px}
+.reason-num-badge{position:absolute;top:12px;left:12px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;background:var(--c);color:#fff;font-family:'Inter',sans-serif;font-weight:900;font-size:14px;border-radius:8px;z-index:1}
+.reason-body h4{font-size:16px;font-weight:800;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.reason-body h4 span{font-family:'Inter',sans-serif;font-size:11px;font-weight:700;color:var(--c);letter-spacing:.15em;text-transform:uppercase}
+.reason-body p{font-size:14px;color:var(--t2);line-height:1.8;margin:0}
+@media(max-width:750px){.reason-grid{grid-template-columns:1fr;gap:16px}.reason-img{height:160px}.reason-body{padding:20px}}
+
+/* ===== USE CASES (活用シーン) ===== */
+.uc-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;max-width:960px;margin:0 auto}
+.uc-card{padding:28px 24px;background:var(--bg);border:1px solid var(--bd);border-radius:var(--r);text-align:center;transition:box-shadow .3s,transform .3s}
+.uc-card:hover{box-shadow:0 12px 36px rgba(0,0,0,.06);transform:translateY(-3px)}
+.uc-ico{width:64px;height:64px;margin:0 auto 16px;display:flex;align-items:center;justify-content:center;background:rgba(var(--c-rgb),.08);border-radius:16px}
+.uc-ico svg{width:28px;height:28px;color:var(--c)}
+.uc-card h4{font-size:15px;font-weight:800;margin-bottom:8px}
+.uc-card p{font-size:13px;color:var(--t2);line-height:1.8;margin:0}
+@media(max-width:750px){.uc-grid{grid-template-columns:1fr;gap:16px}.uc-card{padding:24px 20px}}
 
 /* ===== PROBLEMS ===== */
 .prob-grid{display:flex;flex-direction:column;gap:10px;max-width:680px;margin:0 auto}
@@ -922,8 +954,53 @@ ${theme === "corporate" ? `<!-- MID-CTA: Service後 -->
 <a href="#contact" class="doc">資料ダウンロード</a>
 </div>` : ""}
 
-<!-- WAVE: services(bg2) → CTA1(accent) — concave dip -->
-<div class="dvd dvd-tall"><svg viewBox="0 0 1200 120" preserveAspectRatio="none"><rect width="1200" height="120" fill="var(--c)"/><path d="M0,0 Q600,140 1200,0 L1200,0 L0,0 Z" fill="var(--bg2)"/></svg></div>
+<!-- REASONS: 選ばれる理由 -->
+${reasons.length > 0 ? `<section class="sec">
+<div class="inner">
+<div class="sec-hd"><p class="sec-bg-txt">Reason</p><p class="sec-eng">Why Choose Us</p><h2 class="sec-tit fi">${esc(d.company_name)}が選ばれる理由</h2></div>
+<div class="reason-grid">
+${reasons.map((item, i) => {
+  const reasonImg = images[i + 1] ? images[i + 1].url.replace(/w=\d+/, "w=600").replace(/h=\d+/, "h=400") : unsplashUrl(PHOTO_LIBRARY["business"][i] || PHOTO_LIBRARY["business"][0], 600, 400);
+  return `<div class="reason-card fi">
+<div class="reason-num-badge">${i + 1}</div>
+<img class="reason-img" src="${esc(reasonImg)}" alt="${esc(item.title)}" loading="lazy">
+<div class="reason-body">
+<h4><span>REASON</span>${esc(item.title)}</h4>
+<p>${esc(item.desc)}</p>
+</div>
+</div>`;
+}).join("")}
+</div>
+</div>
+</section>` : ""}
+
+<!-- USE CASES: 活用シーン -->
+${useCases.length > 0 ? `<section class="sec" style="background:var(--bg2)">
+<div class="inner">
+<div class="sec-hd"><p class="sec-bg-txt">UseCase</p><p class="sec-eng">Use Cases</p><h2 class="sec-tit fi">活用シーン</h2></div>
+<div class="uc-grid">
+${useCases.map(item => {
+  const ucIcoMap: Record<string, string> = {
+    search: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>',
+    chart: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>',
+    users: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
+    shield: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>',
+    zap: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>',
+    target: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>',
+  };
+  const ucIcon = ucIcoMap[item.icon_keyword] || ucIcoMap["zap"];
+  return `<div class="uc-card fi">
+<div class="uc-ico">${ucIcon}</div>
+<h4>${esc(item.title)}</h4>
+<p>${esc(item.desc)}</p>
+</div>`;
+}).join("")}
+</div>
+</div>
+</section>` : ""}
+
+<!-- WAVE: → CTA1(accent) — concave dip -->
+<div class="dvd dvd-tall"><svg viewBox="0 0 1200 120" preserveAspectRatio="none"><rect width="1200" height="120" fill="var(--c)"/><path d="M0,0 Q600,140 1200,0 L1200,0 L0,0 Z" fill="${useCases.length > 0 ? 'var(--bg2)' : 'var(--bg)'}"/></svg></div>
 
 <!-- CTA (accent) -->
 <section class="offer offer-accent">

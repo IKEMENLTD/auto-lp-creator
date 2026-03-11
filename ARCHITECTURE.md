@@ -246,6 +246,8 @@ interface LpContent {
   solution_text: string;    // 120字以内
   strengths: { title: string; desc: string }[];      // 3個
   services: { title: string; desc: string }[];       // 3個
+  reasons: { title: string; desc: string }[];        // 3個（選ばれる理由）
+  use_cases: { title: string; desc: string; icon_keyword: string }[];  // 3個（活用シーン）
   stats: { number: string; label: string }[];        // 4個
   cases: { category: string; detail: string; result: string }[];  // 0-3個（捏造厳禁）
   comparison: { feature: string; us: string; other: string }[];   // 4-5行
@@ -279,6 +281,10 @@ Solution セクション (STRENGTH_CARD premium: 3列グリッド + グラデア
   |
 Service セクション (SERVICE_CARD premium: グラデヘッダー + アイコンリング + 下線アニメ)
   |
+Reasons セクション (選ばれる理由: 画像付きカード×3 + REASONバッジ)
+  |
+Use Cases セクション (活用シーン: アイコン付きカード×3)
+  |
 Wave concave (大きな凹みカーブ 120px)
   |
 CTA accent (青背景: 相談ボタン + マイクロコピー)
@@ -304,7 +310,7 @@ Footer
 Mobile CTA Bar (固定下部: 750px以下で表示)
 ```
 
-### CSSコンポーネント（19種 / lp-components.ts + generate-lp.ts inline）
+### CSSコンポーネント（21種 / lp-components.ts + generate-lp.ts inline）
 
 | コンポーネント | 用途 |
 |--------------|------|
@@ -326,6 +332,8 @@ Mobile CTA Bar (固定下部: 750px以下で表示)
 | FLOW | フローステップ（タイムライン + 番号バッジ） |
 | FAQ | アコーディオン（details/summary） |
 | LOGO_STRIP | 導入企業ロゴ帯（架空6社テキストロゴ、Hero直後） |
+| REASON_CARD | 選ばれる理由カード（画像+REASONバッジ+説明） |
+| USE_CASE_CARD | 活用シーンカード（アイコン+タイトル+説明） |
 | CORPORATE_THEME | コーポレートテーマ上書き（白背景/ティール/pill/ソフトシャドウ） |
 
 ---
