@@ -7,7 +7,7 @@
 import React from 'react';
 import { ExternalLink, Share2, Loader2, Download, RotateCcw } from 'lucide-react';
 import type { DeliverableStatus, DeliverableType } from '../types/dashboard';
-import { FIELD_LABELS } from '../lib/constants';
+import { FIELD_LABELS, REQUIRED_FIELDS } from '../lib/constants';
 import type { LucideIcon } from 'lucide-react';
 
 // ============================================================
@@ -117,11 +117,24 @@ export const DeliverableCard: React.FC<DeliverableCardProps> = ({
       </span>
 
       {/* ステータス別コンテンツ */}
-      {status === 'insufficient' && (
-        <span className="text-[10px] text-gray-500 text-center leading-tight">
-          あと{missingFields.map((f) => FIELD_LABELS[f] ?? f).join('、')}が必要
-        </span>
-      )}
+      {status === 'insufficient' && (() => {
+        const totalRequired = REQUIRED_FIELDS[type]?.length ?? 0;
+        const filledCount = totalRequired - missingFields.length;
+        return (
+          <div className="flex flex-col items-center gap-1 mt-1 w-full">
+            <span className="text-[10px] text-gray-500 text-center leading-tight">
+              {filledCount}/{totalRequired} 項目完了
+            </span>
+            <button
+              type="button"
+              className="px-3 py-1.5 text-xs font-medium text-gray-500 bg-gray-500/10 border border-gray-600/30 rounded cursor-not-allowed min-w-[88px] min-h-[32px]"
+              disabled
+            >
+              情報不足
+            </button>
+          </div>
+        );
+      })()}
 
       {status === 'ready' && (
         <button

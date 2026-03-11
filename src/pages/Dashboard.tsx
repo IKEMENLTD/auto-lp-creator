@@ -378,6 +378,27 @@ export const Dashboard: React.FC = () => {
           </button>
         </div>
 
+        {/* 事前ガイド: 必要な情報 */}
+        <div className="mt-8 w-full max-w-xs">
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+            制作物生成に必要な情報
+          </p>
+          <p className="text-xs text-gray-500 mb-3">
+            以下の情報が含まれる会話を録音・貼り付けしてください
+          </p>
+          <div className="space-y-2">
+            {['会社名', 'サービス名', '業種', 'ターゲット顧客', '強み'].map((label) => (
+              <div
+                key={label}
+                className="flex items-center gap-2 px-3 py-2 rounded border border-gray-700/50 bg-gray-900/30"
+              >
+                <div className="w-4 h-4 rounded-full border border-gray-600 flex-shrink-0" />
+                <span className="text-sm text-gray-400">{label}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
         {error && (
           <div className="flex items-start gap-2 mt-6 p-3 bg-red-500/10 border border-red-500/30 rounded max-w-xs w-full">
             <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
@@ -385,7 +406,7 @@ export const Dashboard: React.FC = () => {
           </div>
         )}
 
-        <p className="mt-12 text-xs text-gray-600">
+        <p className="mt-8 text-xs text-gray-600">
           音声解析 + AI制作物自動生成
         </p>
       </div>
@@ -545,13 +566,11 @@ export const Dashboard: React.FC = () => {
           interimText={audio.interimText}
         />
 
-        {/* 抽出情報カード */}
-        {session.filledFields > 0 && (
-          <ExtractionCards
-            extractedData={session.extractedData}
-            onEditField={handleOpenEdit}
-          />
-        )}
+        {/* 抽出情報カード（必須フィールドを常に表示） */}
+        <ExtractionCards
+          extractedData={session.extractedData}
+          onEditField={handleOpenEdit}
+        />
 
         {/* 制作物グリッド */}
         <DeliverableGrid
