@@ -251,8 +251,8 @@ ${FAQ}
 ${theme === "corporate" ? CORPORATE_THEME : ""}
 
 /* ===== HEADER ===== */
-.hd{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(255,255,255,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--bd);height:64px;display:flex;align-items:center}
-.hd .inner{display:flex;align-items:center;justify-content:space-between;width:100%}
+.hd{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(255,255,255,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--bd);height:64px;display:flex;align-items:center;padding:0 32px}
+.hd-wrap{display:flex;align-items:center;justify-content:space-between;width:100%}
 .hd-logo{font-weight:800;font-size:18px;color:var(--c);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:50%}
 .hd-nav{display:flex;gap:24px;align-items:center;flex-shrink:0}
 .hd-nav a{font-size:13px;color:var(--t2);font-weight:500;transition:color .2s;white-space:nowrap}
@@ -448,7 +448,7 @@ ${theme === "corporate" ? CORPORATE_THEME : ""}
 /* ============================== */
 @media(max-width:750px){
 /* header */
-.hd{height:56px}.hd-logo{font-size:15px;max-width:60%}.hd-nav{gap:0}.hd-nav a:not(.btn){display:none}
+.hd{height:56px;padding:0 16px}.hd-logo{font-size:15px;max-width:60%}.hd-nav{gap:0}.hd-nav a:not(.btn){display:none}
 /* hero */
 .fv{min-height:auto;padding-top:56px}.fv .inner{padding-top:48px;padding-bottom:24px;max-width:100%;grid-template-columns:1fr;text-align:center}
 .fv-left{text-align:center}
@@ -526,7 +526,7 @@ ${theme === "corporate" ? CORPORATE_THEME : ""}
 </head><body>
 
 <!-- HEADER -->
-<header class="hd"><div class="inner">
+<header class="hd"><div class="hd-wrap">
 <p class="hd-logo">${esc(d.company_name)}</p>
 <nav class="hd-nav">
 <a href="#solution">Solution</a>
