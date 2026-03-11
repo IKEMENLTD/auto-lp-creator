@@ -407,9 +407,9 @@ ${theme === "corporate" ? CORPORATE_THEME : ""}
 .sol-text{font-size:15px;color:var(--t2);line-height:2;max-width:640px;margin:0 auto 40px;text-align:center}
 
 /* ===== OFFER / CTA ===== */
-.offer{padding:56px 0;background:var(--dark);color:#fff;text-align:center;position:relative;overflow:hidden}
+.offer{padding:40px 0;background:var(--dark);color:#fff;text-align:center;position:relative;overflow:hidden}
 .offer::before{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:600px;height:400px;background:radial-gradient(circle,rgba(255,255,255,.04),transparent 70%)}
-.offer-accent{background:var(--c);padding:72px 0}
+.offer-accent{background:var(--c);padding:48px 0}
 .offer-tit{font-size:clamp(18px,3vw,24px);font-weight:800;margin-bottom:8px;position:relative}
 .offer-sub{font-size:14px;color:rgba(255,255,255,.55);margin-bottom:20px;position:relative}
 
@@ -420,7 +420,7 @@ ${theme === "corporate" ? CORPORATE_THEME : ""}
 .company-info strong{color:var(--t1);font-size:16px;display:block;margin-bottom:4px}
 
 /* ===== FINAL CTA ===== */
-.cta-sec{padding:100px 24px;background:var(--dark);text-align:center;position:relative;overflow:hidden}
+.cta-sec{padding:64px 24px;background:var(--dark);text-align:center;position:relative;overflow:hidden}
 .cta-sec::before{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:700px;height:500px;background:radial-gradient(circle,rgba(255,255,255,.04),transparent 70%)}
 .cta-tit{font-size:clamp(22px,3.5vw,30px);font-weight:900;color:#fff;margin-bottom:10px;position:relative}
 .cta-sub{font-size:14px;color:rgba(255,255,255,.5);margin-bottom:24px;position:relative}
@@ -471,7 +471,7 @@ ${theme === "corporate" ? CORPORATE_THEME : ""}
 .svc-head{padding:22px 20px 16px}.svc-ico-ring{width:44px;height:44px;border-radius:10px}
 .svc-body{padding:16px 20px 22px}.svc-body p{font-size:13px}
 /* CTA */
-.offer{padding:40px 0}.offer-accent{padding:48px 0}.offer-tit{font-size:clamp(16px,4.5vw,20px)}
+.offer{padding:32px 0}.offer-accent{padding:36px 0}.offer-tit{font-size:clamp(16px,4.5vw,20px)}
 .offer-sub{font-size:13px;margin-bottom:16px}
 /* micro copy: stack on mobile */
 .micro{flex-wrap:wrap;gap:8px 14px}
@@ -502,7 +502,7 @@ ${theme === "corporate" ? CORPORATE_THEME : ""}
 /* buttons */
 .btn-lg{padding:12px 24px;font-size:13px}.btn-md{padding:10px 20px;font-size:12px}
 /* CTA */
-.offer-tit{font-size:16px}.offer-accent{padding:40px 0}
+.offer-tit{font-size:16px}.offer-accent{padding:32px 0}
 /* flow */
 .flow-num{width:36px;height:36px;font-size:14px}.flow-list::before{left:18px}
 /* final CTA */
