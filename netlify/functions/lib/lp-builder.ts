@@ -270,7 +270,7 @@ ${theme === "corporate" ? CORPORATE_THEME : ""}
 .fv-btns{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:24px}
 .btn-outline{background:transparent;border:2px solid rgba(255,255,255,.4);color:#fff}
 .btn-outline:hover{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.6)}
-.fv-visual{width:100%;max-width:480px;border-radius:12px;box-shadow:0 16px 48px rgba(0,0,0,.3)}
+.fv-visual{position:relative;z-index:1;width:100%;max-width:480px;border-radius:12px;box-shadow:0 16px 48px rgba(0,0,0,.3);display:block}
 .fv-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:0;position:absolute;bottom:0;left:0;right:0;background:rgba(255,255,255,.95);backdrop-filter:blur(10px);z-index:2}
 .fv-stat{padding:24px 16px;text-align:center;border-right:1px solid var(--bd)}
 .fv-stat:last-child{border-right:none}
