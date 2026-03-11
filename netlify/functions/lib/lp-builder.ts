@@ -548,7 +548,7 @@ ${theme === "corporate" ? CORPORATE_THEME : ""}
 ${badges.length > 0 ? `<div class="trust-badges">${badges.map(b => `<span class="trust-badge-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.746 3.746 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.745 3.745 0 011.043 3.296A3.745 3.745 0 0121 12z"/></svg>${esc(b)}</span>`).join("")}</div>` : ""}
 </div>
 <div class="fv-right">
-${hasImg && images[1] ? `<img class="fv-visual" src="${esc(images[1].url.replace(/w=\d+/, "w=800").replace(/h=\d+/, "h=600"))}" alt="${esc(d.service_name)}" loading="lazy">` : `<div class="hero-dash">
+<div class="hero-dash">
 <div class="hero-dash-header">
 <span class="hero-dash-title">Dashboard</span>
 <span class="hero-dash-badge">Live</span>
@@ -562,7 +562,7 @@ ${hasImg && images[1] ? `<img class="fv-visual" src="${esc(images[1].url.replace
 ${dm.map((m, i) => `<div class="hero-dash-bar-row"><span class="hero-dash-bar-label">${esc(m.label)}</span><div class="hero-dash-bar-track"><div class="hero-dash-bar-fill b${i+1}" style="--bar-w:${Math.min(Math.max(m.pct,20),99)}%"></div></div><span class="hero-dash-bar-pct">${m.pct}%</span></div>`).join("\n")}
 </div>
 <div class="hero-dash-footer"><span class="hero-dash-footer-dot"></span><span class="hero-dash-footer-text">リアルタイム更新中</span></div>
-</div>`}
+</div>
 </div>
 </div>
 <div class="fv-stats">
