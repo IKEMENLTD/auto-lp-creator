@@ -96,6 +96,8 @@ export const LP_DRAFT_PROMPT = `商談トランスクリプトから「課題解
   "use_cases": [{"title":"活用シーン15字","desc":"具体的な利用場面50字","icon_keyword":"search|chart|users|shield|zap|target"}],
   "stats": [{"number":"92%","label":"採択率"}],
   "dashboard_metrics": [{"label":"業種に合った指標名4字","pct":85},{"label":"指標名4字","pct":72},{"label":"指標名4字","pct":93}],
+  "trust_badges": ["○○部門 導入社数No.1","顧客満足度No.1"],
+  "functions": [{"title":"機能名15字","desc":"その機能で何ができるか50字"}],
   "columns": [{"title":"ターゲットが検索しそうな疑問形タイトル30字","desc":"記事概要50字"}],
   "cases": [{"category":"案件カテゴリ","detail":"具体内容50字","result":"成果数字20字"}],
   "comparison": [{"feature":"比較項目","us":"自社の方法","other":"一般的な方法"}],
@@ -105,7 +107,7 @@ export const LP_DRAFT_PROMPT = `商談トランスクリプトから「課題解
   "cta_sub": "20字以内",
   "company_profile": "会社概要80字"
 }
-problems3-4,strengths3,services3,reasons3,use_cases3,stats4,dashboard_metrics3,columns2,comparison4-5,flow4,faq4。
+problems3-4,strengths3,services3,reasons3,use_cases3,stats4,dashboard_metrics3,trust_badges2,functions3,columns2,comparison4-5,flow4,faq4。
 cases:トランスクリプトに具体的事例があれば最大3件（なければ空配列[]）。捏造厳禁。
 JSONのみ出力。`;
 
@@ -130,9 +132,11 @@ export const LP_EVALUATE_PROMPT = `あなたは課題解決型ページ専門の
 10. cases: トランスクリプトに言及あればそのまま。なければ空配列[]維持。捏造厳禁
 11. stats: 4つ異なるカテゴリ
 12. dashboard_metrics: 業種に合った指標名（4字以内）とパーセンテージ（50-99）。3個。statsと重複しない
-13. columns: ターゲットが検索しそうな「〜とは？」「〜の方法」形式のタイトル。業種に特化した実用的な内容。2個
-14. faq: 料金・期間・進め方・対象範囲をカバー。4個
-15. cta_text: 8字以内
+13. functions: サービスの具体的な機能。servicesとは異なり個別の機能名と説明。3個
+14. columns: ターゲットが検索しそうな「〜とは？」「〜の方法」形式のタイトル。業種に特化した実用的な内容。2個
+15. trust_badges: 業種に合った「○○No.1」「○○認定」形式の信頼性バッジ。2個
+16. faq: 料金・期間・進め方・対象範囲をカバー。4個
+17. cta_text: 8字以内
 
 【情報帰属チェック（厳守）】
 - トランスクリプトの話者ラベルを確認し、各情報の出典を検証せよ

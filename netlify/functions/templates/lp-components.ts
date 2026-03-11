@@ -385,4 +385,7 @@ section.sec:nth-of-type(odd) { background:var(--bg); }
   .mid-cta { display:flex; flex-direction:column; align-items:center; gap:8px; }
   .mid-cta a { margin:0; width:80%; justify-content:center; }
 }
+/* corporate trust badges */
+.trust-badge-item { background:rgba(26,179,148,.1); border-color:rgba(26,179,148,.25); color:var(--c); }
+.trust-badge-item svg { color:var(--c); }
 `;

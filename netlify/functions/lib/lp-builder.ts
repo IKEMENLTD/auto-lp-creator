@@ -186,10 +186,12 @@ export function buildLpHtml(c: LpContent, d: FlatData, images: LpImage[] = [], t
   const reasons = c.reasons || [];
   const useCases = c.use_cases || [];
   const columns = c.columns || [];
+  const funcs = c.functions || [];
   const dm = c.dashboard_metrics || [{ label: "効率", pct: 85 }, { label: "削減", pct: 72 }, { label: "満足度", pct: 93 }];
   const f = c.flow || [];
   const faq = c.faq || [];
   const hf = c.hero_features || [];
+  const badges = c.trust_badges || [];
   const colors = getDecoColors(d.industry);
   const hasImg = images.length > 0;
   const pName = sanitizePersonName(c.person_name, d.key_persons) || d.company_name;
@@ -308,14 +310,28 @@ ${theme === "corporate" ? CORPORATE_THEME : ""}
 .hero-dash-footer-dot{width:6px;height:6px;border-radius:50%;background:var(--ca)}
 .hero-dash-footer-text{font-size:10px;color:rgba(255,255,255,.45)}
 
+/* ===== TRUST BADGES (受賞バナー) ===== */
+.trust-badges{display:flex;flex-wrap:wrap;gap:10px;margin-top:20px;justify-content:flex-start}
+.trust-badge-item{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:rgba(255,255,255,.12);backdrop-filter:blur(4px);border:1px solid rgba(255,255,255,.15);border-radius:6px;font-size:12px;font-weight:700;color:#fff;letter-spacing:.02em}
+.trust-badge-item svg{width:16px;height:16px;flex-shrink:0;color:var(--ca)}
+@media(max-width:750px){.trust-badges{justify-content:center;gap:8px}.trust-badge-item{font-size:11px;padding:5px 12px}}
+@media(max-width:480px){.trust-badge-item{font-size:10px;padding:4px 10px}}
+
 /* ===== LOGO STRIP ===== */
-.logo-strip{padding:40px 0;background:var(--bg);border-bottom:1px solid var(--bd)}
-.logo-strip-label{text-align:center;font-size:13px;color:var(--t3);font-weight:600;letter-spacing:.1em;margin-bottom:20px}
-.logo-strip-list{display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:32px 48px;max-width:900px;margin:0 auto;padding:0 24px}
-.logo-strip-item{font-family:'Inter','Noto Sans JP',sans-serif;font-size:15px;font-weight:800;color:var(--t3);letter-spacing:.05em;white-space:nowrap;opacity:.55;transition:opacity .3s}
-.logo-strip-item:hover{opacity:.85}
-@media(max-width:750px){.logo-strip{padding:28px 0}.logo-strip-list{gap:20px 32px}.logo-strip-item{font-size:13px}}
-@media(max-width:480px){.logo-strip-list{gap:16px 24px}.logo-strip-item{font-size:12px}}
+.logo-strip{padding:48px 0;background:var(--bg2);border-bottom:1px solid var(--bd)}
+.logo-strip-label{text-align:center;font-size:13px;color:var(--t3);font-weight:600;letter-spacing:.1em;margin-bottom:24px}
+.logo-strip-list{display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:24px 40px;max-width:960px;margin:0 auto;padding:0 24px}
+.logo-strip-item{display:inline-flex;align-items:center;gap:8px;font-family:'Inter','Noto Sans JP',sans-serif;font-size:16px;font-weight:800;color:var(--t2);letter-spacing:.04em;white-space:nowrap;opacity:.45;transition:opacity .3s;padding:8px 0}
+.logo-strip-item:hover{opacity:.75}
+.logo-strip-item:nth-child(odd){font-style:italic}
+.logo-strip-item:nth-child(3n+1){font-family:'Inter',sans-serif;letter-spacing:.08em;text-transform:uppercase;font-size:14px}
+.logo-strip-item:nth-child(3n+2){font-family:'Noto Sans JP',sans-serif;font-size:17px;letter-spacing:.02em;font-style:normal}
+.logo-strip-item:nth-child(3n){font-family:'Inter',sans-serif;font-weight:900;font-size:15px;letter-spacing:.12em}
+.logo-strip-ico{width:20px;height:20px;border-radius:4px;background:var(--c);opacity:.35;display:inline-block;flex-shrink:0}
+.logo-strip-item:nth-child(even) .logo-strip-ico{border-radius:50%}
+.logo-strip-item:nth-child(3n) .logo-strip-ico{border-radius:2px;transform:rotate(45deg);width:14px;height:14px}
+@media(max-width:750px){.logo-strip{padding:32px 0}.logo-strip-list{gap:16px 28px}.logo-strip-item{font-size:14px}.logo-strip-item:nth-child(3n+1){font-size:12px}.logo-strip-item:nth-child(3n+2){font-size:15px}.logo-strip-item:nth-child(3n){font-size:13px}}
+@media(max-width:480px){.logo-strip-list{gap:12px 20px}.logo-strip-ico{width:16px;height:16px}.logo-strip-item:nth-child(3n) .logo-strip-ico{width:12px;height:12px}}
 
 /* ===== ABOUT (〇〇とは) ===== */
 .about-pain{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-bottom:40px}
@@ -361,6 +377,16 @@ ${theme === "corporate" ? CORPORATE_THEME : ""}
 .uc-card h4{font-size:15px;font-weight:800;margin-bottom:8px}
 .uc-card p{font-size:13px;color:var(--t2);line-height:1.8;margin:0}
 @media(max-width:750px){.uc-grid{grid-template-columns:1fr;gap:16px}.uc-card{padding:24px 20px}}
+
+/* ===== FUNCTIONS (主な機能) ===== */
+.func-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;max-width:1000px;margin:0 auto}
+.func-card{overflow:hidden;border-radius:var(--r);background:var(--bg);border:1px solid var(--bd);transition:box-shadow .4s,transform .4s}
+.func-card:hover{box-shadow:0 12px 36px rgba(0,0,0,.08);transform:translateY(-4px)}
+.func-card-img{width:100%;height:160px;object-fit:cover;display:block}
+.func-body{padding:20px}
+.func-body h4{font-size:15px;font-weight:800;margin-bottom:6px}
+.func-body p{font-size:13px;color:var(--t2);line-height:1.8;margin:0}
+@media(max-width:750px){.func-grid{grid-template-columns:1fr;gap:16px}.func-card-img{height:140px}.func-body{padding:16px}}
 
 /* ===== COLUMNS (お役立ち記事) ===== */
 .col-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:24px;max-width:800px;margin:0 auto}
@@ -514,6 +540,7 @@ ${hf.map(ft => `<span>${esc(ft)}</span>`).join("")}
 <a href="#contact" class="btn btn-lg btn-white">${esc(c.cta_text)} ${arrowSvg}</a>
 ${microHtml}
 </div>
+${badges.length > 0 ? `<div class="trust-badges">${badges.map(b => `<span class="trust-badge-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.746 3.746 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.745 3.745 0 011.043 3.296A3.745 3.745 0 0121 12z"/></svg>${esc(b)}</span>`).join("")}</div>` : ""}
 </div>
 <div class="fv-right">
 <div class="hero-dash">
@@ -542,12 +569,12 @@ ${s.map(st => `<div class="fv-stat"><div class="fv-stat-num">${esc(st.number)}</
 <div class="logo-strip">
 <p class="logo-strip-label">多くの企業様にご導入いただいています</p>
 <div class="logo-strip-list">
-<span class="logo-strip-item">NovaCross</span>
-<span class="logo-strip-item">ZenithFlow</span>
-<span class="logo-strip-item">CrestVision</span>
-<span class="logo-strip-item">SolarisNeo</span>
-<span class="logo-strip-item">TerraGrow</span>
-<span class="logo-strip-item">Verdics</span>
+<span class="logo-strip-item"><span class="logo-strip-ico"></span>NovaCross</span>
+<span class="logo-strip-item"><span class="logo-strip-ico"></span>ZenithFlow</span>
+<span class="logo-strip-item"><span class="logo-strip-ico"></span>CrestVision</span>
+<span class="logo-strip-item"><span class="logo-strip-ico"></span>SolarisNeo</span>
+<span class="logo-strip-item"><span class="logo-strip-ico"></span>TerraGrow</span>
+<span class="logo-strip-item"><span class="logo-strip-ico"></span>Verdics</span>
 </div>
 </div>
 
@@ -641,6 +668,25 @@ ${useCases.map(item => {
 <div class="uc-ico">${ucIcon}</div>
 <h4>${esc(item.title)}</h4>
 <p>${esc(item.desc)}</p>
+</div>`;
+}).join("")}
+</div>
+</div>
+</section>` : ""}
+
+<!-- FUNCTIONS: 主な機能 -->
+${funcs.length > 0 ? `<section class="sec" id="functions">
+<div class="inner">
+<div class="sec-hd"><p class="sec-bg-txt">Functions</p><p class="sec-eng">Main Features</p><h2 class="sec-tit fi">${esc(d.service_name)}の主な機能</h2></div>
+<div class="func-grid">
+${funcs.map((item, i) => {
+  const funcImg = images[i + 2] ? images[i + 2].url.replace(/w=\d+/, "w=600").replace(/h=\d+/, "h=400") : unsplashUrl(PHOTO_LIBRARY["tech"][i % 5], 600, 400);
+  return `<div class="func-card fi">
+<img class="func-card-img" src="${esc(funcImg)}" alt="${esc(item.title)}" loading="lazy">
+<div class="func-body">
+<h4>${esc(item.title)}</h4>
+<p>${esc(item.desc)}</p>
+</div>
 </div>`;
 }).join("")}
 </div>

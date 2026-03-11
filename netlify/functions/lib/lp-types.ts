@@ -45,10 +45,14 @@ export interface LpContent {
   stats: { number: string; label: string }[];
   // Hero dashboard metrics (業種に合わせた指標)
   dashboard_metrics: { label: string; pct: number }[];
+  // Trust badges (信頼性バッジ)
+  trust_badges: string[];
   // Columns (お役立ち記事カード)
   columns: { title: string; desc: string }[];
   // Cases (real data from transcript only)
   cases: { category: string; detail: string; result: string }[];
+  // Functions (主な機能)
+  functions: { title: string; desc: string }[];
   // Comparison
   comparison: { feature: string; us: string; other: string }[];
   // Flow
