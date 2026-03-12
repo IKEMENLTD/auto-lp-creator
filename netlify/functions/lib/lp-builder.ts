@@ -283,7 +283,7 @@ ${theme === "corporate" ? CORPORATE_THEME : ""}
 .fv-award-row{display:flex;align-items:flex-start;gap:16px;flex-wrap:wrap}
 .fv-badge{position:relative;width:240px;text-align:center}
 .fv-badge-img{width:100%;height:auto;display:block}
-.fv-badge-overlay{position:absolute;top:0;left:0;right:0;height:52%;background:#fff;display:flex;align-items:center;justify-content:center;padding:4px 8px}
+.fv-badge-overlay{position:absolute;top:0;left:0;right:0;height:52%;display:flex;align-items:center;justify-content:center;padding:4px 8px}
 .fv-badge-cat{font-size:11px;color:#555;line-height:1.4;font-weight:600}
 .fv-award-notes{font-size:10px;color:#8c8c8c;line-height:1.4;margin-top:4px}
 .fv-btns{display:flex;gap:15px;flex-wrap:wrap}
