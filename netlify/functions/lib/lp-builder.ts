@@ -196,6 +196,7 @@ export function buildLpHtml(c: LpContent, d: FlatData, images: LpImage[] = [], t
   const hasImg = images.length > 0;
   const pName = sanitizePersonName(c.person_name, d.key_persons) || d.company_name;
   const pTitle = c.person_title || d.industry;
+  const brandName = d.service_name || d.company_name;
 
   const ico = [
     `<svg width="40" height="40" viewBox="0 0 40 40" fill="none"><rect width="40" height="40" rx="8" fill="var(--c)" opacity=".12"/><path d="M14 20l4 4 8-10" stroke="var(--c)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
@@ -254,7 +255,7 @@ ${theme === "corporate" ? CORPORATE_THEME : ""}
 .hd{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(255,255,255,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--bd);height:64px;display:flex;align-items:center;padding:0 32px}
 .hd-wrap{display:flex;align-items:center;justify-content:space-between;width:100%}
 .hd-logo{font-weight:800;font-size:18px;color:var(--c);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:50%}
-.hd-nav{display:flex;gap:24px;align-items:center;flex-shrink:0}
+.hd-nav{display:flex;gap:16px;align-items:center;flex-shrink:0}
 .hd-nav a{font-size:13px;color:var(--t2);font-weight:500;transition:color .2s;white-space:nowrap}
 .hd-nav a:hover{color:var(--c)}
 .hd-nav a.btn-accent{color:#fff}
@@ -490,10 +491,14 @@ ${theme === "corporate" ? CORPORATE_THEME : ""}
 
 <!-- HEADER -->
 <header class="hd"><div class="hd-wrap">
-<p class="hd-logo">${esc(d.company_name)}</p>
+<p class="hd-logo">${esc(brandName)}</p>
 <nav class="hd-nav">
-<a href="#solution">Solution</a>
-<a href="#service">Service</a>
+<a href="#about">${esc(brandName)}とは</a>
+<a href="#features">できること</a>
+${reasons.length > 0 ? '<a href="#reasons">選ばれる理由</a>' : ''}
+${useCases.length > 0 ? '<a href="#usecases">活用シーン</a>' : ''}
+${cas.length > 0 ? '<a href="#cases">導入事例</a>' : ''}
+${funcs.length > 0 ? '<a href="#functions">主な機能</a>' : ''}
 <a href="#contact" class="btn btn-md btn-accent">${esc(c.cta_text)}</a>
 </nav>
 </div></header>
@@ -509,7 +514,7 @@ ${hasImg && images[0] ? `<div class="fv-bg" style="background-image:url('${esc(i
 ${s.length >= 2 ? `<div class="fv-awards"><div class="fv-award-row">${s.slice(0, 3).map(st => `<div class="fv-award-item"><div class="fv-award-icon"><svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></div><div class="fv-award-text">${esc(st.label)}<span class="fv-award-num">${esc(st.number)}</span></div></div>`).join("")}</div>${badges.length > 0 && badges[0] ? `<p class="fv-award-notes">※ ${esc(badges[0])}</p>` : ""}</div>` : ""}
 <div class="fv-btns">
 <a href="#contact" class="btn btn-lg btn-accent">${esc(c.cta_text)}</a>
-<a href="#service" class="btn btn-lg btn-outline-accent">詳しく見る</a>
+<a href="#features" class="btn btn-lg btn-outline-accent">詳しく見る</a>
 </div>
 </div>
 <div class="fv-right">
@@ -532,7 +537,7 @@ ${hasImg && images[1] ? `<img class="fv-product" src="${esc(images[1].url)}" alt
 </div>
 
 <!-- ABOUT: 〇〇とは（課題 + 解決アプローチ） -->
-<section class="sec" id="solution">
+<section class="sec" id="about">
 <div class="inner">
 <div class="sec-hd"><p class="sec-bg-txt">About</p><p class="sec-eng">About</p><h2 class="sec-tit fi">${esc(d.service_name)}とは</h2></div>
 ${prob.length > 0 ? `<div class="about-pain fi">
@@ -557,7 +562,7 @@ ${theme === "corporate" ? `<!-- MID-CTA: About後 -->
 </div>` : ""}
 
 <!-- FEATURES: できること（サービス + 強み統合） -->
-<section class="sec dot-bg" id="service" style="background:var(--bg2)">
+<section class="sec dot-bg" id="features" style="background:var(--bg2)">
 <div class="inner">
 <div class="sec-hd"><p class="sec-bg-txt">Features</p><p class="sec-eng">Features</p><h2 class="sec-tit fi">${esc(d.service_name)}でできること</h2></div>
 <div class="feat-grid">
@@ -582,7 +587,7 @@ ${theme === "corporate" ? `<!-- MID-CTA: Features後 -->
 </div>` : ""}
 
 <!-- REASONS: 選ばれる理由 -->
-${reasons.length > 0 ? `<section class="sec">
+${reasons.length > 0 ? `<section class="sec" id="reasons">
 <div class="inner">
 <div class="sec-hd"><p class="sec-bg-txt">Reason</p><p class="sec-eng">Why Choose Us</p><h2 class="sec-tit fi">${esc(d.company_name)}が選ばれる理由</h2></div>
 <div class="reason-list">
@@ -602,7 +607,7 @@ ${reasons.map((item, i) => {
 </section>` : ""}
 
 <!-- USE CASES: 活用シーン -->
-${useCases.length > 0 ? `<section class="sec" style="background:var(--bg2)">
+${useCases.length > 0 ? `<section class="sec" id="usecases" style="background:var(--bg2)">
 <div class="inner">
 <div class="sec-hd"><p class="sec-bg-txt">UseCase</p><p class="sec-eng">Use Cases</p><h2 class="sec-tit fi">活用シーン</h2></div>
 <div class="uc-grid">
@@ -702,8 +707,8 @@ ${cmp.map(row => `<div class="cmp-row">${cmpCheck} <span><strong>${esc(row.featu
 </div>
 </section>` : ""}
 
-<!-- CASES: 実績事例 (TESTIMONIAL_CARD repurposed) -->
-${cas.length > 0 ? `<section class="sec" style="background:var(--bg2)">
+<!-- CASES: 導入事例 -->
+${cas.length > 0 ? `<section class="sec" id="cases" style="background:var(--bg2)">
 <div class="inner">
 <div class="sec-hd"><p class="sec-bg-txt">Results</p><p class="sec-eng">Case Results</p><h2 class="sec-tit fi">実績事例</h2></div>
 <div class="tm-grid">
