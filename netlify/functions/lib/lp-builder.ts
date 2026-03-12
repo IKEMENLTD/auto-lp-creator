@@ -330,7 +330,8 @@ ${theme === "corporate" ? CORPORATE_THEME : ""}
 .logo-strip{padding:70px 0 50px;background:#fff}
 .logo-strip-label{text-align:center;font-size:24px;color:var(--c);font-weight:700;margin-bottom:50px}
 .logo-strip-list{display:flex;justify-content:center;align-items:center;flex-wrap:wrap;column-gap:80px;row-gap:40px;max-width:960px;margin:0 auto;padding:0 24px}
-.logo-strip-item{display:inline-flex;align-items:center;font-family:'Noto Sans JP','Inter',sans-serif;font-size:18px;font-weight:700;color:#333;letter-spacing:.04em;white-space:nowrap;opacity:.5;filter:grayscale(100%);padding:8px 0}
+.logo-strip-item{display:inline-flex;align-items:center;height:40px;opacity:.5;padding:8px 0}
+.logo-strip-item img{height:100%;width:auto;object-fit:contain}
 @media(max-width:750px){.logo-strip{padding:30px 0}.logo-strip-label{font-size:18px;margin-bottom:30px}.logo-strip-list{column-gap:40px;row-gap:24px}.logo-strip-item{font-size:15px}}
 @media(max-width:480px){.logo-strip-list{column-gap:28px;row-gap:20px}.logo-strip-item{font-size:13px}}
 /* ===== BANNER ===== */
@@ -594,11 +595,11 @@ ${badges.length > 0 ? `<div class="fv-awards"><div class="fv-award-row">${badges
 <div class="logo-strip">
 <p class="logo-strip-label">多種多様な企業様に<br class="only-sp">ご利用いただいております</p>
 <div class="logo-strip-list">
-<span class="logo-strip-item">NovaCross</span>
-<span class="logo-strip-item">ZenithFlow</span>
-<span class="logo-strip-item">CrestVision</span>
-<span class="logo-strip-item">SolarisNeo</span>
-<span class="logo-strip-item">TerraGrow</span>
+<span class="logo-strip-item"><img src="/images/logos/logo-01.png" alt="NovaCross"></span>
+<span class="logo-strip-item"><img src="/images/logos/logo-02.png" alt="ZenithFlow"></span>
+<span class="logo-strip-item"><img src="/images/logos/logo-03.png" alt="CrestVision"></span>
+<span class="logo-strip-item"><img src="/images/logos/logo-04.png" alt="SolarisNeo"></span>
+<span class="logo-strip-item"><img src="/images/logos/logo-05.png" alt="TerraGrow"></span>
 </div>
 </div>
 
