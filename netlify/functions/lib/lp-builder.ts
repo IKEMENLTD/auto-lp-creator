@@ -335,16 +335,29 @@ ${theme === "corporate" ? CORPORATE_THEME : ""}
 @media(max-width:480px){.logo-strip-list{column-gap:28px;row-gap:20px}.logo-strip-item{font-size:13px}}
 /* ===== BANNER ===== */
 .banner-sec{padding:0 0 50px;background:#fff}
-.banner-list{display:flex;justify-content:center;gap:20px;max-width:960px;margin:0 auto;padding:0 24px}
-.banner-item{width:calc((100% - 20px) / 2);border-radius:8px;overflow:hidden;box-shadow:6px 6px 6px 0 rgba(0,0,0,.45);transition:opacity .3s;cursor:pointer;position:relative}
+.banner-list{display:flex;justify-content:center;gap:20px;max-width:1260px;margin:0 auto;padding:0 24px;list-style:none}
+.banner-item{width:calc((100% - 20px) / 2);border-radius:8px;overflow:hidden;box-shadow:6px 6px 6px 0 rgba(0,0,0,.45);transition:all .3s;cursor:pointer;position:relative}
 .banner-item:hover{opacity:.8}
-.banner-item-inner{display:flex;align-items:center;padding:28px 32px;gap:24px;min-height:140px;background:linear-gradient(135deg,var(--c) 0%,var(--dark) 100%);color:#fff}
-.banner-item-text{flex:1}
-.banner-item-text h4{font-size:18px;font-weight:800;line-height:1.5;margin-bottom:8px}
-.banner-item-text p{font-size:12px;opacity:.8;line-height:1.6;margin:0}
-.banner-item-badge{flex-shrink:0;background:rgba(255,255,255,.15);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.2);border-radius:8px;padding:12px 16px;text-align:center;font-size:11px;font-weight:700;line-height:1.6}
-@media(max-width:750px){.banner-list{flex-direction:column;gap:16px}.banner-item{width:100%}.banner-item-inner{padding:20px 24px;min-height:auto}.banner-item-text h4{font-size:16px}}
-@media(max-width:480px){.banner-item-inner{flex-direction:column;gap:12px;padding:20px}.banner-item-text h4{font-size:15px}}
+.banner-item-inner{display:flex;align-items:stretch;min-height:160px;color:#fff;position:relative;overflow:hidden}
+.banner-item-inner::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(120deg,transparent,transparent 40px,rgba(255,255,255,.03) 40px,rgba(255,255,255,.03) 80px),linear-gradient(135deg,rgba(255,255,255,.05) 25%,transparent 25%,transparent 50%,rgba(255,255,255,.05) 50%,rgba(255,255,255,.05) 75%,transparent 75%);background-size:100% 100%,20px 20px;z-index:0}
+.banner-item:nth-child(1) .banner-item-inner{background:linear-gradient(135deg,var(--c) 0%,#1a3a4a 100%)}
+.banner-item:nth-child(2) .banner-item-inner{background:linear-gradient(135deg,#1a2744 0%,#2a4a7a 100%)}
+.banner-item-text{flex:1;padding:24px 28px;position:relative;z-index:1;display:flex;flex-direction:column;justify-content:center}
+.banner-item-text h4{font-size:20px;font-weight:900;line-height:1.5;margin-bottom:12px;text-shadow:0 1px 3px rgba(0,0,0,.3)}
+.banner-item-cta{display:inline-block;background:var(--c);color:#fff;font-size:11px;font-weight:700;padding:6px 16px;border-radius:20px;width:fit-content;text-shadow:none}
+.banner-item:nth-child(2) .banner-item-cta{background:#3b82f6}
+.banner-item-mockup{width:180px;flex-shrink:0;position:relative;z-index:1;display:flex;align-items:center;justify-content:center;padding:16px 20px 16px 0}
+.banner-item-doc{width:120px;background:#fff;border-radius:4px;box-shadow:4px 4px 12px rgba(0,0,0,.3);padding:12px 10px;transform:rotate(-3deg)}
+.banner-item-doc-title{font-size:8px;color:#333;font-weight:700;line-height:1.4;margin-bottom:8px;text-align:center}
+.banner-item-doc-line{height:3px;background:#e5e7eb;border-radius:2px;margin-bottom:4px}
+.banner-item-doc-line:nth-child(3){width:80%}
+.banner-item-doc-line:nth-child(4){width:60%}
+.banner-item-doc-line:nth-child(5){width:90%}
+.banner-item-doc-chart{display:flex;align-items:flex-end;gap:3px;height:24px;margin-top:8px;justify-content:center}
+.banner-item-doc-bar{width:8px;background:var(--c);border-radius:2px 2px 0 0;opacity:.7}
+.banner-item:nth-child(2) .banner-item-doc-bar{background:#3b82f6}
+@media(max-width:750px){.banner-list{flex-direction:column;gap:16px}.banner-item{width:100%}.banner-item-text h4{font-size:18px}.banner-item-mockup{width:140px;padding:12px 16px 12px 0}.banner-item-doc{width:100px}}
+@media(max-width:480px){.banner-item-text{padding:20px}.banner-item-text h4{font-size:16px}.banner-item-mockup{width:120px;padding:10px 12px 10px 0}.banner-item-doc{width:85px;padding:8px}}
 
 /* ===== ABOUT (〇〇とは) ===== */
 .about-pain{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-bottom:40px}
@@ -596,9 +609,24 @@ ${columns.slice(0, 2).map((col, i) => `<li class="banner-item">
 <div class="banner-item-inner">
 <div class="banner-item-text">
 <h4>${esc(col.title)}</h4>
-<p>${esc(col.desc)}</p>
+<span class="banner-item-cta">無料で資料ダウンロード</span>
 </div>
-<div class="banner-item-badge">無料で資料<br>ダウンロード</div>
+<div class="banner-item-mockup">
+<div class="banner-item-doc">
+<p class="banner-item-doc-title">${esc(d.service_name)}<br>〜ダウンロード資料〜</p>
+<div class="banner-item-doc-line"></div>
+<div class="banner-item-doc-line"></div>
+<div class="banner-item-doc-line"></div>
+<div class="banner-item-doc-line"></div>
+<div class="banner-item-doc-chart">
+<div class="banner-item-doc-bar" style="height:10px"></div>
+<div class="banner-item-doc-bar" style="height:18px"></div>
+<div class="banner-item-doc-bar" style="height:14px"></div>
+<div class="banner-item-doc-bar" style="height:22px"></div>
+<div class="banner-item-doc-bar" style="height:16px"></div>
+</div>
+</div>
+</div>
 </div>
 </li>`).join("")}
 </ul>
