@@ -283,9 +283,9 @@ ${theme === "corporate" ? CORPORATE_THEME : ""}
 .fv-award-row{display:flex;align-items:flex-start;gap:16px;flex-wrap:wrap}
 .fv-badge{width:200px;text-align:center}
 .fv-badge-cat{font-size:11px;color:#555;line-height:1.3;font-weight:600;margin-bottom:2px}
-.fv-badge-img-wrap{width:85%;overflow:hidden;height:38px;margin:0 auto;position:relative}
-.fv-badge-img{width:100%;height:auto;display:block;margin-top:-15%}
-.fv-badge-note{position:absolute;top:2px;right:-14px;font-size:9px;color:#888;line-height:1}
+.fv-badge-img-wrap{width:100%;position:relative}
+.fv-badge-img{width:80%;height:auto;display:block;margin:0 auto}
+.fv-badge-note{font-size:9px;color:#888;line-height:1;margin-top:1px}
 .fv-award-notes{font-size:10px;color:#8c8c8c;line-height:1.4;margin-top:4px}
 .fv-btns{display:flex;gap:15px;flex-wrap:wrap}
 .fv-btns .btn{min-width:220px;border-radius:34px;font-size:16px;font-weight:700;padding:15px 28px;display:inline-flex;align-items:center;justify-content:center;gap:6px}
@@ -468,7 +468,6 @@ ${theme === "corporate" ? CORPORATE_THEME : ""}
 .fv-service-name{font-size:clamp(22px,5.5vw,32px)}
 .fv-award-row{justify-content:center}
 .fv-badge{width:170px}
-.fv-badge-img-wrap{height:32px}
 .fv-btns .btn{min-width:180px;font-size:14px}
 /* problems */
 .prob p{font-size:13px}.prob span{font-size:12px}.prob{padding:14px 16px;gap:10px}
@@ -505,7 +504,6 @@ ${theme === "corporate" ? CORPORATE_THEME : ""}
 .fv-lead{font-size:18px!important}.fv-service-name{font-size:22px}
 .fv-btns{flex-direction:column}.fv-btns .btn{width:100%;min-width:auto}
 .fv-badge{width:140px}
-.fv-badge-img-wrap{height:27px}
 .fv-badge-cat{font-size:10px}
 /* dashboard */
 .hero-dash{max-width:100%;padding:16px}
