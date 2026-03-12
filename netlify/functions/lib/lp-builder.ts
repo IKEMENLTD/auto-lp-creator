@@ -595,11 +595,10 @@ ${badges.length > 0 ? `<div class="fv-awards"><div class="fv-award-row">${badges
 <div class="logo-strip">
 <p class="logo-strip-label">多種多様な企業様に<br class="only-sp">ご利用いただいております</p>
 <div class="logo-strip-list">
-<span class="logo-strip-item"><img src="/images/logos/logo-01.png" alt="NovaCross"></span>
-<span class="logo-strip-item"><img src="/images/logos/logo-02.png" alt="ZenithFlow"></span>
-<span class="logo-strip-item"><img src="/images/logos/logo-03.png" alt="CrestVision"></span>
-<span class="logo-strip-item"><img src="/images/logos/logo-04.png" alt="SolarisNeo"></span>
-<span class="logo-strip-item"><img src="/images/logos/logo-05.png" alt="TerraGrow"></span>
+<span class="logo-strip-item"><img src="/images/logos/logo-01.png" alt="未来医療福祉コンソーシアム"></span>
+<span class="logo-strip-item"><img src="/images/logos/logo-02.png" alt="VELOX.AI"></span>
+<span class="logo-strip-item"><img src="/images/logos/logo-03.png" alt="INTEGRA LINK"></span>
+<span class="logo-strip-item"><img src="/images/logos/logo-04.png" alt="ARCHETYPE SERVICES"></span>
 </div>
 </div>
 
