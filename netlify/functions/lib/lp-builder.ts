@@ -329,27 +329,27 @@ ${theme === "corporate" ? CORPORATE_THEME : ""}
 /* ===== LOGO STRIP ===== */
 .logo-strip{padding:70px 0 50px;background:#fff}
 .logo-strip-label{text-align:center;font-size:24px;color:var(--c);font-weight:700;margin-bottom:50px}
-.logo-strip-list{display:flex;justify-content:center;align-items:center;flex-wrap:wrap;column-gap:80px;row-gap:40px;max-width:960px;margin:0 auto;padding:0 24px}
-.logo-strip-item{display:inline-flex;align-items:center;height:40px;opacity:.5;padding:8px 0}
+.logo-strip-list{display:flex;justify-content:center;align-items:center;flex-wrap:wrap;column-gap:60px;row-gap:40px;max-width:1100px;margin:0 auto;padding:0 40px}
+.logo-strip-item{display:inline-flex;align-items:center;height:80px;opacity:.5;padding:8px 0}
 .logo-strip-item img{height:100%;width:auto;object-fit:contain}
-@media(max-width:750px){.logo-strip{padding:30px 0}.logo-strip-label{font-size:18px;margin-bottom:30px}.logo-strip-list{column-gap:40px;row-gap:24px}.logo-strip-item{font-size:15px}}
+@media(max-width:750px){.logo-strip{padding:30px 0}.logo-strip-label{font-size:18px;margin-bottom:30px}.logo-strip-list{column-gap:32px;row-gap:24px}.logo-strip-item{height:50px}}
 @media(max-width:480px){.logo-strip-list{column-gap:28px;row-gap:20px}.logo-strip-item{font-size:13px}}
 /* ===== BANNER ===== */
 .banner-sec{padding:0 0 50px;background:#fff}
-.banner-list{display:flex;justify-content:center;gap:20px;max-width:1260px;margin:0 auto;padding:0 24px;list-style:none}
+.banner-list{display:flex;justify-content:center;gap:16px;max-width:800px;margin:0 auto;padding:0 24px;list-style:none}
 .banner-item{width:calc((100% - 20px) / 2);border-radius:8px;overflow:hidden;box-shadow:6px 6px 6px 0 rgba(0,0,0,.45);transition:all .3s;cursor:pointer;position:relative}
 .banner-item:hover{opacity:.8}
-.banner-item-inner{display:flex;align-items:stretch;min-height:160px;color:#fff;position:relative;overflow:hidden}
+.banner-item-inner{display:flex;align-items:stretch;min-height:120px;color:#fff;position:relative;overflow:hidden}
 .banner-item-inner::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(120deg,transparent,transparent 40px,rgba(255,255,255,.03) 40px,rgba(255,255,255,.03) 80px),linear-gradient(135deg,rgba(255,255,255,.05) 25%,transparent 25%,transparent 50%,rgba(255,255,255,.05) 50%,rgba(255,255,255,.05) 75%,transparent 75%);background-size:100% 100%,20px 20px;z-index:0}
 .banner-item:nth-child(1) .banner-item-inner{background:linear-gradient(135deg,var(--c) 0%,#1a3a4a 100%)}
 .banner-item:nth-child(2) .banner-item-inner{background:linear-gradient(135deg,#1a2744 0%,#2a4a7a 100%)}
-.banner-item-text{flex:1;padding:24px 28px;position:relative;z-index:1;display:flex;flex-direction:column;justify-content:center}
-.banner-item-text h4{font-size:20px;font-weight:900;line-height:1.5;margin-bottom:12px;text-shadow:0 1px 3px rgba(0,0,0,.3)}
+.banner-item-text{flex:1;padding:18px 20px;position:relative;z-index:1;display:flex;flex-direction:column;justify-content:center}
+.banner-item-text h4{font-size:15px;font-weight:900;line-height:1.5;margin-bottom:8px;text-shadow:0 1px 3px rgba(0,0,0,.3)}
 .banner-item-cta{display:inline-block;background:var(--c);color:#fff;font-size:11px;font-weight:700;padding:6px 16px;border-radius:20px;width:fit-content;text-shadow:none}
 .banner-item:nth-child(2) .banner-item-cta{background:#3b82f6}
-.banner-item-mockup{width:180px;flex-shrink:0;position:relative;z-index:1;display:flex;align-items:center;justify-content:center;padding:16px 20px 16px 0}
-.banner-item-doc{width:120px;background:#fff;border-radius:4px;box-shadow:4px 4px 12px rgba(0,0,0,.3);padding:12px 10px;transform:rotate(-3deg)}
-.banner-item-doc-title{font-size:8px;color:#333;font-weight:700;line-height:1.4;margin-bottom:8px;text-align:center}
+.banner-item-mockup{width:130px;flex-shrink:0;position:relative;z-index:1;display:flex;align-items:center;justify-content:center;padding:12px 14px 12px 0}
+.banner-item-doc{width:90px;background:#fff;border-radius:3px;box-shadow:4px 4px 12px rgba(0,0,0,.3);padding:8px 7px;transform:rotate(-3deg)}
+.banner-item-doc-title{font-size:7px;color:#333;font-weight:700;line-height:1.4;margin-bottom:6px;text-align:center}
 .banner-item-doc-line{height:3px;background:#e5e7eb;border-radius:2px;margin-bottom:4px}
 .banner-item-doc-line:nth-child(3){width:80%}
 .banner-item-doc-line:nth-child(4){width:60%}
