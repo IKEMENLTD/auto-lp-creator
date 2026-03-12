@@ -229,6 +229,7 @@ export function buildLpHtml(c: LpContent, d: FlatData, images: LpImage[] = [], t
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+.only-sp{display:none}
 :root{--c:${colors.primary};--cg:${colors.gradient};--ca:${colors.accent};--c-rgb:${cRgb};--dark:#0f172a;--t1:#1e293b;--t2:#475569;--t3:#94a3b8;--bg:#fff;--bg2:#f1f5f9;--bd:#e2e8f0;--r:10px}
 html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
 body{font-family:'Noto Sans JP','Inter',sans-serif;color:var(--t1);background:var(--bg);line-height:1.8;-webkit-font-smoothing:antialiased}
@@ -326,20 +327,12 @@ ${theme === "corporate" ? CORPORATE_THEME : ""}
 .hero-dash-footer-text{font-size:10px;color:rgba(255,255,255,.45)}
 
 /* ===== LOGO STRIP ===== */
-.logo-strip{padding:48px 0;background:var(--bg2);border-bottom:1px solid var(--bd)}
-.logo-strip-label{text-align:center;font-size:13px;color:var(--t3);font-weight:600;letter-spacing:.1em;margin-bottom:24px}
-.logo-strip-list{display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:24px 40px;max-width:960px;margin:0 auto;padding:0 24px}
-.logo-strip-item{display:inline-flex;align-items:center;gap:8px;font-family:'Inter','Noto Sans JP',sans-serif;font-size:16px;font-weight:800;color:var(--t2);letter-spacing:.04em;white-space:nowrap;opacity:.45;transition:opacity .3s;padding:8px 0}
-.logo-strip-item:hover{opacity:.75}
-.logo-strip-item:nth-child(odd){font-style:italic}
-.logo-strip-item:nth-child(3n+1){font-family:'Inter',sans-serif;letter-spacing:.08em;text-transform:uppercase;font-size:14px}
-.logo-strip-item:nth-child(3n+2){font-family:'Noto Sans JP',sans-serif;font-size:17px;letter-spacing:.02em;font-style:normal}
-.logo-strip-item:nth-child(3n){font-family:'Inter',sans-serif;font-weight:900;font-size:15px;letter-spacing:.12em}
-.logo-strip-ico{width:20px;height:20px;border-radius:4px;background:var(--c);opacity:.35;display:inline-block;flex-shrink:0}
-.logo-strip-item:nth-child(even) .logo-strip-ico{border-radius:50%}
-.logo-strip-item:nth-child(3n) .logo-strip-ico{border-radius:2px;transform:rotate(45deg);width:14px;height:14px}
-@media(max-width:750px){.logo-strip{padding:32px 0}.logo-strip-list{gap:16px 28px}.logo-strip-item{font-size:14px}.logo-strip-item:nth-child(3n+1){font-size:12px}.logo-strip-item:nth-child(3n+2){font-size:15px}.logo-strip-item:nth-child(3n){font-size:13px}}
-@media(max-width:480px){.logo-strip-list{gap:12px 20px}.logo-strip-ico{width:16px;height:16px}.logo-strip-item:nth-child(3n) .logo-strip-ico{width:12px;height:12px}}
+.logo-strip{padding:70px 0 50px;background:#fff}
+.logo-strip-label{text-align:center;font-size:24px;color:var(--c);font-weight:700;margin-bottom:50px}
+.logo-strip-list{display:flex;justify-content:center;align-items:center;flex-wrap:wrap;column-gap:80px;row-gap:40px;max-width:960px;margin:0 auto;padding:0 24px}
+.logo-strip-item{display:inline-flex;align-items:center;font-family:'Noto Sans JP','Inter',sans-serif;font-size:18px;font-weight:700;color:#333;letter-spacing:.04em;white-space:nowrap;opacity:.5;filter:grayscale(100%);padding:8px 0}
+@media(max-width:750px){.logo-strip{padding:30px 0}.logo-strip-label{font-size:18px;margin-bottom:30px}.logo-strip-list{column-gap:40px;row-gap:24px}.logo-strip-item{font-size:15px}}
+@media(max-width:480px){.logo-strip-list{column-gap:28px;row-gap:20px}.logo-strip-item{font-size:13px}}
 
 /* ===== ABOUT (〇〇とは) ===== */
 .about-pain{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-bottom:40px}
@@ -499,6 +492,7 @@ ${theme === "corporate" ? CORPORATE_THEME : ""}
 /* RESPONSIVE 480px               */
 /* ============================== */
 @media(max-width:480px){
+.only-sp{display:inline}
 .inner{padding:0 16px}.hd-logo{font-size:14px}
 /* hero */
 .fv-lead{font-size:18px!important}.fv-service-name{font-size:22px}
@@ -576,14 +570,13 @@ ${badges.length > 0 ? `<div class="fv-awards"><div class="fv-award-row">${badges
 
 <!-- LOGO STRIP: 導入企業 -->
 <div class="logo-strip">
-<p class="logo-strip-label">多くの企業様にご導入いただいています</p>
+<p class="logo-strip-label">多種多様な企業様に<br class="only-sp">ご利用いただいております</p>
 <div class="logo-strip-list">
-<span class="logo-strip-item"><span class="logo-strip-ico"></span>NovaCross</span>
-<span class="logo-strip-item"><span class="logo-strip-ico"></span>ZenithFlow</span>
-<span class="logo-strip-item"><span class="logo-strip-ico"></span>CrestVision</span>
-<span class="logo-strip-item"><span class="logo-strip-ico"></span>SolarisNeo</span>
-<span class="logo-strip-item"><span class="logo-strip-ico"></span>TerraGrow</span>
-<span class="logo-strip-item"><span class="logo-strip-ico"></span>Verdics</span>
+<span class="logo-strip-item">NovaCross</span>
+<span class="logo-strip-item">ZenithFlow</span>
+<span class="logo-strip-item">CrestVision</span>
+<span class="logo-strip-item">SolarisNeo</span>
+<span class="logo-strip-item">TerraGrow</span>
 </div>
 </div>
 
