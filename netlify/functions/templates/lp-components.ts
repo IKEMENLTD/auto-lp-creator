@@ -236,15 +236,12 @@ body { background: var(--bg); color: var(--fg); }
 .fv-overlay { background:none; }
 .fv .inner { color:var(--fg); }
 .fv-left { text-align:left; }
-.fv-badge { color:var(--c); border-color:var(--bd); }
-.fv-name { color:var(--muted); }
-.fv-headline { color:var(--fg); font-size:clamp(28px,5vw,48px); }
-.fv-sub { color:var(--muted); }
-.fv-features span { background:var(--sec-alt-bg); border:1px solid var(--bd); color:var(--fg); backdrop-filter:none; }
-.fv-features span::before { background:var(--c); }
-.fv-stats { background:rgba(255,255,255,.95); border-top:1px solid var(--bd); }
-.fv-stat-num { color:var(--c); background:none; -webkit-text-fill-color:var(--c); }
-.fv-stat-label { color:var(--muted); }
+.fv-lead { color:var(--fg); }
+.fv-service-label { color:var(--muted); }
+.fv-service-name { color:var(--c); }
+.fv-badge { border-color:var(--bd); }
+.fv-badge-cat { color:var(--muted); }
+.fv-badge-no1 { color:var(--fg); }
 /* セクション見出し: 2段構成 */
 .sec-hd { padding:0 0 40px; }
 .sec-eng { color:var(--c); font-size:14px; letter-spacing:3px; text-transform:uppercase; }

@@ -83,7 +83,7 @@ export const LP_DRAFT_PROMPT = `商談トランスクリプトから「課題解
 {
   "person_name": "実際に発言している担当者名（話者ラベルから特定）",
   "person_title": "肩書き（発言内容から推定）",
-  "hero_headline": "30字以内。ターゲットの課題を問いかけ形式で",
+  "hero_headline": "30字以内。サービスの価値を端的に言い切る宣言文（問いかけ禁止。例:『すぐに、誰でも、簡単に Webデータ収集』）",
   "hero_sub": "50字以内。この会社/人がどう解決するか",
   "hero_features": ["実績数字12字×3"],
   "badge_text": "12字以内。専門分野",
@@ -96,7 +96,7 @@ export const LP_DRAFT_PROMPT = `商談トランスクリプトから「課題解
   "use_cases": [{"title":"活用シーン15字","desc":"具体的な利用場面50字","icon_keyword":"search|chart|users|shield|zap|target"}],
   "stats": [{"number":"92%","label":"採択率"}],
   "dashboard_metrics": [{"label":"業種に合った指標名4字","pct":85},{"label":"指標名4字","pct":72},{"label":"指標名4字","pct":93}],
-  "trust_badges": ["○○部門 導入社数No.1","顧客満足度No.1"],
+  "trust_badges": ["○○部門 導入社数（カテゴリ名のみ。No.1は自動付与される）","顧客満足度（同上）"],
   "functions": [{"title":"機能名15字","desc":"その機能で何ができるか50字"}],
   "columns": [{"title":"ターゲットが検索しそうな疑問形タイトル30字","desc":"記事概要50字"}],
   "cases": [{"category":"案件カテゴリ","detail":"具体内容50字","result":"成果数字20字"}],
@@ -121,7 +121,7 @@ export const LP_EVALUATE_PROMPT = `あなたは課題解決型ページ専門の
 
 【品質ルール】
 1. person_name: 話者ラベルと一致する実名か検証。名前のみ言及された人物に差し替えるな
-2. hero_headline: ターゲットの課題を刺す問いかけ。30字以内
+2. hero_headline: サービスの価値を端的に言い切る宣言文。問いかけ禁止。30字以内
 3. problems: ターゲットが共感する具体的課題。抽象禁止。3-4個
 4. solution_text: 課題→解決の論理的つながり。120字以内
 5. strengths: 各項目に異なる数字。課題に対する具体的解決力。3個
@@ -134,7 +134,7 @@ export const LP_EVALUATE_PROMPT = `あなたは課題解決型ページ専門の
 12. dashboard_metrics: 業種に合った指標名（4字以内）とパーセンテージ（50-99）。3個。statsと重複しない
 13. functions: サービスの具体的な機能。servicesとは異なり個別の機能名と説明。3個
 14. columns: ターゲットが検索しそうな「〜とは？」「〜の方法」形式のタイトル。業種に特化した実用的な内容。2個
-15. trust_badges: 業種に合った「○○No.1」「○○認定」形式の信頼性バッジ。2個
+15. trust_badges: 業種に合ったカテゴリ名のみ（例:「○○部門 導入社数」「顧客満足度」）。No.1はUI側で自動付与するので含めない。2個
 16. faq: 料金・期間・進め方・対象範囲をカバー。4個
 17. cta_text: 8字以内
 

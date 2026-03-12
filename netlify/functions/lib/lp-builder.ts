@@ -267,16 +267,19 @@ ${theme === "corporate" ? CORPORATE_THEME : ""}
 .fv-left{flex:1;min-width:0}
 .fv-right{flex-shrink:0;display:flex;align-items:center;justify-content:center}
 .fv-lead{font-size:clamp(24px,3.5vw,34px);font-weight:800;color:#333;line-height:1.5;margin-bottom:20px}
-.fv-service-label{display:inline-block;background:#333;color:#fff;font-size:clamp(12px,1.4vw,17px);padding:8px 22px 8px 12px;clip-path:polygon(0 0,97% 0,100% 100%,0% 100%);letter-spacing:.3px;margin-bottom:16px}
+.fv-service-label{font-size:clamp(13px,1.4vw,16px);color:#555;margin-bottom:12px}
 .fv-service-name{font-size:clamp(28px,4.2vw,44px);font-weight:900;color:var(--c);line-height:1.25;margin-bottom:28px}
+/* Award badges — laurel wreath style */
 .fv-awards{display:flex;flex-direction:column;gap:10px;margin-bottom:28px}
-.fv-award-row{display:flex;align-items:stretch;gap:12px;flex-wrap:wrap}
-.fv-award-item{display:flex;align-items:center;gap:12px;padding:14px 20px;background:#fff;border:2px solid #e0e0e0;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,.06);min-width:180px;flex:1;max-width:260px}
-.fv-award-icon{width:44px;height:44px;background:linear-gradient(150deg,#ffd700 0%,#f0a500 100%);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.fv-award-icon svg{width:22px;height:22px;fill:#fff;filter:drop-shadow(0 1px 1px rgba(0,0,0,.15))}
-.fv-award-text{font-size:12px;font-weight:600;color:#666;line-height:1.3}
-.fv-award-num{display:block;font-family:'Inter',sans-serif;font-size:22px;font-weight:900;color:var(--c);line-height:1.1;margin-top:2px}
-.fv-award-notes{font-size:10px;color:#8c8c8c;line-height:1.4;margin-top:4px}
+.fv-award-row{display:flex;align-items:stretch;gap:16px;flex-wrap:wrap}
+.fv-badge{position:relative;display:flex;flex-direction:column;align-items:center;text-align:center;padding:18px 22px 14px;background:#fff;border:1px solid #e0e0e0;border-radius:6px;min-width:200px;max-width:260px;flex:1}
+.fv-badge-laurel{position:absolute;top:0;left:0;right:0;bottom:0;pointer-events:none;overflow:hidden}
+.fv-badge-laurel svg{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:130px;height:130px;opacity:.10}
+.fv-badge-cat{font-size:11px;color:#666;line-height:1.3;margin-bottom:6px;position:relative;z-index:1;font-weight:500}
+.fv-badge-no1{font-family:'Inter',sans-serif;font-size:42px;font-weight:900;color:#333;line-height:1;position:relative;z-index:1;letter-spacing:-.02em}
+.fv-badge-no1 span{font-size:20px;vertical-align:super;margin-left:1px;color:#8c8c8c;font-weight:600}
+.fv-badge-src{font-size:9px;color:#aaa;margin-top:6px;position:relative;z-index:1}
+.fv-award-notes{font-size:10px;color:#8c8c8c;line-height:1.4;margin-top:6px}
 .fv-btns{display:flex;gap:15px;flex-wrap:wrap}
 .fv-btns .btn{min-width:220px;border-radius:34px;font-size:16px;font-weight:700;padding:15px 28px;display:inline-flex;align-items:center;justify-content:center;gap:6px}
 .fv-btns .btn-accent{background:var(--c);color:#fff;border:2px solid var(--c)}
@@ -427,7 +430,9 @@ ${theme === "corporate" ? CORPORATE_THEME : ""}
 .fv-lead{font-size:clamp(20px,4.5vw,26px)}
 .fv-service-name{font-size:clamp(22px,5.5vw,32px)}
 .fv-award-row{justify-content:center}
-.fv-award-item{min-width:140px}
+.fv-badge{min-width:140px;max-width:200px;padding:14px 16px 10px}
+.fv-badge-no1{font-size:32px}
+.fv-badge-laurel svg{width:100px;height:100px}
 .fv-btns .btn{min-width:180px;font-size:14px}
 /* problems */
 .prob p{font-size:13px}.prob span{font-size:12px}.prob{padding:14px 16px;gap:10px}
@@ -460,9 +465,10 @@ ${theme === "corporate" ? CORPORATE_THEME : ""}
 /* hero */
 .fv-lead{font-size:18px}.fv-service-name{font-size:22px}
 .fv-btns{flex-direction:column}.fv-btns .btn{width:100%;min-width:auto}
-.fv-award-item{min-width:auto;flex:1;padding:10px 14px}
-.fv-award-icon{width:36px;height:36px}.fv-award-icon svg{width:18px;height:18px}
-.fv-award-num{font-size:18px}
+.fv-badge{min-width:auto;flex:1;padding:12px 10px 8px}
+.fv-badge-no1{font-size:28px}
+.fv-badge-cat{font-size:10px}
+.fv-badge-laurel svg{width:80px;height:80px}
 /* section headers */
 .sec-bg-txt{font-size:36px;margin-bottom:-12px}
 /* buttons */
@@ -509,9 +515,9 @@ ${hasImg && images[0] ? `<div class="fv-bg" style="background-image:url('${esc(i
 <div class="inner">
 <div class="fv-left">
 <p class="fv-lead">${esc(c.hero_headline)}</p>
-<div class="fv-service-label">${esc(d.industry)}</div>
+<p class="fv-service-label">${esc(d.industry)}</p>
 <h1 class="fv-service-name">${esc(d.service_name)}</h1>
-${s.length >= 2 ? `<div class="fv-awards"><div class="fv-award-row">${s.slice(0, 3).map(st => `<div class="fv-award-item"><div class="fv-award-icon"><svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></div><div class="fv-award-text">${esc(st.label)}<span class="fv-award-num">${esc(st.number)}</span></div></div>`).join("")}</div>${badges.length > 0 && badges[0] ? `<p class="fv-award-notes">※ ${esc(badges[0])}</p>` : ""}</div>` : ""}
+${badges.length > 0 ? `<div class="fv-awards"><div class="fv-award-row">${badges.slice(0, 2).map(b => `<div class="fv-badge"><div class="fv-badge-laurel"><svg viewBox="0 0 100 100"><path d="M50 8c-2 4-6 7-10 9-4 2-9 2-13 1 1 5 0 9-2 13s-6 7-10 8c3 3 5 7 5 12s-1 9-3 12c4 1 8 4 11 8 2 3 4 7 4 11 4-2 8-3 13-2 4 1 8 3 11 6 1-4 4-8 7-11 3-3 7-5 11-5-1-4-1-9 1-13s5-7 9-9c-3-3-6-7-7-11-1-4-1-9 0-13-4 1-9 0-13-2s-7-6-9-10z" fill="none" stroke="%23c9a84c" stroke-width="1.2"/><circle cx="50" cy="50" r="30" fill="none" stroke="%23c9a84c" stroke-width=".6" opacity=".3"/></svg></div><p class="fv-badge-cat">${esc(b)}</p><p class="fv-badge-no1">No.1</p></div>`).join("")}</div>${badges.length > 1 && badges[1] ? `<p class="fv-award-notes">※ 自社調べ</p>` : ""}</div>` : ""}
 <div class="fv-btns">
 <a href="#contact" class="btn btn-lg btn-accent">${esc(c.cta_text)}</a>
 <a href="#features" class="btn btn-lg btn-outline-accent">詳しく見る</a>
