@@ -23,7 +23,7 @@ import { useAudioCapture, setOnTranscript } from '../hooks/useAudioCapture';
 import { api } from '../lib/api';
 import type { DeliverableType, ShareMethod } from '../types/dashboard';
 
-type RecordingState = 'idle' | 'recording' | 'paused' | 'ended' | 'pasting' | 'selecting';
+type RecordingState = 'idle' | 'recording' | 'paused' | 'ended' | 'pasting' | 'analyzing' | 'selecting';
 
 interface EditModalState {
   readonly isOpen: boolean;
@@ -201,6 +201,7 @@ export const Dashboard: React.FC = () => {
     try {
       setIsPasteSubmitting(true);
       setGlobalError(null);
+      setRecordingState('analyzing');
 
       // セッション作成
       const result = await api.startSession();
@@ -211,6 +212,7 @@ export const Dashboard: React.FC = () => {
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'セッションの開始に失敗しました';
       setGlobalError(msg);
+      setRecordingState('pasting');
     } finally {
       setIsPasteSubmitting(false);
     }
@@ -468,6 +470,19 @@ export const Dashboard: React.FC = () => {
             </div>
           )}
         </main>
+      </div>
+    );
+  }
+
+  // ================================================================
+  // analyzing 状態: 分析中ローディング画面
+  // ================================================================
+  if (recordingState === 'analyzing') {
+    return (
+      <div className="h-screen flex flex-col items-center justify-center bg-gray-950 text-white gap-4">
+        <div className="w-10 h-10 border-4 border-gray-700 border-t-blue-500 rounded-full animate-spin" />
+        <p className="text-lg font-medium text-gray-200">商談内容を分析しています...</p>
+        <p className="text-sm text-gray-500">企業情報の抽出には数秒〜数十秒かかる場合があります</p>
       </div>
     );
   }
