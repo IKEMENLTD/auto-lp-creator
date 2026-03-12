@@ -373,13 +373,10 @@ ${theme === "corporate" ? CORPORATE_THEME : ""}
 .uc-card{position:relative;overflow:hidden;border-radius:var(--r);border:1px solid var(--bd);transition:box-shadow .3s,transform .3s}
 .uc-card:hover{box-shadow:0 12px 36px rgba(0,0,0,.08);transform:translateY(-3px)}
 .uc-card-img{width:100%;height:200px;object-fit:cover;display:block}
-.uc-card-overlay{position:absolute;top:0;left:0;right:0;height:200px;background:linear-gradient(180deg,rgba(0,0,0,.1) 0%,rgba(0,0,0,.45) 100%);display:flex;align-items:center;justify-content:center}
-.uc-ico{width:64px;height:64px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.2);backdrop-filter:blur(8px);border-radius:16px;border:1px solid rgba(255,255,255,.25)}
-.uc-ico svg{width:28px;height:28px;color:#fff}
 .uc-card-body{padding:20px}
 .uc-card-body h4{font-size:15px;font-weight:800;margin-bottom:8px}
 .uc-card-body p{font-size:13px;color:var(--t2);line-height:1.8;margin:0}
-@media(max-width:750px){.uc-grid{grid-template-columns:1fr;gap:16px}.uc-card-img{height:160px}.uc-card-overlay{height:160px}}
+@media(max-width:750px){.uc-grid{grid-template-columns:1fr;gap:16px}.uc-card-img{height:160px}}
 
 /* ===== FUNCTIONS (主な機能) ===== */
 .func-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;max-width:1000px;margin:0 auto}
@@ -668,7 +665,6 @@ ${useCases.map((item, i) => {
   const ucImg = images[i + 1] ? images[i + 1].url.replace(/w=\d+/, "w=600").replace(/h=\d+/, "h=400") : unsplashUrl(PHOTO_LIBRARY["business"][(i + 2) % 5], 600, 400);
   return `<div class="uc-card fi">
 <img class="uc-card-img" src="${esc(ucImg)}" alt="${esc(item.title)}" loading="lazy">
-<div class="uc-card-overlay"><div class="uc-ico">${ucIcon}</div></div>
 <div class="uc-card-body">
 <h4>${esc(item.title)}</h4>
 <p>${esc(item.desc)}</p>
