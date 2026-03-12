@@ -196,7 +196,7 @@ export function buildLpHtml(c: LpContent, d: FlatData, images: LpImage[] = [], t
   const hasImg = images.length > 0;
   const pName = sanitizePersonName(c.person_name, d.key_persons) || d.company_name;
   const pTitle = c.person_title || d.industry;
-  const brandName = d.service_name || d.company_name;
+  const brandName = (d.service_name || d.company_name).replace(/[（(].+?[）)]/g, "").trim();
 
   const ico = [
     `<svg width="40" height="40" viewBox="0 0 40 40" fill="none"><rect width="40" height="40" rx="8" fill="var(--c)" opacity=".12"/><path d="M14 20l4 4 8-10" stroke="var(--c)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
@@ -266,7 +266,7 @@ ${theme === "corporate" ? CORPORATE_THEME : ""}
 .fv .inner{position:relative;z-index:1;display:flex;justify-content:space-between;align-items:center;max-width:1300px;padding:80px 32px 60px;gap:48px}
 .fv-left{flex:1;min-width:0}
 .fv-right{flex-shrink:0;display:flex;align-items:center;justify-content:center}
-.fv-lead{font-size:clamp(24px,3.5vw,34px);font-weight:800;color:#333;line-height:1.5;margin-bottom:20px}
+.fv-lead{font-weight:800;color:#333;line-height:1.35;margin-bottom:20px}
 .fv-service-label{font-size:clamp(13px,1.4vw,16px);color:#555;margin-bottom:12px}
 .fv-service-name{font-size:clamp(28px,4.2vw,44px);font-weight:900;color:var(--c);line-height:1.25;margin-bottom:28px}
 /* Award badges — laurel wreath style */
@@ -427,7 +427,7 @@ ${theme === "corporate" ? CORPORATE_THEME : ""}
 .fv-btns{justify-content:center}
 .fv-right{margin-top:28px}
 .fv-product{max-width:100%}
-.fv-lead{font-size:clamp(20px,4.5vw,26px)}
+.fv-lead{font-size:clamp(20px,4.5vw,26px)!important}
 .fv-service-name{font-size:clamp(22px,5.5vw,32px)}
 .fv-award-row{justify-content:center}
 .fv-badge{min-width:140px;max-width:200px;padding:14px 16px 10px}
@@ -463,7 +463,7 @@ ${theme === "corporate" ? CORPORATE_THEME : ""}
 @media(max-width:480px){
 .inner{padding:0 16px}.hd-logo{font-size:14px}
 /* hero */
-.fv-lead{font-size:18px}.fv-service-name{font-size:22px}
+.fv-lead{font-size:18px!important}.fv-service-name{font-size:22px}
 .fv-btns{flex-direction:column}.fv-btns .btn{width:100%;min-width:auto}
 .fv-badge{min-width:auto;flex:1;padding:12px 10px 8px}
 .fv-badge-no1{font-size:28px}
@@ -514,9 +514,9 @@ ${funcs.length > 0 ? '<a href="#functions">主な機能</a>' : ''}
 ${hasImg && images[0] ? `<div class="fv-bg" style="background-image:url('${esc(images[0].url.replace(/w=\d+/, "w=1600").replace(/h=\d+/, "h=1000"))}')"></div>` : ""}
 <div class="inner">
 <div class="fv-left">
-<p class="fv-lead">${esc(c.hero_headline)}</p>
+<p class="fv-lead" style="font-size:${c.hero_headline.length <= 12 ? '40px' : c.hero_headline.length <= 20 ? '34px' : c.hero_headline.length <= 28 ? '28px' : '24px'}">${esc(c.hero_headline)}</p>
 <p class="fv-service-label">${esc(d.industry)}</p>
-<h1 class="fv-service-name">${esc(d.service_name)}</h1>
+<h1 class="fv-service-name">${esc(brandName)}</h1>
 ${badges.length > 0 ? `<div class="fv-awards"><div class="fv-award-row">${badges.slice(0, 2).map(b => `<div class="fv-badge"><div class="fv-badge-laurel"><svg viewBox="0 0 100 100"><path d="M50 8c-2 4-6 7-10 9-4 2-9 2-13 1 1 5 0 9-2 13s-6 7-10 8c3 3 5 7 5 12s-1 9-3 12c4 1 8 4 11 8 2 3 4 7 4 11 4-2 8-3 13-2 4 1 8 3 11 6 1-4 4-8 7-11 3-3 7-5 11-5-1-4-1-9 1-13s5-7 9-9c-3-3-6-7-7-11-1-4-1-9 0-13-4 1-9 0-13-2s-7-6-9-10z" fill="none" stroke="%23c9a84c" stroke-width="1.2"/><circle cx="50" cy="50" r="30" fill="none" stroke="%23c9a84c" stroke-width=".6" opacity=".3"/></svg></div><p class="fv-badge-cat">${esc(b)}</p><p class="fv-badge-no1">No.1</p></div>`).join("")}</div>${badges.length > 1 && badges[1] ? `<p class="fv-award-notes">※ 自社調べ</p>` : ""}</div>` : ""}
 <div class="fv-btns">
 <a href="#contact" class="btn btn-lg btn-accent">${esc(c.cta_text)}</a>
