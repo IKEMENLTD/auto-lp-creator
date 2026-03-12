@@ -26,6 +26,16 @@ const PHOTO_LIBRARY: Record<string, string[]> = {
     "1600880292203-757bb62b4baf",
     "1521737711867-e3b97375f902",
     "1542744173-8e7e91415657",
+    "1556761175-b413da4baf72",
+    "1557804506-669a67965ba0",
+    "1552664730-d307ca884978",
+    "1531973576160-7125cd663d86",
+    "1522071820081-009f0129c71c",
+    "1556155092-490a1ba16284",
+    "1573497019940-1c28c88b4f3e",
+    "1560472354-b33ff0c44a43",
+    "1559136555-9303baea8ebd",
+    "1517245386807-bb43f82c33c4",
   ],
   tech: [
     "1518770660439-4636190af475",
@@ -33,6 +43,16 @@ const PHOTO_LIBRARY: Record<string, string[]> = {
     "1504384308090-c894fdcc538d",
     "1519389950473-47ba0277781c",
     "1573164713988-8665fc963095",
+    "1550751827-4bd374c3f58b",
+    "1555949963-ff9fe0c870eb",
+    "1461749280684-dccba630e2f6",
+    "1526374965328-7f61d4dc18c5",
+    "1558494949-ef010cbdcc31",
+    "1517077304055-6e89751369b9",
+    "1551288049-bebda4e38f71",
+    "1535378917042-10a22c95931a",
+    "1498050108023-c5249f4df085",
+    "1504639725590-34d0984388bd",
   ],
   medical: [
     "1576091160550-2173dba999ef",
@@ -40,6 +60,11 @@ const PHOTO_LIBRARY: Record<string, string[]> = {
     "1551076805-e1869033e561",
     "1538108149393-fbbd81895907",
     "1559757175-5700dde675bc",
+    "1530497610245-94d3c16cda28",
+    "1519494026892-80bbd2d6fd0d",
+    "1516549655169-df83a0774514",
+    "1526256262350-7da7584cf5eb",
+    "1581056771107-24ca5f033842",
   ],
   food: [
     "1517248135467-4c7edcad34c4",
@@ -47,6 +72,11 @@ const PHOTO_LIBRARY: Record<string, string[]> = {
     "1552566626-52f8b828add9",
     "1559339352-11d035aa65de",
     "1466978913421-dad2ebd01d17",
+    "1504674900247-0877df9cc836",
+    "1498837167922-ddd27525d352",
+    "1476224203421-9ac39bcb3327",
+    "1543353071-087092ec169a",
+    "1565299624946-b28f40a0ae38",
   ],
   education: [
     "1524178232363-1fb2b075b655",
@@ -54,6 +84,11 @@ const PHOTO_LIBRARY: Record<string, string[]> = {
     "1523050854058-8df90110c9f1",
     "1509062522246-3755977927d7",
     "1503676260728-1c00da094a0b",
+    "1497633762265-9d179a990aa6",
+    "1522202176988-66273c2fd55f",
+    "1513258496099-48168024aec0",
+    "1571260899304-425eee4c7efc",
+    "1488190211105-8b0e65b80b4e",
   ],
   construction: [
     "1504307651254-35680f356dfd",
@@ -61,6 +96,11 @@ const PHOTO_LIBRARY: Record<string, string[]> = {
     "1503387762-592deb58ef4e",
     "1486406146926-c627a92ad1ab",
     "1487958449943-2429e8be8625",
+    "1590644365607-1e29be1d9c6a",
+    "1517581177684-8007e7b6d5e8",
+    "1504297050568-910d24c426d3",
+    "1541971875076-8f970d573be6",
+    "1508450859948-4e04fabaa4d7",
   ],
   finance: [
     "1460925895917-afdab827c52f",
@@ -68,6 +108,11 @@ const PHOTO_LIBRARY: Record<string, string[]> = {
     "1554224155-6726b3ff858f",
     "1579532537598-459ecdaf39cc",
     "1526304640581-d334cdbbf45e",
+    "1563986768494-4dee2763ff3f",
+    "1559526324-4b87b5e36e44",
+    "1551288049-bebda4e38f71",
+    "1565372195-89d68b3e2909",
+    "1543286386-713bdd548da4",
   ],
   beauty: [
     "1560066984-138dadb4c035",
@@ -75,6 +120,11 @@ const PHOTO_LIBRARY: Record<string, string[]> = {
     "1516975080664-ed2fc6a32937",
     "1570172619644-dfd03ed5d881",
     "1487412912498-0447578fcca8",
+    "1507003211169-0a1dd7228f2d",
+    "1519699047748-de8e457a634e",
+    "1540555700478-4be289fbec6f",
+    "1515377905703-c4788e51af15",
+    "1570554886111-e80fcca6a029",
   ],
   manufacturing: [
     "1565043589221-4e5bfe5a2a3f",
@@ -82,6 +132,11 @@ const PHOTO_LIBRARY: Record<string, string[]> = {
     "1504917595217-d4dc5ebe6122",
     "1558618666-fcd25c85f82e",
     "1533417479674-390fca4b5f73",
+    "1567789884554-0b844b597180",
+    "1513828583688-c52600a27c4d",
+    "1537462715879-360eeb61a0ad",
+    "1581091012184-7e0cdfbb0f58",
+    "1504917595217-d4dc5ebe6122",
   ],
 };
 
@@ -106,12 +161,23 @@ export function selectImages(d: FlatData): LpImage[] {
   }
   const offset = Math.abs(hash) % photos.length;
 
+  const p = (i: number) => photos[(offset + i) % photos.length]!;
   return [
-    { url: unsplashUrl(photos[offset % photos.length]!, 1920, 1080), alt: `${d.company_name} ヒーロー画像` },
-    { url: unsplashUrl(photos[(offset + 1) % photos.length]!, 800, 600), alt: `${d.service_name} サービス画像` },
-    { url: unsplashUrl(photos[(offset + 2) % photos.length]!, 800, 600), alt: `${d.service_name} 特徴1` },
-    { url: unsplashUrl(photos[(offset + 3) % photos.length]!, 800, 600), alt: `${d.service_name} 特徴2` },
-    { url: unsplashUrl(photos[(offset + 4) % photos.length]!, 800, 600), alt: `${d.service_name} 特徴3` },
+    { url: unsplashUrl(p(0), 1920, 1080), alt: `${d.company_name} ヒーロー画像` },
+    { url: unsplashUrl(p(1), 800, 600), alt: `${d.service_name} サービス画像` },
+    { url: unsplashUrl(p(2), 800, 600), alt: `${d.service_name} 特徴1` },
+    { url: unsplashUrl(p(3), 800, 600), alt: `${d.service_name} 特徴2` },
+    { url: unsplashUrl(p(4), 800, 600), alt: `${d.service_name} 特徴3` },
+    { url: unsplashUrl(p(5), 800, 600), alt: `${d.service_name} 活用1` },
+    { url: unsplashUrl(p(6), 800, 600), alt: `${d.service_name} 活用2` },
+    { url: unsplashUrl(p(7), 800, 600), alt: `${d.service_name} 活用3` },
+    { url: unsplashUrl(p(8), 800, 600), alt: `${d.service_name} 機能1` },
+    { url: unsplashUrl(p(9), 800, 600), alt: `${d.service_name} 機能2` },
+    { url: unsplashUrl(p(10), 800, 600), alt: `${d.service_name} 機能3` },
+    { url: unsplashUrl(p(11), 800, 600), alt: `${d.service_name} 事例1` },
+    { url: unsplashUrl(p(12), 800, 600), alt: `${d.service_name} 事例2` },
+    { url: unsplashUrl(p(13), 800, 600), alt: `${d.service_name} 事例3` },
+    { url: unsplashUrl(p(14), 200, 200), alt: `${d.service_name} コラム` },
   ];
 }
 
@@ -663,7 +729,7 @@ ${theme === "corporate" ? `<!-- MID-CTA: About後 -->
 <div class="sec-hd"><p class="sec-bg-txt">Features</p><p class="sec-eng">Features</p><h2 class="sec-tit fi">${esc(d.service_name)}でできること</h2></div>
 <div class="feat-grid">
 ${svc.map((item, i) => {
-  const featImg = images[i + 1] ? images[i + 1].url.replace(/w=\d+/, "w=600").replace(/h=\d+/, "h=400") : unsplashUrl(PHOTO_LIBRARY["business"][(i + 1) % 5], 600, 400);
+  const featImg = images[i + 1] ? images[i + 1].url.replace(/w=\d+/, "w=600").replace(/h=\d+/, "h=400") : unsplashUrl(PHOTO_LIBRARY["business"][(i + 1) % 15], 600, 400);
   return `<div class="feat-card fi">
 <img class="feat-card-img" src="${esc(featImg)}" alt="${esc(item.title)}" loading="lazy">
 <div class="feat-body">
@@ -688,7 +754,7 @@ ${reasons.length > 0 ? `<section class="sec" id="reasons">
 <div class="sec-hd"><p class="sec-bg-txt">Reason</p><p class="sec-eng">Why Choose Us</p><h2 class="sec-tit fi">${esc(d.company_name)}が選ばれる理由</h2></div>
 <div class="reason-list">
 ${reasons.map((item, i) => {
-  const reasonImg = images[i + 1] ? images[i + 1].url.replace(/w=\d+/, "w=600").replace(/h=\d+/, "h=400") : unsplashUrl(PHOTO_LIBRARY["business"][i] || PHOTO_LIBRARY["business"][0], 600, 400);
+  const reasonImg = images[i + 4] ? images[i + 4].url.replace(/w=\d+/, "w=600").replace(/h=\d+/, "h=400") : unsplashUrl(PHOTO_LIBRARY["business"][(i + 4) % 15], 600, 400);
   return `<div class="reason-card fi">
 <img class="reason-img" src="${esc(reasonImg)}" alt="${esc(item.title)}" loading="lazy">
 <div class="reason-body">
@@ -717,7 +783,7 @@ ${useCases.map((item, i) => {
     target: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>',
   };
   const ucIcon = ucIcoMap[item.icon_keyword] || ucIcoMap["zap"];
-  const ucImg = images[i + 1] ? images[i + 1].url.replace(/w=\d+/, "w=600").replace(/h=\d+/, "h=400") : unsplashUrl(PHOTO_LIBRARY["business"][(i + 2) % 5], 600, 400);
+  const ucImg = images[i + 5] ? images[i + 5].url.replace(/w=\d+/, "w=600").replace(/h=\d+/, "h=400") : unsplashUrl(PHOTO_LIBRARY["business"][(i + 7) % 15], 600, 400);
   return `<div class="uc-card fi">
 <img class="uc-card-img" src="${esc(ucImg)}" alt="${esc(item.title)}" loading="lazy">
 <div class="uc-card-body">
@@ -736,7 +802,7 @@ ${funcs.length > 0 ? `<section class="sec" id="functions">
 <div class="sec-hd"><p class="sec-bg-txt">Functions</p><p class="sec-eng">Main Features</p><h2 class="sec-tit fi">${esc(d.service_name)}の主な機能</h2></div>
 <div class="func-grid">
 ${funcs.map((item, i) => {
-  const funcImg = images[i + 2] ? images[i + 2].url.replace(/w=\d+/, "w=600").replace(/h=\d+/, "h=400") : unsplashUrl(PHOTO_LIBRARY["tech"][i % 5], 600, 400);
+  const funcImg = images[i + 8] ? images[i + 8].url.replace(/w=\d+/, "w=600").replace(/h=\d+/, "h=400") : unsplashUrl(PHOTO_LIBRARY["tech"][(i + 5) % 15], 600, 400);
   return `<div class="func-card fi">
 <img class="func-card-img" src="${esc(funcImg)}" alt="${esc(item.title)}" loading="lazy">
 <div class="func-body">
@@ -755,7 +821,7 @@ ${columns.length > 0 ? `<section class="sec">
 <div class="sec-hd"><p class="sec-bg-txt">Column</p><p class="sec-eng">Column</p><h2 class="sec-tit fi">お役立ち情報</h2></div>
 <div class="col-grid">
 ${columns.map((col, i) => {
-  const colImg = images[i + 2] ? images[i + 2].url.replace(/w=\d+/, "w=200").replace(/h=\d+/, "h=200") : unsplashUrl(PHOTO_LIBRARY["business"][(i + 2) % 5], 200, 200);
+  const colImg = images[i + 14] ? images[i + 14].url.replace(/w=\d+/, "w=200").replace(/h=\d+/, "h=200") : unsplashUrl(PHOTO_LIBRARY["business"][(i + 11) % 15], 200, 200);
   return `<div class="col-card fi">
 <img class="col-thumb" src="${esc(colImg)}" alt="${esc(col.title)}" loading="lazy">
 <div class="col-body">
@@ -808,7 +874,7 @@ ${cas.length > 0 ? `<section class="sec" id="cases" style="background:var(--bg2)
 <div class="sec-hd"><p class="sec-bg-txt">Results</p><p class="sec-eng">Case Results</p><h2 class="sec-tit fi">実績事例</h2></div>
 <div class="tm-grid">
 ${cas.map((item, i) => {
-  const caseImg = images[i + 1] ? images[i + 1].url.replace(/w=\d+/, "w=600").replace(/h=\d+/, "h=400") : unsplashUrl(PHOTO_LIBRARY["business"][(i + 3) % 5], 600, 400);
+  const caseImg = images[i + 11] ? images[i + 11].url.replace(/w=\d+/, "w=600").replace(/h=\d+/, "h=400") : unsplashUrl(PHOTO_LIBRARY["business"][(i + 13) % 15], 600, 400);
   return `<div class="tm-card fi">
 <img class="tm-card-img" src="${esc(caseImg)}" alt="${esc(item.category)}" loading="lazy">
 <div class="tm-card-body">
