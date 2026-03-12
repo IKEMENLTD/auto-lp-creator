@@ -196,7 +196,9 @@ export function buildLpHtml(c: LpContent, d: FlatData, images: LpImage[] = [], t
   const hasImg = images.length > 0;
   const pName = sanitizePersonName(c.person_name, d.key_persons) || d.company_name;
   const pTitle = c.person_title || d.industry;
-  const brandName = (d.service_name || d.company_name).replace(/[（(].+?[）)]/g, "").trim();
+  const rawBrand = d.service_name || d.company_name;
+  const brandName = rawBrand.replace(/[（(].+?[）)]/g, "").trim();
+  const brandSub = (rawBrand.match(/[（(](.+?)[）)]/) || [])[1] || "";
 
   const ico = [
     `<svg width="40" height="40" viewBox="0 0 40 40" fill="none"><rect width="40" height="40" rx="8" fill="var(--c)" opacity=".12"/><path d="M14 20l4 4 8-10" stroke="var(--c)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
@@ -263,30 +265,62 @@ ${theme === "corporate" ? CORPORATE_THEME : ""}
 /* ===== HERO ===== */
 .fv{position:relative;display:flex;align-items:center;overflow:hidden;padding-top:64px;background:linear-gradient(160deg,#f8fafe 0%,#eef3fb 40%,#f0f7ff 100%)}
 .fv-bg{position:absolute;inset:0;background-size:cover;background-position:center;opacity:.07;z-index:0}
-.fv .inner{position:relative;z-index:1;display:flex;justify-content:space-between;align-items:center;max-width:1300px;padding:80px 32px 60px;gap:48px}
+.fv .inner{position:relative;z-index:1;display:flex;justify-content:space-between;align-items:center;max-width:1300px;padding:80px 32px 32px;gap:48px}
 .fv-left{flex:1;min-width:0}
 .fv-right{flex-shrink:0;display:flex;align-items:center;justify-content:center}
 .fv-lead{font-weight:800;color:#333;line-height:1.35;margin-bottom:20px}
 .fv-service-label{font-size:clamp(13px,1.4vw,16px);color:#555;margin-bottom:12px}
 .fv-service-name{font-size:clamp(28px,4.2vw,44px);font-weight:900;color:var(--c);line-height:1.25;margin-bottom:28px}
+.fv-service-sub{display:block;font-size:clamp(14px,1.6vw,18px);font-weight:600;color:#555;margin-top:8px;letter-spacing:.02em}
 /* Award badges — laurel wreath style */
-.fv-awards{display:flex;flex-direction:column;gap:10px;margin-bottom:28px}
-.fv-award-row{display:flex;align-items:stretch;gap:16px;flex-wrap:wrap}
-.fv-badge{position:relative;display:flex;flex-direction:column;align-items:center;text-align:center;padding:18px 22px 14px;background:#fff;border:1px solid #e0e0e0;border-radius:6px;min-width:200px;max-width:260px;flex:1}
-.fv-badge-laurel{position:absolute;top:0;left:0;right:0;bottom:0;pointer-events:none;overflow:hidden}
-.fv-badge-laurel svg{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:130px;height:130px;opacity:.10}
-.fv-badge-cat{font-size:11px;color:#666;line-height:1.3;margin-bottom:6px;position:relative;z-index:1;font-weight:500}
-.fv-badge-no1{font-family:'Inter',sans-serif;font-size:42px;font-weight:900;color:#333;line-height:1;position:relative;z-index:1;letter-spacing:-.02em}
-.fv-badge-no1 span{font-size:20px;vertical-align:super;margin-left:1px;color:#8c8c8c;font-weight:600}
-.fv-badge-src{font-size:9px;color:#aaa;margin-top:6px;position:relative;z-index:1}
-.fv-award-notes{font-size:10px;color:#8c8c8c;line-height:1.4;margin-top:6px}
+.fv-awards{display:flex;flex-direction:column;gap:8px;margin-bottom:28px}
+.fv-award-row{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.fv-badge{display:flex;align-items:center;gap:4px;min-width:200px;max-width:280px}
+.fv-badge-wreath{flex-shrink:0;position:relative;width:100px;height:100px;display:flex;align-items:center;justify-content:center}
+.fv-badge-wreath svg{position:absolute;inset:0;width:100%;height:100%}
+.fv-badge-inner{position:relative;z-index:1;text-align:center;line-height:1}
+.fv-badge-no1{font-family:'Inter',sans-serif;font-size:36px;font-weight:900;color:#333;letter-spacing:-.03em}
+.fv-badge-no1-dot{font-size:28px}
+.fv-badge-no1-num{font-size:44px}
+.fv-badge-cat{font-size:12px;color:#555;line-height:1.35;font-weight:600;flex:1;min-width:0}
+.fv-award-notes{font-size:10px;color:#8c8c8c;line-height:1.4;margin-top:2px}
 .fv-btns{display:flex;gap:15px;flex-wrap:wrap}
 .fv-btns .btn{min-width:220px;border-radius:34px;font-size:16px;font-weight:700;padding:15px 28px;display:inline-flex;align-items:center;justify-content:center;gap:6px}
 .fv-btns .btn-accent{background:var(--c);color:#fff;border:2px solid var(--c)}
 .fv-btns .btn-accent:hover{opacity:.88}
 .fv-btns .btn-outline-accent{background:#fff;color:var(--c);border:2px solid var(--c)}
 .fv-btns .btn-outline-accent:hover{background:var(--c);color:#fff}
-.fv-product{width:100%;max-width:540px;height:auto;border-radius:12px;box-shadow:0 12px 48px rgba(0,0,0,.12)}
+/* Hero dashboard mockup */
+@keyframes heroFadeUp{0%{opacity:0;transform:translateY(20px)}100%{opacity:1;transform:translateY(0)}}
+@keyframes heroBarGrow{0%{width:0}100%{width:var(--bar-w)}}
+@keyframes heroPulse{0%,100%{opacity:.6}50%{opacity:1}}
+@keyframes heroFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.hero-dash{width:100%;max-width:420px;background:rgba(255,255,255,.07);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:24px;animation:heroFloat 4s ease-in-out infinite}
+.hero-dash-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.hero-dash-title{font-size:13px;font-weight:700;color:rgba(255,255,255,.9);display:flex;align-items:center;gap:8px}
+.hero-dash-title::before{content:'';width:8px;height:8px;background:var(--ca);border-radius:50%;animation:heroPulse 2s ease-in-out infinite}
+.hero-dash-badge{font-size:10px;padding:3px 10px;background:rgba(255,255,255,.12);border-radius:12px;color:rgba(255,255,255,.6)}
+.hero-dash-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px}
+.hero-dash-stat{background:rgba(255,255,255,.06);border-radius:10px;padding:14px 10px;text-align:center;animation:heroFadeUp .6s ease both}
+.hero-dash-stat:nth-child(2){animation-delay:.15s}
+.hero-dash-stat:nth-child(3){animation-delay:.3s}
+.hero-dash-stat-num{font-family:'Inter',sans-serif;font-size:20px;font-weight:900;color:var(--ca);line-height:1}
+.hero-dash-stat-label{font-size:10px;color:rgba(255,255,255,.5);margin-top:4px}
+.hero-dash-bars{display:flex;flex-direction:column;gap:10px;margin-bottom:16px}
+.hero-dash-bar-row{display:flex;align-items:center;gap:10px;animation:heroFadeUp .6s ease both}
+.hero-dash-bar-row:nth-child(1){animation-delay:.4s}
+.hero-dash-bar-row:nth-child(2){animation-delay:.55s}
+.hero-dash-bar-row:nth-child(3){animation-delay:.7s}
+.hero-dash-bar-label{font-size:10px;color:rgba(255,255,255,.5);width:48px;flex-shrink:0;text-align:right}
+.hero-dash-bar-track{flex:1;height:8px;background:rgba(255,255,255,.08);border-radius:4px;overflow:hidden}
+.hero-dash-bar-fill{height:100%;border-radius:4px;background:var(--cg);animation:heroBarGrow 1.2s ease both}
+.hero-dash-bar-fill.b1{animation-delay:.6s}
+.hero-dash-bar-fill.b2{animation-delay:.75s}
+.hero-dash-bar-fill.b3{animation-delay:.9s}
+.hero-dash-bar-pct{font-size:10px;color:rgba(255,255,255,.6);width:32px;font-weight:700}
+.hero-dash-footer{display:flex;align-items:center;gap:8px;padding-top:14px;border-top:1px solid rgba(255,255,255,.08)}
+.hero-dash-footer-dot{width:6px;height:6px;border-radius:50%;background:var(--ca)}
+.hero-dash-footer-text{font-size:10px;color:rgba(255,255,255,.45)}
 
 /* ===== LOGO STRIP ===== */
 .logo-strip{padding:48px 0;background:var(--bg2);border-bottom:1px solid var(--bd)}
@@ -430,9 +464,10 @@ ${theme === "corporate" ? CORPORATE_THEME : ""}
 .fv-lead{font-size:clamp(20px,4.5vw,26px)!important}
 .fv-service-name{font-size:clamp(22px,5.5vw,32px)}
 .fv-award-row{justify-content:center}
-.fv-badge{min-width:140px;max-width:200px;padding:14px 16px 10px}
-.fv-badge-no1{font-size:32px}
-.fv-badge-laurel svg{width:100px;height:100px}
+.fv-badge{min-width:auto}
+.fv-badge-wreath{width:80px;height:80px}
+.fv-badge-no1-num{font-size:36px}
+.fv-badge-no1-dot{font-size:22px}
 .fv-btns .btn{min-width:180px;font-size:14px}
 /* problems */
 .prob p{font-size:13px}.prob span{font-size:12px}.prob{padding:14px 16px;gap:10px}
@@ -455,6 +490,9 @@ ${theme === "corporate" ? CORPORATE_THEME : ""}
 .m-cta{display:block}
 /* stats grid */
 .stats-grid{grid-template-columns:repeat(2,1fr)}
+/* dashboard */
+.hero-dash{max-width:360px;padding:20px}
+.hero-dash-stat-num{font-size:17px}
 }
 
 /* ============================== */
@@ -465,10 +503,14 @@ ${theme === "corporate" ? CORPORATE_THEME : ""}
 /* hero */
 .fv-lead{font-size:18px!important}.fv-service-name{font-size:22px}
 .fv-btns{flex-direction:column}.fv-btns .btn{width:100%;min-width:auto}
-.fv-badge{min-width:auto;flex:1;padding:12px 10px 8px}
-.fv-badge-no1{font-size:28px}
+.fv-badge-wreath{width:70px;height:70px}
+.fv-badge-no1-num{font-size:30px}
+/* dashboard */
+.hero-dash{max-width:100%;padding:16px}
+.hero-dash-stat-num{font-size:15px}
+.hero-dash-stats{gap:8px}
+.fv-badge-no1-dot{font-size:18px}
 .fv-badge-cat{font-size:10px}
-.fv-badge-laurel svg{width:80px;height:80px}
 /* section headers */
 .sec-bg-txt{font-size:36px;margin-bottom:-12px}
 /* buttons */
@@ -516,15 +558,20 @@ ${hasImg && images[0] ? `<div class="fv-bg" style="background-image:url('${esc(i
 <div class="fv-left">
 <p class="fv-lead" style="font-size:${c.hero_headline.length <= 12 ? '40px' : c.hero_headline.length <= 20 ? '34px' : c.hero_headline.length <= 28 ? '28px' : '24px'}">${esc(c.hero_headline)}</p>
 <p class="fv-service-label">${esc(d.industry)}</p>
-<h1 class="fv-service-name">${esc(brandName)}</h1>
-${badges.length > 0 ? `<div class="fv-awards"><div class="fv-award-row">${badges.slice(0, 2).map(b => `<div class="fv-badge"><div class="fv-badge-laurel"><svg viewBox="0 0 100 100"><path d="M50 8c-2 4-6 7-10 9-4 2-9 2-13 1 1 5 0 9-2 13s-6 7-10 8c3 3 5 7 5 12s-1 9-3 12c4 1 8 4 11 8 2 3 4 7 4 11 4-2 8-3 13-2 4 1 8 3 11 6 1-4 4-8 7-11 3-3 7-5 11-5-1-4-1-9 1-13s5-7 9-9c-3-3-6-7-7-11-1-4-1-9 0-13-4 1-9 0-13-2s-7-6-9-10z" fill="none" stroke="%23c9a84c" stroke-width="1.2"/><circle cx="50" cy="50" r="30" fill="none" stroke="%23c9a84c" stroke-width=".6" opacity=".3"/></svg></div><p class="fv-badge-cat">${esc(b)}</p><p class="fv-badge-no1">No.1</p></div>`).join("")}</div>${badges.length > 1 && badges[1] ? `<p class="fv-award-notes">※ 自社調べ</p>` : ""}</div>` : ""}
+<h1 class="fv-service-name">${esc(brandName)}${brandSub ? `<span class="fv-service-sub">${esc(brandSub)}</span>` : ""}</h1>
+${badges.length > 0 ? `<div class="fv-awards"><div class="fv-award-row">${badges.slice(0, 2).map(b => `<div class="fv-badge"><div class="fv-badge-wreath"><svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg"><g opacity=".85"><path d="M30 95c3-8 8-16 15-22-4-1-9 0-13 2s-7 6-8 10c1 4 3 7 6 10z" fill="#c9a84c"/><path d="M25 80c4-7 10-13 17-17-4-2-9-2-14 0-4 3-7 7-8 12 1 3 3 5 5 5z" fill="#b8963f"/><path d="M22 64c5-5 12-9 19-11-4-3-9-4-14-3s-9 5-11 10c1 3 3 4 6 4z" fill="#c9a84c"/><path d="M22 48c5-4 12-6 19-6-3-3-8-5-13-5s-10 3-12 7c1 3 3 4 6 4z" fill="#b8963f"/><path d="M25 33c4-3 10-4 16-3-2-4-6-7-11-8s-10 1-13 4c0 3 3 6 8 7z" fill="#c9a84c"/><path d="M32 20c3-1 8-1 13 1-1-4-4-8-8-10s-9-2-12 0c-1 3 1 7 7 9z" fill="#b8963f"/><path d="M90 95c-3-8-8-16-15-22 4-1 9 0 13 2s7 6 8 10c-1 4-3 7-6 10z" fill="#c9a84c"/><path d="M95 80c-4-7-10-13-17-17 4-2 9-2 14 0 4 3 7 7 8 12-1 3-3 5-5 5z" fill="#b8963f"/><path d="M98 64c-5-5-12-9-19-11 4-3 9-4 14-3s9 5 11 10c-1 3-3 4-6 4z" fill="#c9a84c"/><path d="M98 48c-5-4-12-6-19-6 3-3 8-5 13-5s10 3 12 7c-1 3-3 4-6 4z" fill="#b8963f"/><path d="M95 33c-4-3-10-4-16-3 2-4 6-7 11-8s10 1 13 4c0 3-3 6-8 7z" fill="#c9a84c"/><path d="M88 20c-3-1-8-1-13 1 1-4 4-8 8-10s9-2 12 0c1 3-1 7-7 9z" fill="#b8963f"/></g></svg><div class="fv-badge-inner"><p class="fv-badge-no1"><span class="fv-badge-no1-dot">No.</span><span class="fv-badge-no1-num">1</span></p></div></div><p class="fv-badge-cat">${esc(b)}</p></div>`).join("")}</div><p class="fv-award-notes">※ 自社調べ</p></div>` : ""}
 <div class="fv-btns">
 <a href="#contact" class="btn btn-lg btn-accent">${esc(c.cta_text)}</a>
 <a href="#features" class="btn btn-lg btn-outline-accent">詳しく見る</a>
 </div>
 </div>
 <div class="fv-right">
-${hasImg && images[1] ? `<img class="fv-product" src="${esc(images[1].url)}" alt="${esc(d.service_name)}" loading="lazy">` : hasImg && images[0] ? `<img class="fv-product" src="${esc(images[0].url)}" alt="${esc(d.service_name)}" loading="lazy">` : ""}
+<div class="hero-dash">
+<div class="hero-dash-header"><span class="hero-dash-title">Dashboard</span><span class="hero-dash-badge">Live</span></div>
+<div class="hero-dash-stats">${s.slice(0, 3).map(st => `<div class="hero-dash-stat"><div class="hero-dash-stat-num">${esc(st.number)}</div><div class="hero-dash-stat-label">${esc(st.label)}</div></div>`).join("")}</div>
+<div class="hero-dash-bars">${dm.map((m, i) => `<div class="hero-dash-bar-row"><span class="hero-dash-bar-label">${esc(m.label)}</span><div class="hero-dash-bar-track"><div class="hero-dash-bar-fill b${i + 1}" style="width:${m.pct}%"></div></div><span class="hero-dash-bar-pct">${m.pct}%</span></div>`).join("")}</div>
+<div class="hero-dash-footer"><span class="hero-dash-footer-dot"></span><span class="hero-dash-footer-text">リアルタイム更新中</span></div>
+</div>
 </div>
 </div>
 </section>

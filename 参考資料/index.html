@@ -1,0 +1,1001 @@
+<!DOCTYPE html>
+<html lang="ja" prefix="og: http://ogp.me/ns#"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><style>body {transition: opacity ease-in 0.2s; }
+body[unresolved] {opacity: 0; display: block; overflow: hidden; position: relative; }
+</style>
+
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="ShtockDataはWebサイトを周期的にクローリング（巡回）し、Webページ上のデータを抽出（スクレイピング）、収集するWebスクレイピング＆Webクローリングツールです。">
+    <meta property="og:url" content="https://www.shtockdata.com/tool/">
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="すぐに、誰でも、簡単にWebデータ収集｜Webスクレイピング＆WebクローリングツールShtockData">
+    <meta property="og:description" content="ShtockDataはWebサイトを周期的にクローリング（巡回）し、Webページ上のデータを抽出（スクレイピング）、収集するWebスクレイピング＆Webクローリングツールです。">
+    <meta property="og:site_name" content="ShtockData">
+    <meta property="og:image" content="https://www.shtockdata.com/images/shtock-data-image_3.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:description" content="ShtockDataはWebサイトを周期的にクローリング（巡回）し、Webページ上のデータを抽出（スクレイピング）、収集するWebスクレイピング＆Webクローリングツールです。">
+    <meta name="twitter:title" content="すぐに、誰でも、簡単にWebデータ収集｜Webスクレイピング＆WebクローリングツールShtockData">
+    <meta name="twitter:site" content="@keywalkerinc">
+    <meta name="twitter:image" content="https://www.shtockdata.com/images/shtock-data-image_3.png">
+    <meta name="twitter:creator" content="@keywalkerinc">
+    <meta property="fb:app_id" content="165000123634047">
+    <meta name="author" content="株式会社キーウォーカー">
+		    <link rel="icon" type="image/png" href="https://www.shtockdata.com/favicon-32x32.png" sizes="32x32">
+    <title>すぐに、誰でも、簡単にWebデータ収集｜Webスクレイピング＆WebクローリングツールShtockData</title>
+    <link href="assets/css/bootstrap.min.css" rel="stylesheet">
+    <link href="assets/css/animate.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="assets/css/slick.css" rel="stylesheet">
+    <link href="assets/css/slick-theme.css" rel="stylesheet">
+    <link href="assets/css/style.css" rel="stylesheet">
+
+    <style type="text/css">@import url('https://fonts.googleapis.com/css2?family=Work+Sans:ital,wght@0,100..900;1,100..900&display=swap');</style>
+</head>
+
+<body id="" class="landing-page  pace-done"><div class="pace  pace-inactive"><div class="pace-progress" data-progress-text="100%" data-progress="99" style="transform: translate3d(100%, 0px, 0px);">
+  <div class="pace-progress-inner"></div>
+</div>
+<div class="pace-activity"></div></div>
+    <div class="navbar-wrapper">
+        <nav class="navbar navbar-default navbar-fixed-top navbar-expand-md navbar-scroll" role="navigation">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="https://www.shtockdata.com/tool/">
+                    <img src="assets/images/logo-dark.png" alt="ShtockData - Webクローリング＆Webスクレイピングサービス" height="20" id="logoDark">
+                    <img src="assets/images/logo-white.png" alt="ShtockData - Webクローリング＆Webスクレイピングサービス" height="20" id="logoWhite" style="display:none;">
+                </a>
+                <div class="navbar-header page-scroll">
+                    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar">
+                        <i class="fa fa-bars"></i>
+                    </button>
+                </div>
+                <div class="collapse navbar-collapse justify-content-end" id="navbar">
+                    <ul class="nav navbar-nav navbar-right">
+                        <li><a class="nav-link page-scroll" href="#tool-about">ShtockData とは</a></li>
+                        <li><a class="nav-link page-scroll" href="#tool-reason">選ばれる理由</a></li>
+                        <li><a class="nav-link page-scroll" href="#case">活用シーン</a></li>
+                        <li><a class="nav-link page-scroll" href="#exercise">導入事例</a></li>
+                        <li><a class="nav-link page-scroll" href="#functions">主な機能</a></li>
+                        <li><a class="nav-link page-scroll" href="#download">お役立ち資料</a></li>
+                        <li><a class="nav-link page-scroll nav-button" id="nav-docs" href="https://www.shtockdata.com/tool/download.php">資料ダウンロード</a></li>
+												                        <li><a class="nav-link page-scroll nav-button" id="nav-try" href="https://www.shtockdata.com/tool/trial/" onclick="p_inquiry()">無料トライアル</a></li>
+						                    </ul>
+                </div>
+            </div>
+        </nav>
+    </div>
+<div id="inSlider" class="carousel slide mv_bg tool pointer-event" data-ride="carousel">
+  <div class="carousel-inner" role="listbox">
+    <div class="carousel-item active">
+      <div class="container container_flex">
+        <div class="carousel-caption mv_txt">
+          <div class="mv_txt_lead">すぐに、誰でも、簡単に<br>Webデータ収集</div>
+          <h1 class="mv_txt_ttl"> <span>Webスクレイピング＆<br class="only-sp">Webクローリングツール</span>
+            <img src="assets/images/logo-dark.png" alt="" id="logoDark">
+          </h1>
+          <div class="mv_img toolgif only-sp">
+            <img src="assets/images/hero-animation.gif" alt="">
+          </div>
+          <div class="mv_award-lists">
+            <div class="mv_award-list">
+              <div class="mv_award-list__items">
+                <img src="assets/images/award-01.png" alt="Webスクレイピング&amp;Webクローリングサービス直近1年の新規導入社数No.1※1※2">
+                <img src="assets/images/award-02.png" alt="Webスクレイピング&amp;Webクローリングサービス（当該）年間売上金額No.1※2">
+              </div>
+              <div class="boxilranking__item">
+                <img src="assets/images/boxil-ranking.png" alt="">
+              </div>
+            </div>
+            <div class="mv_award-list__notes">
+              <div class="mv_award-list__note">※1 大手企業に限る(従業員数1,000名以上)</div>
+              <div class="mv_award-list__note">※2 2025年12月12日現在（㈱未来トレンド研究機構 調べ）<br>調査対象：「Webスクレイピング＆Webクローリングサービス」に関する市場調査《No.1 検証調査》</div>
+            </div>
+          </div>
+          <div class="mv_btns mv-btn-index">
+            <a href="https://www.shtockdata.com/tool/download.php" class="mv_btns__btn page-scroll trial" onclick="p_download()">資料ダウンロード</a>            <a href="https://www.shtockdata.com/tool/trial/" class="page-scroll mv_btns__btn document" onclick="p_trial()">無料トライアル</a>          </div>
+        </div>
+        <div class="mv_img toolgif only-pc">
+          <img src="assets/images/hero-animation.gif" alt="">
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<section class="sec-logo">
+  <div class="sec-container sec-container-wide">
+    <p class="ttl_sec">多種多様な企業様に<br class="only-sp">ご利用いただいております</p>
+    <div class="d-flex justify-content-center logo-contaner">
+      <div>
+        <img src="assets/images/logo-hinodegr.png" alt="">
+      </div>
+      <div>
+        <img src="assets/images/logo-flux.png" alt="">
+      </div>
+      <div>
+        <img src="assets/images/logo-altius.png" alt="">
+      </div>
+      <div>
+        <img src="assets/images/logo-ohami.png" alt="">
+      </div>
+      <div>
+        <img src="assets/images/logo-haseko.png" alt="">
+      </div>
+    </div>
+  </div>
+</section>
+<section class="sec-logo">
+  <div class="sec-container sec-container-wide">
+    <ul class="d-flex justify-content-center logo-contaner banner-list">
+      <li class="banner-list-item">
+        <a href="https://www.shtockdata.com/tool/download/detail01/">
+          <img src="assets/images/banner-01.png" alt="サービス紹介資料">
+        </a>
+      </li>
+      <li class="banner-list-item">
+        <a href="https://www.shtockdata.com/tool/download/detail03/">
+          <img src="assets/images/banner-02.png" alt="質が高い営業リスト作成に"Webスクレイピング"が役立つ理由">
+        </a>
+      </li>
+      <li class="banner-list-item">
+        <a href="https://www.shtockdata.com/tool/download/detail06/">
+          <img src="assets/images/banner-03.png" alt="価格調査を効率化するために「Webスクレイピング」が有効な理由とは？">
+        </a>
+      </li>
+      <li class="banner-list-item">
+        <a href="https://www.shtockdata.com/tool/download/detail07/">
+          <img src="assets/images/banner-04.png" alt="競合調査の効率化に「Webスクレイピング」 が有効な理由とは？">
+        </a>
+      </li>
+    </ul>
+  </div>
+</section>
+<section class="sec-about" id="tool-about">
+  <div class="sec-container">
+    <div class="row features-header">
+      <div class="col-lg-12 text-center">
+        <h2 class="ttl_sec">Webスクレイピング＆<br class="only-sp">Webクローリングツール<br>
+          <span class="ttl_sec_big">「<span class="navy">ShtockData</span>」とは</span>
+        </h2>
+      </div>
+    </div>
+    <div class="row features-block">
+      <div class="" id="main-description-image"> <img src="assets/images/about-main.jpg" alt=""> </div>
+      <div class="">
+        <h3>すぐに・誰でも・簡単に<br>
+          Webデータを活用できる世界に</h3>
+        <p> ShtockDataはWebサイトを周期的にクローリング（巡回）し、Webページ上のデータを抽出（スクレイピング）、収集するWebスクレイピング＆Webクローリングツールです。すぐに・誰でも・簡単にWebデータを活用できる世界を目指し、Webスクレイピング＆Webクローリングによって営業活動やマーケティング活動を効率的に支援します。 </p>
+      </div>
+    </div>
+  </div>
+</section>
+<section class="gray-sec sec-can" id="trust">
+  <div class="sec-container">
+    <div class="row features-header">
+      <div class="col-lg-12 text-center">
+        <h2 class="ttl_sec">Webスクレイピング＆<br class="only-sp">Webクローリングツール<br>
+          <span class="ttl_sec_big">「<span class="navy">ShtockData</span>」でできること</span>
+        </h2>
+      </div>
+    </div>
+    <div class="d-flex trust-container container3">
+      <div class="trust-content box-shadow content3">
+        <div class="trust-mark">
+          <div> <img src="assets/images/feature-01.png" alt=""> </div>
+        </div>
+        <h3>必要なWebデータを<br>
+          すぐに収集することができる</h3>
+        <div class="trust-desc">
+          <p>管理画面にてデータ収集を行いたいWebページとWebスクレイピングを行いたい箇所を設定するだけで、すぐにデータ収集を行えます。</p>
+        </div>
+      </div>
+      <div class="trust-content box-shadow content3">
+        <div class="trust-mark">
+          <div> <img src="assets/images/feature-02.png" alt=""> </div>
+        </div>
+        <h3>豊富なテンプレートを用意<br>
+          簡単にデータ収集ができる</h3>
+        <div class="trust-desc">
+          <p>簡単な設定でデータ収集ができるように「テンプレート機能」を搭載しているので、プログラミングの知識が無くても、簡単にデータ収集を行うことができます。</p>
+        </div>
+      </div>
+      <div class="trust-content box-shadow content3">
+        <div class="trust-mark">
+          <div> <img src="assets/images/feature-03.png" alt=""> </div>
+        </div>
+        <h3>わかりやすい管理画面なので<br>
+          誰でもデータ収集が行える</h3>
+        <div class="trust-desc">
+          <p>直感的にわかりやすい管理画面なので、誰でもWebスクレイピング・Webクローリングが実行でき、必要なデータを収集することができます。</p>
+        </div>
+      </div>
+    </div>
+    <div class="mv_txt d-flex justify-content-center">
+      <a href="https://www.shtockdata.com/tool/download.php" class="mv_btns__btn page-scroll trial" onclick="p_download()">資料ダウンロード</a>      <a href="https://www.shtockdata.com/tool/trial/" class="page-scroll mv_btns__btn document" onclick="p_trial()">無料トライアル</a> </div>
+  </div>
+</section>
+<section class="sec-reason" id="tool-reason">
+  <div class="sec-container">
+    <div class="row features-header">
+      <div class="col-lg-12 text-center">
+        <h2 class="ttl_sec">Webスクレイピング＆<br class="only-sp">Webクローリングツール<br>
+          <span class="ttl_sec_big">「<span class="navy">ShtockData</span>」が選ばれる理由</span>
+        </h2>
+      </div>
+    </div>
+    <div class="d-flex reason-container">
+      <div class="reason-content box-shadow">
+        <div class="reason-mark"> <img src="assets/images/reason-01.jpg" alt=""> </div>
+        <div class="reason-txt">
+          <h3><span class="reason-num"><span>REASON</span><br>
+            </span><span class="reason-ttl">15年以上のサービス運用実績と<br class="only-pc">
+              WebクローリングシェアNo1の実績</span></h3>
+          <div class="reason-desc">
+            <p>Webスクレイピング＆Webクローリングツール「ShtockData」は15年以上のサービス運用実績です。スタートアップから大手企業、行政機関、研究機関まで幅広くご導入いただいています。<br>
+              その実績が評価され、株式会社富士キメラ総研『ソフトウェアビジネス新市場 2021年版 Webクローリング市場占有率2020年度』の調査でWebクローリングシェアNo1の実績と評価して頂きました。</p>
+          </div>
+        </div>
+      </div>
+      <div class="reason-content box-shadow">
+        <div class="reason-mark"> <img src="assets/images/reason-02.jpg" alt=""> </div>
+        <div class="reason-txt">
+          <h3><span class="reason-num"><span>REASON</span><br>
+            </span><span class="reason-ttl">安定的に長期に渡って<br class="only-pc">
+              データ収集を実現</span></h3>
+          <div class="reason-desc">
+            <p>分析の質を高めるには安定的に長期でデータ収集を行うことが重要です。Webスクレイピング＆Webクローリングツール「ShtockData」は15年以上の豊富な実績から、ブロッキングに強いシステム設計を行い、安定的に長期に渡りデータ収集を実施することができます。</p>
+          </div>
+        </div>
+      </div>
+      <div class="reason-content box-shadow">
+        <div class="reason-mark"> <img src="assets/images/reason-03.jpg" alt=""> </div>
+        <div class="reason-txt">
+          <h3><span class="reason-num"><span>REASON</span><br>
+            </span><span class="reason-ttl">日本人スタッフによる<br class="only-pc">
+              安心のサポート体制</span></h3>
+          <div class="reason-desc">
+            <p>専任の経験豊富な日本人サポートスタッフが手厚くサポートします。<br>
+              ツールの設定方法や操作方法、エラーについてもわかりやすくサポートしますので、導入後も安心してご利用いただけます。</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="mv_txt d-flex justify-content-center">
+      <a href="https://www.shtockdata.com/tool/download.php" class="mv_btns__btn page-scroll trial" onclick="p_download()">資料ダウンロード</a>      <a href="https://www.shtockdata.com/tool/trial/" class="page-scroll mv_btns__btn document" onclick="p_trial()">無料トライアル</a></div>
+  </div>
+</section>
+<section id="case" class="sec-scene">
+  <div class="sec-container">
+    <div class="row features-header">
+      <div class="col-lg-12 text-center">
+        <h2 class="ttl_sec">Webスクレイピング＆<br class="only-sp">Webクローリングツール<br>
+          <span class="ttl_sec_big">「<span class="navy">ShtockData</span>」の活用シーン</span>
+        </h2>
+      </div>
+    </div>
+    <div class="case-container container3">
+      <div class="case-content content3">
+        <div class="case-image box-shadow" style="background-image:url(https://www.shtockdata.com/images/tool/img08.jpg);">
+          <div class="case-icon" style="background-image:url(https://www.shtockdata.com/images/tool/img14.png);"></div>
+        </div>
+        <div class="case-txt">
+          <h3>商品情報や価格情報などの<br>
+            競合調査</h3>
+          <p class="case-dtl" style="height: 132.5px;">競合他社の商品情報や価格情報を効率的に収集できます。商品価格情報、商品画像、カテゴリ、ブランド、商品説明、セール情報、ポイント、在庫、カラー等も取得できます。</p>
+        </div>
+      </div>
+      <div class="case-content content3">
+        <div class="case-image box-shadow" style="background-image:url(https://www.shtockdata.com/images/tool/img09.jpg);">
+          <div class="case-icon" style="background-image:url(https://www.shtockdata.com/images/tool/img15.png);"></div>
+        </div>
+        <div class="case-txt">
+          <h3>販売戦略策定のための<br>
+            市場調査</h3>
+          <p class="case-dtl" style="height: 132.5px;">販売戦略を策定するために企業の商品・サービスに関する新着情報やIR情報、政府や地方自治体の発信情報などを大量に効率的に情報収集することができます。</p>
+        </div>
+      </div>
+      <div class="case-content content3">
+        <div class="case-image box-shadow" style="background-image:url(https://www.shtockdata.com/images/tool/img10.jpg);">
+          <div class="case-icon" style="background-image:url(https://www.shtockdata.com/images/tool/img16.png);"></div>
+        </div>
+        <div class="case-txt">
+          <h3>サービス品質向上のための<br>
+            口コミ・レビュー収集</h3>
+          <p class="case-dtl" style="height: 132.5px;">ECサイトやポータルサイトなどに投稿された自社や競合の商品やサービス、施設等の口コミやレビューの情報を収集します。収集したデータは商品企画やサービス改善等に活用されています。</p>
+        </div>
+      </div>
+      <div class="case-content content3">
+        <div class="case-image box-shadow" style="background-image:url(https://www.shtockdata.com/images/tool/img11.jpg);">
+          <div class="case-icon" style="background-image:url(https://www.shtockdata.com/images/tool/img17.png);"></div>
+        </div>
+        <div class="case-txt">
+          <h3>新規開拓のための<br>
+            営業リスト情報収集</h3>
+          <p class="case-dtl" style="height: 177.5px;">新規開拓のために利用している営業リストも常に最新の情報にしておかないといけません。営業リスト更新のための情報収集や新規リスト追加のための情報収集にも役立つことができます。</p>
+        </div>
+      </div>
+      <div class="case-content content3">
+        <div class="case-image box-shadow" style="background-image:url(https://www.shtockdata.com/images/tool/img12.jpg);">
+          <div class="case-icon" style="background-image:url(https://www.shtockdata.com/images/tool/img18.png);"></div>
+        </div>
+        <div class="case-txt">
+          <h3>エリアマーケティングのための<br>
+            不動産情報収集</h3>
+          <p class="case-dtl" style="height: 177.5px;">店舗開発などのエリアマーケティングにおいて物件情報収集は必須作業です。その不動産情報収集も定期的に安定的に行うことが可能です。</p>
+        </div>
+      </div>
+      <div class="case-content content3">
+        <div class="case-image box-shadow" style="background-image:url(https://www.shtockdata.com/images/tool/img13.jpg);">
+          <div class="case-icon" style="background-image:url(https://www.shtockdata.com/images/tool/img19.png);"></div>
+        </div>
+        <div class="case-txt">
+          <h3>需要予測AIの精度向上の<br>
+            ためのデータ収集</h3>
+          <p class="case-dtl" style="height: 177.5px;">AIで需要予測モデルなどを構築する際に、自社内のデータだけではなかなか精度が上がらないケースがあります。そのような場合にWebデータなどの外部データが有効な場合がありますが、本サービスは希望の外部データを素早く収集することが可能です。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!--<section id="exercise" class="sec-example">
+      <div class="sec-container">
+    <div class="row features-header">
+          <div class="col-lg-12 text-center">
+        <h2 class="ttl_sec">Webスクレイピング＆<br class="only-sp">
+              Webクローリングツール<br>
+              <span class="ttl_sec_big">「<span class="navy">ShtockData</span>」のお客様導入事例</span></h2>
+      </div>
+        </div>
+    <div class="case-container container3">
+          <div class="case-content content3"> <a href="/case_study/post-lixil.php">
+            <div class="case-image box-shadow" style="background-image:url(/case_study/images/lixil_front.jpg);"></div>
+            <h3>株式会社LIXIL様</h3>
+            <p>3日かかっていた作業を2時間まで短縮！『市場データの収集から可視化まで』ワンストップで提供可能なキーウォーカーのデータソリューションとは？</p>
+            </a> </div>
+          <div class="case-content content3"> <a href="/case_study/post-hakugen.php">
+            <div class="case-image box-shadow" style="background-image:url(/case_study/images/hakugen_front.jpg);"></div>
+            <h3>白元アース株式会社様</h3>
+            <p>「ブランドイメージの毀損を防ぎ商品の信用を守る」ShtockDataの導入で商標の不正使用に関する調査時間を大幅に削減</p>
+            </a> </div>
+          <div class="case-content content3"> <a href="/case_study/post-reprice.php">
+            <div class="case-image box-shadow" style="background-image:url(/case_study/images/reprise_front.jpg);"></div>
+            <h3>株式会社リプライス様</h3>
+            <p>2時間かかっていた作業が30分に短縮！ 大量の不動産データ収集から自社データベースに合わせたデータ納品まで実施し、業務効率化を実現！</p>
+            </a> </div>
+          <div class="container mt-5">
+        <div class="mv_txt d-flex justify-content-center"> <a href="/case_study.php" class="mv_btns__btn page-scroll">その他導入事例はこちら</a> </div>
+      </div>
+        </div>
+  </div>
+</section>-->
+<section id="exercise" class="sec-exercise">
+  <div class="sec-container">
+    <div class="row features-header">
+      <div class="col-lg-12 text-center">
+        <h2 class="ttl_sec">Webスクレイピング＆<br class="only-sp">Webクローリングツール<br>
+          <span class="ttl_sec_big">「<span class="navy">ShtockData</span>」導入事例</span>
+        </h2>
+      </div>
+    </div>
+    <div class="case-container container3">
+
+      <div class="case-content content3"> <a href="https://www.shtockdata.com/tool/case_study/post-oh-ami.php">
+          <div class="case-image box-shadow" style="background-image:url(https://www.shtockdata.com/tool/case_study/images/post-oh-ami_front.jpg);"></div>
+          <h3>大網株式会社様</h3>
+          <p>月最大12時間の手作業を0に！「ShtockData」導入で市場調査を自動化し、精度の高いマーケティングアクションを実現！</p>
+        </a>
+      </div>
+
+      <div class="case-content content3"> <a href="https://www.shtockdata.com/tool/case_study/post-altius-link.php">
+          <div class="case-image box-shadow" style="background-image:url(https://www.shtockdata.com/tool/case_study/images/post-altius-link_front.jpg);"></div>
+          <h3>アルティウスリンク株式会社様</h3>
+          <p>3名で1日300件が1名で5,000件以上対応可能に！「ShtockData」でレビュー収集を自動化し事業レベルも向上！</p>
+        </a>
+      </div>
+
+      <div class="case-content content3"> <a href="https://www.shtockdata.com/tool/case_study/post-hinodeiryo.php">
+          <div class="case-image box-shadow" style="background-image:url(https://www.shtockdata.com/tool/case_study/images/post-hinode_front.jpg);"></div>
+          <h3>社会福祉連携推進法人<br>日の出医療福祉グループ様</h3>
+          <p>採用難の課題をデータ活用で改善！ShtockDataで採用マーケティング＆営業リスト作成を実現</p>
+        </a>
+      </div>
+    </div>
+    <div class="mv_txt d-flex justify-content-center">
+      <a href="https://www.shtockdata.com/tool/case_study.php" class="page-scroll mv_btns__btn document">その他導入事例はこちら</a>
+    </div>
+  </div>
+</section>
+<hr>
+<section id="functions" class="sec-functions">
+  <div class="sec-container">
+    <div class="row features-header">
+      <div class="col-lg-12 text-center">
+        <h2 class="ttl_sec">Webスクレイピング＆<br class="only-sp">Webクローリングツール<br>
+          <span class="ttl_sec_big">「<span class="navy">ShtockData</span>」の主な機能</span>
+        </h2>
+      </div>
+    </div>
+    <div class="functions-container">
+      <div class="functions-content box-shadow">
+        <div class="functions-image"> <img src="assets/images/func-template.png" alt="テンプレート機能"> </div>
+        <div class="functions-desc">
+          <h3>テンプレート機能</h3>
+          <p>誰でも簡単にWebスクレイピングが実行できるように豊富な種類をご用意。</p>
+        </div>
+      </div>
+      <div class="functions-content box-shadow">
+        <div class="functions-image"> <img src="assets/images/func-preview.png" alt="プレビュー機能"> </div>
+        <div class="functions-desc">
+          <h3>プレビュー機能</h3>
+          <p>設定した内容に誤りが無いか等、収集したい箇所をハイライトで表示。</p>
+        </div>
+      </div>
+      <div class="functions-content box-shadow">
+        <div class="functions-image"> <img src="assets/images/func-workflow.png" alt="ワークフロー機能"> </div>
+        <div class="functions-desc">
+          <h3>ワークフロー機能</h3>
+          <p>どの動作をするのか、どこの値を取るのか等、UIでわかりやすくワークフローを管理。</p>
+        </div>
+      </div>
+      <div class="functions-content box-shadow">
+        <div class="functions-image"> <img src="assets/images/func-schedule.png" alt="スケジュール機能"> </div>
+        <div class="functions-desc">
+          <h3>スケジュール機能</h3>
+          <p>「1時間毎」「毎日」「毎月1日」などお好きな収集頻度で設定可能。</p>
+        </div>
+      </div>
+      <div class="functions-content box-shadow">
+        <div class="functions-image"> <img src="assets/images/func-notify.png" alt="通知機能"> </div>
+        <div class="functions-desc">
+          <h3>通知機能</h3>
+          <p>クロールの完了や設定エラーなどを検知し通知します。</p>
+        </div>
+      </div>
+      <div class="functions-content box-shadow">
+        <div class="functions-image"> <img src="assets/images/func-ai.png" alt="AIデータ整形機能"> </div>
+        <div class="functions-desc">
+          <h3>AIデータ整形機能</h3>
+          <p>データ整形が難しいページもAIがサポートし、データ整形を実施。</p>
+        </div>
+      </div>
+    </div>
+    <div class="mv_txt d-flex justify-content-center">
+      <a href="https://www.shtockdata.com/tool/download.php" class="mv_btns__btn page-scroll trial" onclick="p_download()">資料ダウンロード</a>      <a href="https://www.shtockdata.com/tool/trial/" class="page-scroll mv_btns__btn document" onclick="p_trial()">無料トライアル</a></div>
+  </div>
+</section>
+<hr>
+<section class="sec_solution_case section_link">
+  <div class="sec-container">
+    <div class="row features-header">
+      <div class="col-lg-12 text-center">
+        <h2 class="ttl_sec">Webスクレイピング＆<br class="only-sp">Webクローリングツール<br><span class="ttl_sec_big">用途別ユースケース</span></h2>
+      </div>
+    </div>
+  </div>
+  <div class="reason-container">
+    <a href="https://www.shtockdata.com/usecase/detail02/" class="reason-content box-shadow">
+      <div class="reason-content-image t-center"><img src="assets/images/usecase-competitive.png" alt=""> </div>
+      <h3 class="reason-content-title">競合調査</h3>
+      <p class="reason-content-desc">競合他社の情報として、価格はもちろん、画像やブランド、商品説明など多数の項目で調査が可能です。</p>
+      <p class="reason-content-btn">詳細はこちら</p>
+    </a>
+    <a href="https://www.shtockdata.com/usecase/detail01/" class="reason-content box-shadow">
+      <div class="reason-content-image t-center"><img src="assets/images/usecase-pricing.png" alt=""> </div>
+      <h3 class="reason-content-title">価格調査</h3>
+      <p class="reason-content-desc">自社商品・サービスの価格設定に必要な競合他社商品や市場データなどの情報収集が可能です。</p>
+      <p class="reason-content-btn">詳細はこちら</p>
+    </a>
+    <a href="https://www.shtockdata.com/usecase/detail03/" class="reason-content box-shadow">
+      <div class="reason-content-image t-center"><img src="assets/images/usecase-saleslist.png" alt=""> </div>
+      <h3 class="reason-content-title">営業リスト</h3>
+      <p class="reason-content-desc">質の高い営業リストを作成するために、営業対象顧客の最新情報や抜け漏れのない収集が可能です。</p>
+      <p class="reason-content-btn">詳細はこちら</p>
+    </a>
+    <a href="https://www.shtockdata.com/usecase/detail04/" class="reason-content box-shadow">
+      <div class="reason-content-image t-center"><img src="assets/images/usecase-review.png" alt=""> </div>
+      <h3 class="reason-content-title">口コミ・レビュー収集</h3>
+      <p class="reason-content-desc">自社・競合商品における顧客からのリアルな声を調査するために、高頻度で最新の口コミ・レビュー収集が可能です。</p>
+      <p class="reason-content-btn">詳細はこちら</p>
+    </a>
+    <a href="https://www.shtockdata.com/usecase/detail05/" class="reason-content box-shadow">
+      <div class="reason-content-image t-center"><img src="assets/images/usecase-brand.png" alt=""> </div>
+      <h3 class="reason-content-title">ブランド毀損調査</h3>
+      <p class="reason-content-desc">自社の商標を無断使用しており、ブランドイメージを毀損しているサイトを対象にしたデータ収集が可能です。</p>
+      <p class="reason-content-btn">詳細はこちら</p>
+    </a>
+    <a href="https://www.shtockdata.com/usecase/detail06/" class="reason-content box-shadow">
+      <div class="reason-content-image t-center"><img src="assets/images/usecase-realestate.png" alt=""> </div>
+      <h3 class="reason-content-title">不動産情報収集</h3>
+      <p class="reason-content-desc">多岐にわたる不動産サイトから膨大な物件情報を網羅的に収集することが可能です。</p>
+      <p class="reason-content-btn">詳細はこちら</p>
+    </a>
+  </div>
+</section>
+<hr>
+<section id="download" class="download-top sec-download sec-download-tool">
+  <div class="sec-container">
+    <div class="row features-header">
+      <div class="col-lg-12 text-center">
+        <h2 class="ttl_sec">Webスクレイピング＆<br class="only-sp">Webクローリングツール<br>
+          <span class="ttl_sec_big">「<span class="navy">ShtockData</span>」のお役立ち資料</span>
+        </h2>
+      </div>
+    </div>
+    <div id="download-list">
+      <div class="download-container container2">
+        <div class="blog-content content2 js-arealink">
+          <div class="sec-download-tool-item-image-wrapper">
+            <div class="blog-image" style="background-image:url(https://www.shtockdata.com/images/download/tool_detail01_main.png);"></div>
+          </div>
+          <div class="sec-download-tool-item-txt">
+            <h3 style="height: 120px;">Webスクレイピング＆<br>
+              Webクローリングツール<br>
+              「ShtockData」総合資料</h3>
+            <div class="mv_txt justify-content-center"> <a href="https://www.shtockdata.com/tool/download/detail01/" class="mv_btns__btn page-scroll">ダウンロードはこちら</a></div>
+          </div>
+        </div>
+        <div class="blog-content content2 js-arealink">
+          <div class="sec-download-tool-item-image-wrapper">
+            <div class="blog-image" style="background-image:url(https://www.shtockdata.com/images/download/detail09_main_tool.png);"></div>
+          </div>
+          <div class="sec-download-tool-item-txt">
+            <h3 style="height: 120px;">Webスクレイピング＆<br>
+              Webクローリングツール<br>
+              「ShtockData」導入事例集</h3>
+            <div class="mv_txt justify-content-center"> <a href="https://www.shtockdata.com/tool/download/detail09/" class="mv_btns__btn page-scroll">ダウンロードはこちら</a></div>
+          </div>
+        </div>
+        <div class="blog-content content2 js-arealink">
+          <div class="sec-download-tool-item-image-wrapper">
+            <div class="blog-image" style="background-image:url(https://www.shtockdata.com/images/download/tool_detail04_main.png);"></div>
+          </div>
+          <div class="sec-download-tool-item-txt">
+            <h3 style="height: 120px;">完全ガイド<br>
+              Webスクレイピングとは？<br>
+              仕組みから方法、<br>
+              事例まで解説</h3>
+            <div class="mv_txt justify-content-center"> <a href="https://www.shtockdata.com/tool/download/detail04/" class="mv_btns__btn page-scroll">ダウンロードはこちら</a></div>
+          </div>
+        </div>
+        <div class="blog-content content2 js-arealink">
+          <div class="sec-download-tool-item-image-wrapper">
+            <div class="blog-image" style="background-image:url(https://www.shtockdata.com/images/download/tool_detail11_main.png);"></div>
+          </div>
+          <div class="sec-download-tool-item-txt">
+            <h3 style="height: 120px;">専門知識不要！スクレイピングを内製化！社内エンジニアの運用負担を軽減し、安定稼働を実現</h3>
+            <div class="mv_txt justify-content-center"> <a href="https://www.shtockdata.com/tool/download/detail11/" class="mv_btns__btn page-scroll">ダウンロードはこちら</a></div>
+          </div>
+        </div>
+        <div class="blog-content content2 js-arealink">
+          <div class="sec-download-tool-item-image-wrapper">
+            <div class="blog-image" style="background-image:url(https://www.shtockdata.com/images/download/tool_detail12_main.png);"></div>
+          </div>
+          <div class="sec-download-tool-item-txt">
+            <h3 style="height: 120px;">Webスクレイピングツール「ShtockData」で始める新規事業情報収集</h3>
+            <div class="mv_txt justify-content-center"> <a href="https://www.shtockdata.com/tool/download/detail12/" class="mv_btns__btn page-scroll">ダウンロードはこちら</a></div>
+          </div>
+        </div>
+        <div class="blog-content content2 js-arealink">
+          <div class="sec-download-tool-item-image-wrapper">
+            <div class="blog-image" style="background-image:url(https://www.shtockdata.com/images/download/tool_detail13_main.png);"></div>
+          </div>
+          <div class="sec-download-tool-item-txt">
+            <h3 style="height: 120px;">研究開発の方必見！Webスクレイピング&amp;Webクローリングツール「ShtockData」の導入による研究開発効率化</h3>
+            <div class="mv_txt justify-content-center"> <a href="https://www.shtockdata.com/tool/download/detail13/" class="mv_btns__btn page-scroll">ダウンロードはこちら</a></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="container mt-5">
+      <div class="mv_txt d-flex justify-content-center"> <a href="https://www.shtockdata.com/tool/download.php" class="mv_btns__btn page-scroll" style="width: 300px; max-width: none;">その他お役立ち資料はこちら</a> </div>
+    </div>
+  </div>
+</section>
+<div class="sec-wrapper">
+  <section id="faq" class="sec-faq">
+    <div class="container-fluid">
+      <div class="row features-header">
+        <div class="col-lg-12 text-center">
+          <h2 class="ttl_sec">よくある質問</h2>
+        </div>
+      </div>
+      <dl>
+        <dt style="cursor: pointer;">抽出したデータはどのようなファイル形式でダウンロードできますか？</dt>
+        <dd style="display: none;">基本的にはCSVファイルで抽出します。CSVファイル以外で納品を希望の場合は 「<a href="https://www.shtockdata.com/pro/">ShtockData Pro</a>」 をご検討ください。</dd>
+      </dl>
+      <dl>
+        <dt style="cursor: pointer;">どんなサイトでもWebスクレイピングは可能ですか？</dt>
+        <dd style="display: none;">一般のWebサイトのデータは取得できます。例外としてFLASHやJavaで記述されているサイトや一部のブロッキングが強いサイトではWebスクレイピングができない場合があります。</dd>
+      </dl>
+      <dl>
+        <dt style="cursor: pointer;">Webスクレイピングは違法ですか？</dt>
+        <dd style="display: none;">Webスクレイピングは基本的に違法ではありません。ただしいくつか注意点がございますので、詳しくは下記のコラムをご確認ください。<br><a href="https://www.shtockdata.com/blog/detail06.php">Webスクレイピングは違法になり得る? 禁止事項と行うべきこととは?</a></dd>
+      </dl>
+      <dl>
+        <dt style="cursor: pointer;">海外のWebサイトも対応できますか？</dt>
+        <dd style="display: none;">海外のWebサイトも対応可能です。</dd>
+      </dl>
+      <dl>
+        <dt>サポート体制はありますか？</dt>
+        <dd style="display: none;">専任の経験豊富な日本人サポートスタッフが手厚くサポートします。ツールの設定方法や操作方法、エラーについてもわかりやすくサポートしますので、導入後も安心してご利用いただけます。</dd>
+      </dl>
+    </div>
+  </section>
+  <section class="sec-recommend">
+    <div class="sec-container">
+      <div class="row features-header">
+        <div class="col-lg-12 text-center">
+          <h2 class="ttl_sec">データ収集に関すことは<br class="only-sp">設定から保守まで全てお任せしたい！<br>
+            <span class="ttl_sec_big">そんな方には<br class="only-sp">「<span class="navy">ShtockData Pro</span>」がおすすめ！</span>
+          </h2>
+        </div>
+      </div>
+      <div class="row features-block" id="main-description">
+        <div class="col-lg-8 features-text">
+          <p>ShtockData Proとは"サービス型"のWebスクレイピング＆Webクローリング代行サービスです。</p>
+          <ul>
+            <li>大規模データを日次で取得したい！</li>
+            <li>複雑な条件でデータ収集を行いたい！</li>
+            <li>収集したデータを自動で社内システムなどに自動連携したい！</li>
+            <li>データ収集に関することは設定かから保守まで全てお任せしたい</li>
+          </ul>
+          <p>など、各要件に合わせたカスタマイズが可能のサービスとなっています。<br>
+            独自の条件でデータ収集を行いたい方におすすめのサービスです。　</p>
+        </div>
+        <div class="col-lg-4" id="main-description-image"> <img src="assets/images/pro-description.png" alt="" class="img-fluid"> </div>
+      </div>
+      <div class="dl_bnr js-arealink" style="cursor: pointer;">
+        <div class="dl_bnr_inner">
+          <div class="dl_bnr_txt">
+            <h5>「ShtockData Pro」サービス紹介はこちら</h5>
+            <div class="mv_txt d-flex"> <a href="https://www.shtockdata.com/pro/" class="mv_btns__btn page-scroll" onclick="p_download()">詳細はこちら</a> </div>
+          </div>
+          <figure><img src="assets/images/pro-banner.png" alt=""></figure>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section id="" class="download-top sec-contact">
+    <div class="sec-container">
+      <div class="row features-header">
+        <div class="col-lg-12 text-center">
+          <h2 class="ttl_sec">
+            <span class="ttl_sec_big">「<span class="navy">ShtockData</span>」導入に関してご不明な点がございましたら<br class="only-pc">お気軽にお問い合わせください！</span>
+          </h2>
+        </div>
+      </div>
+      <div id="">
+        <div class="download-container container2">
+          <div class="blog-content content2">
+            <figure><img src="assets/images/contact-download.png" alt=""></figure>
+            <h3>料金プランやサービス詳細など<br>
+              サービス紹介資料はこちら</h3>
+            <div class="mv_txt d-flex justify-content-center"><a href="https://www.shtockdata.com/tool/download.php" class="mv_btns__btn page-scroll trial" onclick="p_download()">資料ダウンロード</a></div>
+          </div>
+          <div class="blog-content content2">
+            <figure><img src="assets/images/contact-trial.png" alt=""></figure>
+            <h3>実際の管理画面など<br>
+              無料トライアルのお申込みはこちら</h3>
+            <div class="mv_txt d-flex justify-content-center"><a href="https://www.shtockdata.com/tool/trial/" class="page-scroll mv_btns__btn document" onclick="p_trial()">無料トライアル</a></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+<footer class="footer">
+  <section class="companyProfile">
+    <div class="companyProfile-container">
+      <div class="companyProfile-content">
+        <div class="companyProfile-l">
+          <div class="companyProfile-logo"><img src="assets/images/logo-keywalker.png" alt="keywalker"></div>
+          <div class="companyProfile-address">
+            <small>〒105-0003 東京都港区西新橋1丁目8-1 REVZO虎ノ門4F</small>
+          </div>
+          <a href="https://best100.v-tsushin.jp/company/keywalker/" class="companyProfile-best100logo" target="_blank">
+            <img src="assets/images/logo-best100.jpg" alt="ベストベンチャー100会員">
+          </a>
+        </div>
+        <div class="companyProfile-r">
+          <div class="companyProfile-link">
+            <ul class="companyProfile-link-list">
+              <li><a href="https://www.keywalker.co.jp/company/outline.html" target="_blank">運営会社</a></li>
+              <li><a href="https://www.keywalker.co.jp/company/policy.html" target="_blank">プライバシーポリシー</a></li>
+              <li><a href="https://www.shtockdata.com/tool/terms/">利用規約（ShtockData）</a></li>
+              <li><a href="https://www.shtockdata.com/pro/terms/">利用規約（ShtockData Pro）</a></li>
+            </ul>
+          </div>
+          <div class="companyProfile-copyright">
+            <small>&copy; keywalker, Inc. All Rights Reserved.</small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</footer>
+<script src="assets/js/jquery-3.1.1.min.js"></script>
+<script src="assets/js/popper.min.js"></script>
+<script src="assets/js/bootstrap.js"></script>
+<script src="assets/js/jquery.metisMenu.js"></script>
+<script src="assets/js/jquery.slimscroll.min.js"></script>
+<script src="assets/js/inspinia.js"></script>
+<script src="assets/js/pace.min.js"></script>
+<script src="assets/js/jquery.matchHeight.js"></script>
+<script src="assets/js/slick.min.js"></script>
+<script src="assets/js/function.js"></script>
+
+<script>
+  'use strict';
+
+  const mauticJs = () => {
+    var len = jQuery('.mauticform-errormsg').length;
+    var disp = "";
+    var ma_name = "";
+    var ma_company = "";
+    var ma_tel = "";
+    var ma_mail = "";
+    var ma_koumoku = "";
+    var ma_comment = "";
+    var ma_text = "";
+    var ga_form = "";
+    var ga_c = "";
+
+    jQuery('.ma_submit').click(function() {
+      sessionStorage.setItem('name', jQuery('.ma_name').val());
+      sessionStorage.setItem('com', jQuery('.ma_com').val());
+      sessionStorage.setItem('tel', jQuery('.ma_tel').val());
+      sessionStorage.setItem('mail', jQuery('.ma_mail').val());
+      sessionStorage.setItem('detail', jQuery('.ma_detail').val());
+      sessionStorage.setItem('msg', jQuery('.ma_msg').val());
+      sessionStorage.setItem('comment', jQuery('.ma_comment').val());
+      sessionStorage.setItem('check', jQuery('.ma_check:checked').val());
+      ga_form = jQuery('.ma_detail').val();
+      ga_c = jQuery('.ma_check:checked').val();
+      var check = 0;
+      setTimeout(function() {
+        jQuery('.mauticform-errormsg').each(function() {
+          disp = jQuery(this).css('display');
+          if (disp == 'none') {
+            check = check + 1;
+          }
+        });
+        if (len == check) {
+          setTimeout(function() {
+            window.location.href = "https://www.shtockdata.com/thankyou.html?form=" + ga_form + "&c=" + ga_c + "&e=e";
+          }, 2000);
+        }
+      }, 50);
+    });
+  }
+
+
+  $(document).ready(function() {
+
+    $('body').scrollspy({
+      target: '#navbar',
+      offset: 80
+    });
+    $('a.page-scroll').bind('click', function(event) {
+      const link = $(this);
+      const href = link.attr('href');
+      if (!href || href.indexOf('http') === 0) return;
+      const target = $(href);
+      if (target.length) {
+        event.preventDefault();
+        $('html, body').stop().animate({
+          scrollTop: target.offset().top - 50
+        }, 500);
+        $("#navbar").collapse('hide');
+      }
+    });
+
+    jQuery(function() {
+      var tag = 'ShtockData';
+      var br = '<br>';
+      var dlmsg = 'の資料ダウンロード';
+      var submsg = '<span>（送信完了後にダウンロードリンクが表示されます）</span>';
+      var downloadIcon = '<i class="fa fa-file-pdf-o"></i> ';
+      var mailIcon = '<i class="fa fa-envelope-o"></i> ';
+      jQuery('#contact_title').html(downloadIcon + tag + dlmsg + br + submsg);
+      jQuery('.ma_detail').val('資料ダウンロード');
+      jQuery('.ma_msg').val(tag + dlmsg);
+      jQuery('.ma_check').val([tag]);
+      jQuery('.ma_check_wrap,.ma_comment_wrap').hide();
+      jQuery('.ma_detail_wrap,.ma_msg_wrap').hide();
+      jQuery('.ma_comment_wrap').show();
+    });
+
+    jQuery('#mauticform_owenhewasefomu_zxuon').before('<div class="policy_message">当社の<a href="https://www.keywalker.co.jp/company/policy.html" target="_blank" class="policy">プライバシーポリシー</a>に同意の上、送信してください。</div>');
+
+    mauticJs();
+  });
+
+  const cbpAnimatedHeader = (function() {
+    let docElem = document.documentElement,
+      header = document.querySelector('.navbar-default'),
+      didScroll = false,
+      changeHeaderOn = 200;
+
+    function init() {
+      window.addEventListener('scroll', function(event) {
+        if (!didScroll) {
+          didScroll = true;
+          setTimeout(scrollPage, 250);
+        }
+      }, false);
+    }
+
+    function scrollPage() {
+      const sy = scrollY();
+      if (sy >= changeHeaderOn) {
+        // $(header).addClass('navbar-scroll')
+      } else {
+        // $(header).removeClass('navbar-scroll')
+      }
+      didScroll = false;
+    }
+
+    function scrollY() {
+      return window.pageYOffset || docElem.scrollTop;
+    }
+    init();
+
+  })();
+
+  const p_download = () => {
+    $('.download').show();
+  }
+  const p_inquiry = () => {
+    $('.download').hide();
+  }
+</script>
+
+
+
+
+<div id="footer-banner-container"><a href="javascript:void(0);" onclick="removePopup()" id="footer-banner-close-button">x</a><a href="https://www.keywalker.co.jp/web-crawler/web_data_marketing.html"><img src="assets/images/book-banner.jpg"></a></div>
+
+<style>
+  /*  バナー無効化 */
+  #footer-banner-container {
+    /* display: none !important; */
+  }
+
+  /* Footer Banner  */
+  #footer-banner-container {
+    display: none;
+    position: fixed;
+    right: 20px;
+    bottom: 20px;
+    background: #ddd;
+    z-index: 9999;
+  }
+
+  #footer-banner-close-button {
+    position: absolute;
+    right: 0;
+    top: 0;
+    z-index: 9;
+  }
+
+  #footer-banner-container img {
+    vertical-align: bottom;
+  }
+
+  a#footer-banner-close-button {
+    text-decoration: none;
+    display: block;
+    background: rgb(255 255 255);
+    width: 18px;
+    height: 18px;
+    line-height: 18px;
+    text-align: center;
+    font-family: monospace;
+    font-size: 16px;
+  }
+
+  @media screen and (max-width:480px) {
+    #footer-banner-container {
+      display: none !important;
+    }
+  }
+</style>
+<script>
+  $(function() {
+    $('.case-dtl').matchHeight();
+  });
+</script>
+<script>
+  'use strict';
+
+  const showBanner = false; // バナー表示切り替えフラグ true（表示）:false（非表示）
+
+  // シャッフル
+  const shuffle = (array) => {
+    let currentIndex = array.length,
+      randomIndex;
+    while (currentIndex != 0) {
+      randomIndex = Math.floor(Math.random() * currentIndex);
+      currentIndex--;
+      [array[currentIndex], array[randomIndex]] = [
+        array[randomIndex], array[currentIndex]
+      ];
+    }
+    return array;
+  }
+
+  // バナーデータ
+  const bannerData = [
+    //バナーデータ【1】
+    {
+      "img": "https://www.keywalker.co.jp/images/banner/shoseki_banner.jpg",
+      "url": "https://www.keywalker.co.jp/web-crawler/web_data_marketing.html",
+    },
+
+    // バナーデータ【2】
+    {
+      "img": "https://www.keywalker.co.jp/images/banner/wp_banner.jpg",
+      "url": "https://www.keywalker.co.jp/pdf-download-2022-09-15.html",
+    },
+  ];
+
+  // シャッフル結果
+  const shuffleResult = shuffle(bannerData)[0];
+
+  // バナーの中身
+  const bannerContent =
+    '<a href="javascript:void(0);" onclick="removePopup()" id="footer-banner-close-button">x</a>' +
+    '<a href="' + shuffleResult.url + '">' +
+    '<img src="' + shuffleResult.img + '">' +
+    '</a>';
+
+  // htmlへ展開
+  $('#footer-banner-container').html(bannerContent);
+
+  /* popupを表示 */
+  const showPopup = () => {
+    jQuery("#footer-banner-container").show('fast');
+  }
+
+  /* popupを非表示 */
+  const hidePopup = () => {
+    jQuery("#footer-banner-container").hide('fast');
+  }
+
+  /*
+      表示エリアか判定
+      distance:int(スクロールして表示されるまでの距離)
+  */
+  const isVisibleArea = (distance) => {
+    return jQuery(document).scrollTop() >= jQuery(document).height() / distance;
+  }
+
+  /* scrollで切り替え */
+  jQuery(window).scroll(function() {
+    if (!showBanner) return; // バナーフラグで分岐
+    isVisibleArea(5) ? showPopup() : void(0);
+  });
+
+  /* popup削除 */
+  const removePopup = () => {
+    jQuery('#footer-banner-container').remove();
+  }
+
+  $(document).ready(function() {
+    $("#faq dt").mouseover(function() {
+      $(this).css("cursor", "pointer")
+    });
+    $("#faq dd").hide();
+    $("#faq dt").click(function() {
+      var op = $(this).next("dd");
+
+      if ($(op).is(':visible')) {
+        $(this).parent("dl").removeClass("open");
+        $(op).slideUp();
+      } else {
+        $(this).parent("dl").addClass("open");
+        $(op).slideDown();
+      }
+    });
+  });
+</script>
+
+</body></html>
