@@ -283,8 +283,9 @@ ${theme === "corporate" ? CORPORATE_THEME : ""}
 .fv-award-row{display:flex;align-items:flex-start;gap:16px;flex-wrap:wrap}
 .fv-badge{width:200px;text-align:center}
 .fv-badge-cat{font-size:11px;color:#555;line-height:1.3;font-weight:600;margin-bottom:2px}
-.fv-badge-img-wrap{width:100%;overflow:hidden;height:38px}
+.fv-badge-img-wrap{width:85%;overflow:hidden;height:38px;margin:0 auto;position:relative}
 .fv-badge-img{width:100%;height:auto;display:block;margin-top:-15%}
+.fv-badge-note{position:absolute;top:2px;right:-14px;font-size:9px;color:#888;line-height:1}
 .fv-award-notes{font-size:10px;color:#8c8c8c;line-height:1.4;margin-top:4px}
 .fv-btns{display:flex;gap:15px;flex-wrap:wrap}
 .fv-btns .btn{min-width:220px;border-radius:34px;font-size:16px;font-weight:700;padding:15px 28px;display:inline-flex;align-items:center;justify-content:center;gap:6px}
@@ -558,7 +559,7 @@ ${hasImg && images[0] ? `<div class="fv-bg" style="background-image:url('${esc(i
 <p class="fv-lead" style="font-size:${c.hero_headline.length <= 12 ? '40px' : c.hero_headline.length <= 20 ? '34px' : c.hero_headline.length <= 28 ? '28px' : '24px'}">${esc(c.hero_headline)}</p>
 <p class="fv-service-label">${esc(d.industry)}</p>
 <h1 class="fv-service-name">${esc(brandName)}${brandSub ? `<span class="fv-service-sub">${esc(brandSub)}</span>` : ""}</h1>
-${badges.length > 0 ? `<div class="fv-awards"><div class="fv-award-row">${badges.slice(0, 2).map(b => `<div class="fv-badge"><p class="fv-badge-cat">${esc(b)}</p><div class="fv-badge-img-wrap"><img class="fv-badge-img" src="${awardImg}" alt="No.1"></div></div>`).join("")}</div><p class="fv-award-notes">※ 自社調べ</p></div>` : ""}
+${badges.length > 0 ? `<div class="fv-awards"><div class="fv-award-row">${badges.slice(0, 2).map((b, i) => `<div class="fv-badge"><p class="fv-badge-cat">${esc(b)}</p><div class="fv-badge-img-wrap"><img class="fv-badge-img" src="${awardImg}" alt="No.1"><span class="fv-badge-note">※${i + 1}</span></div></div>`).join("")}</div><p class="fv-award-notes">※1※2 自社調べ</p></div>` : ""}
 <div class="fv-btns">
 <a href="#contact" class="btn btn-lg btn-accent">${esc(c.cta_text)}</a>
 <a href="#features" class="btn btn-lg btn-outline-accent">詳しく見る</a>
