@@ -395,10 +395,10 @@ ${theme === "corporate" ? CORPORATE_THEME : ""}
 /* ===== LOGO STRIP ===== */
 .logo-strip{padding:70px 0 50px;background:#fff}
 .logo-strip-label{text-align:center;font-size:24px;color:var(--c);font-weight:700;margin-bottom:50px}
-.logo-strip-list{display:flex;justify-content:center;align-items:center;flex-wrap:wrap;column-gap:60px;row-gap:40px;max-width:1100px;margin:0 auto;padding:0 40px}
-.logo-strip-item{display:inline-flex;align-items:center;height:80px;opacity:.5;padding:8px 0}
+.logo-strip-list{display:flex;justify-content:center;align-items:center;flex-wrap:wrap;column-gap:80px;row-gap:40px;max-width:1200px;margin:0 auto;padding:0 40px}
+.logo-strip-item{display:inline-flex;align-items:center;height:120px;opacity:.5;padding:8px 0}
 .logo-strip-item img{height:100%;width:auto;object-fit:contain}
-@media(max-width:750px){.logo-strip{padding:30px 0}.logo-strip-label{font-size:18px;margin-bottom:30px}.logo-strip-list{column-gap:32px;row-gap:24px}.logo-strip-item{height:50px}}
+@media(max-width:750px){.logo-strip{padding:30px 0}.logo-strip-label{font-size:18px;margin-bottom:30px}.logo-strip-list{column-gap:40px;row-gap:24px}.logo-strip-item{height:70px}}
 @media(max-width:480px){.logo-strip-list{column-gap:28px;row-gap:20px}.logo-strip-item{font-size:13px}}
 /* ===== BANNER ===== */
 .banner-sec{padding:0 0 50px;background:#fff}
