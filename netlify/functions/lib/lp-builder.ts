@@ -887,7 +887,7 @@ ${microHtml}
 <div class="ft-logo">${esc(d.company_name.charAt(0))}</div>
 <div class="ft-company">${esc(d.company_name)}</div>
 </div>
-<div class="ft-address">${esc(d.industry)}</div>
+<div class="ft-address">〒000-0000 ○○県○○市○○区0-00-000</div>
 <div class="ft-copy">&copy; ${esc(d.company_name)} All Rights Reserved.</div>
 </div>
 <div class="ft-links">
