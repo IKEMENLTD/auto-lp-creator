@@ -276,17 +276,17 @@ ${theme === "corporate" ? CORPORATE_THEME : ""}
 .fv-service-name{font-size:clamp(28px,4.2vw,44px);font-weight:900;color:var(--c);line-height:1.25;margin-bottom:28px}
 .fv-service-sub{display:block;font-size:clamp(14px,1.6vw,18px);font-weight:600;color:#555;margin-top:8px;letter-spacing:.02em}
 /* Award badges — laurel wreath style */
-.fv-awards{display:flex;flex-direction:column;gap:8px;margin-bottom:28px}
-.fv-award-row{display:flex;align-items:stretch;gap:16px;flex-wrap:wrap}
-.fv-badge{display:flex;flex-direction:column;align-items:center;text-align:center;width:220px;padding:16px 12px 14px;border:1px solid #e0d8c8;border-radius:4px;background:#fff}
-.fv-badge-cat{font-size:11px;color:#555;line-height:1.4;font-weight:600;margin-bottom:8px}
-.fv-badge-no1-wrap{display:flex;align-items:center;gap:6px}
-.fv-badge-wreath-l,.fv-badge-wreath-r{width:36px;height:50px;display:flex;align-items:center}
-.fv-badge-wreath-l svg,.fv-badge-wreath-r svg{width:100%;height:100%}
-.fv-badge-no1{font-family:'Inter',sans-serif;font-weight:900;color:#333;letter-spacing:-.03em;line-height:1}
-.fv-badge-no1-dot{font-size:18px}
-.fv-badge-no1-num{font-size:42px}
-.fv-badge-notes{font-size:9px;color:#aaa;margin-top:2px}
+.fv-awards{display:flex;flex-direction:column;gap:6px;margin-bottom:28px}
+.fv-award-row{display:flex;align-items:flex-start;gap:20px;flex-wrap:wrap}
+.fv-badge{display:flex;flex-direction:column;align-items:center;text-align:center;width:240px;position:relative}
+.fv-badge-cat{font-size:12px;color:#555;line-height:1.45;font-weight:600;margin-bottom:4px}
+.fv-badge-no1-wrap{display:flex;align-items:flex-end;justify-content:center;position:relative;width:100%;padding:0 8px}
+.fv-badge-wreath{position:absolute;bottom:-4px;left:50%;transform:translateX(-50%);width:160px;height:60px;pointer-events:none}
+.fv-badge-wreath svg{width:100%;height:100%}
+.fv-badge-no1{position:relative;z-index:1;font-family:'Inter',sans-serif;font-weight:900;color:#333;letter-spacing:-.03em;line-height:1;padding-bottom:4px}
+.fv-badge-no1-dot{font-size:20px}
+.fv-badge-no1-num{font-size:52px}
+.fv-badge-notes{font-size:9px;color:#aaa;position:absolute;top:4px;right:0;z-index:1}
 .fv-award-notes{font-size:10px;color:#8c8c8c;line-height:1.4;margin-top:4px}
 .fv-btns{display:flex;gap:15px;flex-wrap:wrap}
 .fv-btns .btn{min-width:220px;border-radius:34px;font-size:16px;font-weight:700;padding:15px 28px;display:inline-flex;align-items:center;justify-content:center;gap:6px}
@@ -468,10 +468,10 @@ ${theme === "corporate" ? CORPORATE_THEME : ""}
 .fv-lead{font-size:clamp(20px,4.5vw,26px)!important}
 .fv-service-name{font-size:clamp(22px,5.5vw,32px)}
 .fv-award-row{justify-content:center}
-.fv-badge{width:180px;padding:12px 10px 10px}
-.fv-badge-no1-num{font-size:36px}
+.fv-badge{width:200px}
+.fv-badge-no1-num{font-size:40px}
 .fv-badge-no1-dot{font-size:16px}
-.fv-badge-wreath-l,.fv-badge-wreath-r{width:28px;height:40px}
+.fv-badge-wreath{width:130px;height:50px}
 .fv-btns .btn{min-width:180px;font-size:14px}
 /* problems */
 .prob p{font-size:13px}.prob span{font-size:12px}.prob{padding:14px 16px;gap:10px}
@@ -507,10 +507,10 @@ ${theme === "corporate" ? CORPORATE_THEME : ""}
 /* hero */
 .fv-lead{font-size:18px!important}.fv-service-name{font-size:22px}
 .fv-btns{flex-direction:column}.fv-btns .btn{width:100%;min-width:auto}
-.fv-badge{width:160px;padding:10px 8px 8px}
-.fv-badge-no1-num{font-size:30px}
-.fv-badge-no1-dot{font-size:14px}
-.fv-badge-wreath-l,.fv-badge-wreath-r{width:24px;height:34px}
+.fv-badge{width:160px}
+.fv-badge-no1-num{font-size:32px}
+.fv-badge-no1-dot{font-size:12px}
+.fv-badge-wreath{width:110px;height:42px}
 .fv-badge-cat{font-size:10px}
 /* dashboard */
 .hero-dash{max-width:100%;padding:16px}
@@ -564,7 +564,7 @@ ${hasImg && images[0] ? `<div class="fv-bg" style="background-image:url('${esc(i
 <p class="fv-lead" style="font-size:${c.hero_headline.length <= 12 ? '40px' : c.hero_headline.length <= 20 ? '34px' : c.hero_headline.length <= 28 ? '28px' : '24px'}">${esc(c.hero_headline)}</p>
 <p class="fv-service-label">${esc(d.industry)}</p>
 <h1 class="fv-service-name">${esc(brandName)}${brandSub ? `<span class="fv-service-sub">${esc(brandSub)}</span>` : ""}</h1>
-${badges.length > 0 ? `<div class="fv-awards"><div class="fv-award-row">${badges.slice(0, 2).map(b => `<div class="fv-badge"><p class="fv-badge-cat">${esc(b)}</p><div class="fv-badge-no1-wrap"><div class="fv-badge-wreath-l"><svg viewBox="0 0 40 60" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M32 58c-3-4-5-9-5-14 0-4 1-7 3-10-5 1-9 4-11 8s-2 9 0 13c3 2 6 3 9 3h4z" fill="#c9a84c"/><path d="M28 42c-2-4-3-9-2-14-4 3-7 7-8 12s0 10 2 14c3 1 6 0 9-2l-1-10z" fill="#b8963f"/><path d="M25 28c-1-5 0-10 2-15-5 2-9 5-11 10s-2 10 0 14c3 0 6-1 8-4l1-5z" fill="#c9a84c"/><path d="M24 14c0-5 2-10 5-14-5 0-10 2-13 6s-4 9-3 14c3-1 6-2 8-4l3-2z" fill="#b8963f"/></svg></div><p class="fv-badge-no1"><span class="fv-badge-no1-dot">No.</span><span class="fv-badge-no1-num">1</span></p><div class="fv-badge-wreath-r"><svg viewBox="0 0 40 60" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 58c3-4 5-9 5-14 0-4-1-7-3-10 5 1 9 4 11 8s2 9 0 13c-3 2-6 3-9 3H8z" fill="#c9a84c"/><path d="M12 42c2-4 3-9 2-14 4 3 7 7 8 12s0 10-2 14c-3 1-6 0-9-2l1-10z" fill="#b8963f"/><path d="M15 28c1-5 0-10-2-15 5 2 9 5 11 10s2 10 0 14c-3 0-6-1-8-4l-1-5z" fill="#c9a84c"/><path d="M16 14c0-5-2-10-5-14 5 0 10 2 13 6s4 9 3 14c-3-1-6-2-8-4l-3-2z" fill="#b8963f"/></svg></div></div><p class="fv-badge-notes">※自社調べ</p></div>`).join("")}</div></div>` : ""}
+${badges.length > 0 ? `<div class="fv-awards"><div class="fv-award-row">${badges.slice(0, 2).map((b, i) => `<div class="fv-badge"><p class="fv-badge-cat">${esc(b)}</p><div class="fv-badge-no1-wrap"><div class="fv-badge-wreath"><svg viewBox="0 0 200 70" fill="none" xmlns="http://www.w3.org/2000/svg"><g opacity=".9"><path d="M40 65c2-6 6-11 11-15-3-1-7-1-10 1-3 1-5 4-6 8 1 3 3 5 5 6z" fill="#c9a84c"/><path d="M34 52c3-5 8-10 14-13-3-2-7-2-10 0-4 2-6 5-7 9 0 2 1 4 3 4z" fill="#b8963f"/><path d="M30 40c4-4 9-7 15-9-3-2-7-3-11-2-3 1-6 4-7 8 0 2 1 3 3 3z" fill="#c9a84c"/><path d="M28 28c4-3 9-5 15-5-3-2-6-4-10-4-4 0-7 2-9 5 0 3 2 4 4 4z" fill="#b8963f"/><path d="M30 17c3-2 8-3 13-2-2-3-5-5-9-6-3-1-7 0-9 3 0 2 2 4 5 5z" fill="#c9a84c"/><path d="M35 8c3-1 6-1 10 0-1-3-3-6-6-7-3-2-6-1-9 1 0 2 2 5 5 6z" fill="#b8963f"/><path d="M160 65c-2-6-6-11-11-15 3-1 7-1 10 1 3 1 5 4 6 8-1 3-3 5-5 6z" fill="#c9a84c"/><path d="M166 52c-3-5-8-10-14-13 3-2 7-2 10 0 4 2 6 5 7 9 0 2-1 4-3 4z" fill="#b8963f"/><path d="M170 40c-4-4-9-7-15-9 3-2 7-3 11-2 3 1 6 4 7 8 0 2-1 3-3 3z" fill="#c9a84c"/><path d="M172 28c-4-3-9-5-15-5 3-2 6-4 10-4 4 0 7 2 9 5 0 3-2 4-4 4z" fill="#b8963f"/><path d="M170 17c-3-2-8-3-13-2 2-3 5-5 9-6 3-1 7 0 9 3 0 2-2 4-5 5z" fill="#c9a84c"/><path d="M165 8c-3-1-6-1-10 0 1-3 3-6 6-7 3-2 6-1 9 1 0 2-2 5-5 6z" fill="#b8963f"/></g></svg></div><p class="fv-badge-no1"><span class="fv-badge-no1-dot">No.</span><span class="fv-badge-no1-num">1</span></p><span class="fv-badge-notes">※${i + 1}</span></div></div>`).join("")}</div><p class="fv-award-notes">※ 自社調べ</p></div>` : ""}
 <div class="fv-btns">
 <a href="#contact" class="btn btn-lg btn-accent">${esc(c.cta_text)}</a>
 <a href="#features" class="btn btn-lg btn-outline-accent">詳しく見る</a>
