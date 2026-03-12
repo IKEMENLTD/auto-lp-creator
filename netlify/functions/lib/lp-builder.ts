@@ -31,11 +31,11 @@ const PHOTO_LIBRARY: Record<string, string[]> = {
     "1552664730-d307ca884978",
     "1531973576160-7125cd663d86",
     "1522071820081-009f0129c71c",
-    "1556155092-490a1ba16284",
-    "1573497019940-1c28c88b4f3e",
-    "1560472354-b33ff0c44a43",
-    "1559136555-9303baea8ebd",
-    "1517245386807-bb43f82c33c4",
+    "1507679799987-c73779587ccf",
+    "1454165804606-c3d57bc86b40",
+    "1504384764586-bb4cdc1812f0",
+    "1519452635265-7b1fbfd1e4e0",
+    "1516321318423-f06f85e504b3",
   ],
   tech: [
     "1518770660439-4636190af475",
@@ -48,9 +48,9 @@ const PHOTO_LIBRARY: Record<string, string[]> = {
     "1461749280684-dccba630e2f6",
     "1526374965328-7f61d4dc18c5",
     "1558494949-ef010cbdcc31",
-    "1517077304055-6e89751369b9",
-    "1551288049-bebda4e38f71",
-    "1535378917042-10a22c95931a",
+    "1488590528505-98d2b5aba04b",
+    "1451187580459-43490279c0fa",
+    "1509966756634-9c23dd6e6815",
     "1498050108023-c5249f4df085",
     "1504639725590-34d0984388bd",
   ],
@@ -969,7 +969,7 @@ ${microHtml}
 
 <!-- SCROLL ANIMATION + FAQ TOGGLE -->
 <script>
-document.addEventListener('DOMContentLoaded',function(){var o=new IntersectionObserver(function(e){e.forEach(function(en){if(en.isIntersecting){en.target.classList.add('vis');o.unobserve(en.target)}})},{threshold:.12,rootMargin:'0px 0px -40px 0px'});document.querySelectorAll('.fi').forEach(function(el){o.observe(el)});document.querySelectorAll('.faq-q').forEach(function(dt){dt.addEventListener('click',function(){var dl=this.parentElement;if(dl.classList.contains('open')){dl.classList.remove('open')}else{dl.classList.add('open')}})})});
+document.addEventListener('DOMContentLoaded',function(){var o=new IntersectionObserver(function(e){e.forEach(function(en){if(en.isIntersecting){en.target.classList.add('vis');o.unobserve(en.target)}})},{threshold:.12,rootMargin:'0px 0px -40px 0px'});document.querySelectorAll('.fi').forEach(function(el){o.observe(el)});document.querySelectorAll('.faq-q').forEach(function(dt){dt.addEventListener('click',function(){var dl=this.parentElement;if(dl.classList.contains('open')){dl.classList.remove('open')}else{dl.classList.add('open')}})});document.querySelectorAll('img[src*="unsplash"]').forEach(function(img){img.onerror=function(){this.onerror=null;this.style.display='none';var p=this.parentElement;if(p){p.style.background='linear-gradient(135deg,#e2e8f0,#cbd5e1)';p.style.minHeight=this.height?this.height+'px':'200px'}}})});
 </script>
 </body></html>`;
 }
