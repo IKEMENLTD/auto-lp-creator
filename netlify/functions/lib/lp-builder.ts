@@ -333,6 +333,18 @@ ${theme === "corporate" ? CORPORATE_THEME : ""}
 .logo-strip-item{display:inline-flex;align-items:center;font-family:'Noto Sans JP','Inter',sans-serif;font-size:18px;font-weight:700;color:#333;letter-spacing:.04em;white-space:nowrap;opacity:.5;filter:grayscale(100%);padding:8px 0}
 @media(max-width:750px){.logo-strip{padding:30px 0}.logo-strip-label{font-size:18px;margin-bottom:30px}.logo-strip-list{column-gap:40px;row-gap:24px}.logo-strip-item{font-size:15px}}
 @media(max-width:480px){.logo-strip-list{column-gap:28px;row-gap:20px}.logo-strip-item{font-size:13px}}
+/* ===== BANNER ===== */
+.banner-sec{padding:0 0 50px;background:#fff}
+.banner-list{display:flex;justify-content:center;gap:20px;max-width:960px;margin:0 auto;padding:0 24px}
+.banner-item{width:calc((100% - 20px) / 2);border-radius:8px;overflow:hidden;box-shadow:6px 6px 6px 0 rgba(0,0,0,.45);transition:opacity .3s;cursor:pointer;position:relative}
+.banner-item:hover{opacity:.8}
+.banner-item-inner{display:flex;align-items:center;padding:28px 32px;gap:24px;min-height:140px;background:linear-gradient(135deg,var(--c) 0%,var(--dark) 100%);color:#fff}
+.banner-item-text{flex:1}
+.banner-item-text h4{font-size:18px;font-weight:800;line-height:1.5;margin-bottom:8px}
+.banner-item-text p{font-size:12px;opacity:.8;line-height:1.6;margin:0}
+.banner-item-badge{flex-shrink:0;background:rgba(255,255,255,.15);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.2);border-radius:8px;padding:12px 16px;text-align:center;font-size:11px;font-weight:700;line-height:1.6}
+@media(max-width:750px){.banner-list{flex-direction:column;gap:16px}.banner-item{width:100%}.banner-item-inner{padding:20px 24px;min-height:auto}.banner-item-text h4{font-size:16px}}
+@media(max-width:480px){.banner-item-inner{flex-direction:column;gap:12px;padding:20px}.banner-item-text h4{font-size:15px}}
 
 /* ===== ABOUT (〇〇とは) ===== */
 .about-pain{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-bottom:40px}
@@ -576,6 +588,21 @@ ${badges.length > 0 ? `<div class="fv-awards"><div class="fv-award-row">${badges
 <span class="logo-strip-item">TerraGrow</span>
 </div>
 </div>
+
+<!-- BANNER -->
+${columns.length >= 2 ? `<div class="banner-sec">
+<ul class="banner-list">
+${columns.slice(0, 2).map((col, i) => `<li class="banner-item">
+<div class="banner-item-inner">
+<div class="banner-item-text">
+<h4>${esc(col.title)}</h4>
+<p>${esc(col.desc)}</p>
+</div>
+<div class="banner-item-badge">無料で資料<br>ダウンロード</div>
+</div>
+</li>`).join("")}
+</ul>
+</div>` : ""}
 
 <!-- ABOUT: 〇〇とは（課題 + 解決アプローチ） -->
 <section class="sec" id="about">
