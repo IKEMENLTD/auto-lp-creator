@@ -84,8 +84,8 @@ export const Dashboard: React.FC = () => {
       }
 
       if (companies.length === 1) {
-        // 1社のみの場合は自動選択
-        handleCompanySelected(companies[0]!);
+        // 1社のみの場合は自動選択（抽出完了まで待つ）
+        await handleCompanySelected(companies[0]!);
         return;
       }
 
@@ -101,15 +101,16 @@ export const Dashboard: React.FC = () => {
     }
   }, []);
 
-  const handleCompanySelected = useCallback((company: DetectedCompany) => {
+  const handleCompanySelected = useCallback(async (company: DetectedCompany) => {
     session.setTargetCompany(company.name);
-    setRecordingState('ended');
+    setRecordingState('analyzing');
 
-    // 選択した企業にフォーカスして即座に抽出
+    // 選択した企業にフォーカスして抽出完了を待つ
     const fullTranscript = session.getFullTranscript();
     if (fullTranscript.length > 0) {
-      void session.extractForCompany(company.name, fullTranscript);
+      await session.extractForCompany(company.name, fullTranscript);
     }
+    setRecordingState('ended');
   }, [session]);
 
   // ================================================================
