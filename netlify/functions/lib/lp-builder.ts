@@ -184,6 +184,138 @@ ${([40, 55, 35, 65, 50] as number[]).map((h, i) => `<rect x="${28 + i * (w * 0.0
 <rect x="28" y="196" width="100" height="6" rx="2" fill="#cbd5e1"/>
 <rect x="${w - 100}" y="196" width="60" height="6" rx="2" fill="var(--c)" opacity=".3"/>
 </svg>`,
+
+  // Calendar / schedule
+  (w: number, h: number) => `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect width="${w}" height="${h}" fill="#f8fafb"/>
+<rect x="0" y="0" width="${w}" height="36" fill="#1e293b"/>
+<circle cx="16" cy="18" r="5" fill="#ef4444"/><circle cx="32" cy="18" r="5" fill="#f59e0b"/><circle cx="48" cy="18" r="5" fill="#22c55e"/>
+<rect x="16" y="48" width="${w - 32}" height="28" rx="6" fill="#fff" stroke="#e2e8f0" stroke-width="1"/>
+<text x="28" y="66" font-size="12" fill="#334155" font-weight="700">2026年 3月</text>
+<rect x="${w - 80}" y="54" width="16" height="16" rx="4" fill="var(--c)" opacity=".1"/><text x="${w - 72}" y="66" text-anchor="middle" font-size="10" fill="var(--c)">◀</text>
+<rect x="${w - 56}" y="54" width="16" height="16" rx="4" fill="var(--c)" opacity=".1"/><text x="${w - 48}" y="66" text-anchor="middle" font-size="10" fill="var(--c)">▶</text>
+${['月','火','水','木','金','土','日'].map((d, i) => `<text x="${24 + i * ((w - 48) / 7)}" y="96" font-size="10" fill="#94a3b8" font-weight="600">${d}</text>`).join("")}
+${Array.from({length: 28}, (_, i) => {
+    const col = i % 7;
+    const row = Math.floor(i / 7);
+    const x = 16 + col * ((w - 48) / 7);
+    const y = 104 + row * 28;
+    const isToday = i === 12;
+    const hasEvent = [3, 7, 12, 15, 21].includes(i);
+    return `<rect x="${x}" y="${y}" width="${(w - 48) / 7 - 4}" height="24" rx="4" fill="${isToday ? 'var(--c)' : hasEvent ? 'rgba(var(--c-rgb),.06)' : 'transparent'}"/>
+<text x="${x + ((w - 48) / 7 - 4) / 2}" y="${y + 16}" text-anchor="middle" font-size="11" fill="${isToday ? '#fff' : '#334155'}" font-weight="${isToday ? '700' : '400'}">${i + 1}</text>
+${hasEvent && !isToday ? `<circle cx="${x + ((w - 48) / 7 - 4) / 2}" cy="${y + 21}" r="2" fill="var(--c)"/>` : ''}`;
+  }).join("")}
+</svg>`,
+
+  // Chat / messaging
+  (w: number, h: number) => `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect width="${w}" height="${h}" fill="#f8fafb"/>
+<rect x="0" y="0" width="${w}" height="36" fill="#1e293b"/>
+<circle cx="16" cy="18" r="5" fill="#ef4444"/><circle cx="32" cy="18" r="5" fill="#f59e0b"/><circle cx="48" cy="18" r="5" fill="#22c55e"/>
+<rect x="0" y="36" width="${w * 0.28}" height="${h - 36}" fill="#fff" stroke="#e2e8f0" stroke-width="1"/>
+${[0,1,2,3,4].map(i => `<rect x="8" y="${48 + i * 36}" width="${w * 0.28 - 16}" height="30" rx="6" fill="${i === 1 ? 'rgba(var(--c-rgb),.06)' : 'transparent'}"/>
+<circle cx="20" cy="${63 + i * 36}" r="10" fill="${['#3b82f6','var(--c)','#8b5cf6','#f59e0b','#64748b'][i]}" opacity=".2"/>
+<rect x="36" y="${57 + i * 36}" width="${[50,60,45,55,40][i]}" height="5" rx="2" fill="#334155" opacity=".5"/>
+<rect x="36" y="${66 + i * 36}" width="${[70,55,65,50,60][i]}" height="4" rx="2" fill="#cbd5e1"/>`).join("")}
+<rect x="${w * 0.3}" y="48" width="${w * 0.66}" height="24" rx="4" fill="#fff" stroke="#e2e8f0" stroke-width="1"/>
+<text x="${w * 0.33}" y="64" font-size="12" fill="#334155" font-weight="700">チームチャット</text>
+<rect x="${w * 0.33}" y="84" width="${w * 0.4}" height="32" rx="12" fill="rgba(var(--c-rgb),.08)"/>
+<rect x="${w * 0.36}" y="94" width="100" height="5" rx="2" fill="var(--c)" opacity=".5"/>
+<rect x="${w * 0.55}" y="124" width="${w * 0.38}" height="32" rx="12" fill="var(--c)" opacity=".9"/>
+<rect x="${w * 0.58}" y="134" width="80" height="5" rx="2" fill="#fff" opacity=".8"/>
+<rect x="${w * 0.33}" y="168" width="${w * 0.35}" height="32" rx="12" fill="rgba(var(--c-rgb),.08)"/>
+<rect x="${w * 0.36}" y="178" width="90" height="5" rx="2" fill="var(--c)" opacity=".5"/>
+<rect x="${w * 0.3}" y="${h - 40}" width="${w * 0.66}" height="32" rx="16" fill="#fff" stroke="#e2e8f0" stroke-width="1"/>
+<text x="${w * 0.35}" y="${h - 20}" font-size="11" fill="#94a3b8">メッセージを入力...</text>
+</svg>`,
+
+  // User profiles / CRM
+  (w: number, h: number) => `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect width="${w}" height="${h}" fill="#f8fafb"/>
+<rect x="0" y="0" width="${w}" height="36" fill="#1e293b"/>
+<circle cx="16" cy="18" r="5" fill="#ef4444"/><circle cx="32" cy="18" r="5" fill="#f59e0b"/><circle cx="48" cy="18" r="5" fill="#22c55e"/>
+<rect x="16" y="52" width="${w * 0.35}" height="${h - 68}" rx="8" fill="#fff" stroke="#e2e8f0" stroke-width="1"/>
+<circle cx="${16 + w * 0.175}" cy="90" r="24" fill="var(--c)" opacity=".15"/>
+<text x="${16 + w * 0.175}" y="96" text-anchor="middle" font-size="18" font-weight="700" fill="var(--c)">田</text>
+<rect x="${16 + w * 0.175 - 35}" y="122" width="70" height="8" rx="2" fill="#334155" opacity=".7"/>
+<rect x="${16 + w * 0.175 - 25}" y="136" width="50" height="5" rx="2" fill="var(--c)" opacity=".4"/>
+${[0,1,2,3].map(i => `<rect x="${28}" y="${156 + i * 24}" width="40" height="5" rx="2" fill="#94a3b8"/>
+<rect x="${76}" y="${156 + i * 24}" width="${[60,80,50,70][i]}" height="5" rx="2" fill="#cbd5e1"/>`).join("")}
+<rect x="${w * 0.4}" y="52" width="${w * 0.56}" height="60" rx="8" fill="#fff" stroke="#e2e8f0" stroke-width="1"/>
+<text x="${w * 0.43}" y="72" font-size="11" fill="var(--c)" font-weight="700">Activity</text>
+<rect x="${w * 0.43}" y="82" width="${w * 0.5}" height="5" rx="2" fill="var(--c)" opacity=".15"/>
+<rect x="${w * 0.43}" y="82" width="${w * 0.35}" height="5" rx="2" fill="var(--c)" opacity=".6"/>
+<text x="${w * 0.43}" y="102" font-size="10" fill="#94a3b8">今月: 24件対応</text>
+${[0,1,2].map(i => `<rect x="${w * 0.4}" y="${124 + i * 36}" width="${w * 0.56}" height="30" rx="6" fill="#fff" stroke="#e2e8f0" stroke-width="1"/>
+<circle cx="${w * 0.44}" cy="${139 + i * 36}" r="4" fill="${['var(--c)', '#3b82f6', '#f59e0b'][i]}"/>
+<rect x="${w * 0.47}" y="${134 + i * 36}" width="${[90,70,80][i]}" height="5" rx="2" fill="#334155" opacity=".5"/>
+<rect x="${w * 0.47}" y="${144 + i * 36}" width="${[60,80,50][i]}" height="4" rx="2" fill="#cbd5e1"/>`).join("")}
+</svg>`,
+
+  // Notification center
+  (w: number, h: number) => `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect width="${w}" height="${h}" fill="#f8fafb"/>
+<rect x="0" y="0" width="${w}" height="36" fill="#1e293b"/>
+<circle cx="16" cy="18" r="5" fill="#ef4444"/><circle cx="32" cy="18" r="5" fill="#f59e0b"/><circle cx="48" cy="18" r="5" fill="#22c55e"/>
+<rect x="${w * 0.2}" y="48" width="${w * 0.6}" height="28" rx="6" fill="#fff" stroke="#e2e8f0" stroke-width="1"/>
+<text x="${w * 0.5}" y="66" text-anchor="middle" font-size="12" fill="#334155" font-weight="700">通知センター</text>
+<circle cx="${w * 0.73}" cy="62" r="8" fill="var(--c)"/><text x="${w * 0.73}" y="66" text-anchor="middle" font-size="9" fill="#fff" font-weight="700">5</text>
+${[0,1,2,3,4].map(i => {
+    const y = 88 + i * 36;
+    const isUnread = i < 2;
+    return `<rect x="${w * 0.15}" y="${y}" width="${w * 0.7}" height="30" rx="6" fill="${isUnread ? 'rgba(var(--c-rgb),.04)' : '#fff'}" stroke="#e2e8f0" stroke-width="1"/>
+${isUnread ? `<circle cx="${w * 0.18}" cy="${y + 15}" r="3" fill="var(--c)"/>` : ''}
+<circle cx="${w * 0.22}" cy="${y + 15}" r="10" fill="${['#3b82f6','var(--c)','#8b5cf6','#64748b','#f59e0b'][i]}" opacity=".15"/>
+<rect x="${w * 0.28}" y="${y + 8}" width="${[100,80,90,70,85][i]}" height="5" rx="2" fill="#334155" opacity="${isUnread ? '.7' : '.4'}"/>
+<rect x="${w * 0.28}" y="${y + 18}" width="${[70,90,60,80,65][i]}" height="4" rx="2" fill="#cbd5e1"/>
+<text x="${w * 0.78}" y="${y + 16}" font-size="9" fill="#94a3b8">${['1分前','5分前','1時間前','昨日','3日前'][i]}</text>`;
+  }).join("")}
+</svg>`,
+
+  // Map / location
+  (w: number, h: number) => `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect width="${w}" height="${h}" fill="#e8f4f8"/>
+<rect x="0" y="0" width="${w}" height="36" fill="#1e293b"/>
+<circle cx="16" cy="18" r="5" fill="#ef4444"/><circle cx="32" cy="18" r="5" fill="#f59e0b"/><circle cx="48" cy="18" r="5" fill="#22c55e"/>
+<rect x="16" y="48" width="160" height="28" rx="14" fill="#fff" stroke="#e2e8f0" stroke-width="1"/>
+<text x="32" y="66" font-size="11" fill="#94a3b8">場所を検索...</text>
+${[0,1,2,3].map(i => `<line x1="${w * 0.1 + i * (w * 0.25)}" y1="36" x2="${w * 0.15 + i * (w * 0.22)}" y2="${h}" stroke="#cbd5e1" stroke-width="0.5" opacity=".5"/>`).join("")}
+${[0,1,2].map(i => `<line x1="0" y1="${80 + i * 60}" x2="${w}" y2="${85 + i * 55}" stroke="#cbd5e1" stroke-width="0.5" opacity=".5"/>`).join("")}
+<circle cx="${w * 0.5}" cy="${h * 0.5}" r="16" fill="var(--c)" opacity=".15"/>
+<circle cx="${w * 0.5}" cy="${h * 0.5}" r="6" fill="var(--c)"/>
+<path d="${`M${w * 0.5},${h * 0.5 - 20} C${w * 0.5 - 10},${h * 0.5 - 20} ${w * 0.5 - 14},${h * 0.5 - 8} ${w * 0.5},${h * 0.5} C${w * 0.5 + 14},${h * 0.5 - 8} ${w * 0.5 + 10},${h * 0.5 - 20} ${w * 0.5},${h * 0.5 - 20}`}" fill="var(--c)" opacity=".8"/>
+<circle cx="${w * 0.3}" cy="${h * 0.35}" r="4" fill="#3b82f6" opacity=".6"/>
+<circle cx="${w * 0.7}" cy="${h * 0.6}" r="4" fill="#f59e0b" opacity=".6"/>
+<circle cx="${w * 0.25}" cy="${h * 0.7}" r="4" fill="#8b5cf6" opacity=".6"/>
+<rect x="${w * 0.6}" y="${h - 60}" width="${w * 0.35}" height="48" rx="8" fill="#fff" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="${w * 0.63}" y="${h - 50}" width="60" height="6" rx="2" fill="#334155" opacity=".6"/>
+<rect x="${w * 0.63}" y="${h - 38}" width="80" height="4" rx="2" fill="#cbd5e1"/>
+<rect x="${w * 0.63}" y="${h - 28}" width="50" height="4" rx="2" fill="var(--c)" opacity=".4"/>
+</svg>`,
+
+  // File manager
+  (w: number, h: number) => `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect width="${w}" height="${h}" fill="#f8fafb"/>
+<rect x="0" y="0" width="${w}" height="36" fill="#1e293b"/>
+<circle cx="16" cy="18" r="5" fill="#ef4444"/><circle cx="32" cy="18" r="5" fill="#f59e0b"/><circle cx="48" cy="18" r="5" fill="#22c55e"/>
+<rect x="16" y="48" width="${w - 32}" height="28" rx="6" fill="#fff" stroke="#e2e8f0" stroke-width="1"/>
+<text x="28" y="66" font-size="11" fill="#94a3b8">ファイルを検索...</text>
+<rect x="${w - 110}" y="52" width="90" height="20" rx="10" fill="var(--c)"/>
+<text x="${w - 65}" y="66" text-anchor="middle" font-size="10" fill="#fff" font-weight="700">アップロード</text>
+${[0,1,2,3].map((i) => {
+    const y = 88 + i * 36;
+    const icons = ['📄','📊','📁','🖼'];
+    const colors = ['#3b82f6','#22c55e','#f59e0b','#8b5cf6'];
+    return `<rect x="16" y="${y}" width="${w - 32}" height="30" rx="6" fill="#fff" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="24" y="${y + 7}" width="16" height="16" rx="3" fill="${colors[i]}" opacity=".15"/>
+<rect x="48" y="${y + 8}" width="${[80,100,70,90][i]}" height="6" rx="2" fill="#334155" opacity=".5"/>
+<rect x="48" y="${y + 18}" width="${[50,60,45,55][i]}" height="4" rx="2" fill="#cbd5e1"/>
+<text x="${w - 40}" y="${y + 18}" text-anchor="middle" font-size="9" fill="#94a3b8">${['2.4MB','1.8MB','—','5.1MB'][i]}</text>`;
+  }).join("")}
+<rect x="16" y="${h - 48}" width="${w - 32}" height="36" rx="8" fill="#fff" stroke="#e2e8f0" stroke-width="1" stroke-dasharray="4 4"/>
+<text x="${w / 2}" y="${h - 26}" text-anchor="middle" font-size="11" fill="#94a3b8">ドラッグ＆ドロップでアップロード</text>
+</svg>`,
 ];
 
 function productMockupSvg(index: number, width: number, height: number): string {
