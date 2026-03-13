@@ -269,7 +269,7 @@ ${reasons.length > 0 ? `<section class="sec" id="reasons">
 <div class="sec-hd"><p class="sec-bg-txt">Reason</p><p class="sec-eng">Why Choose Us</p><h2 class="sec-tit fi">${esc(d.company_name)}が選ばれる理由</h2></div>
 <div class="reason-list">
 ${reasons.map((item, i) => {
-  const reasonImg = images[i + 4] ? images[i + 4].url.replace(/w=\d+/, "w=600").replace(/h=\d+/, "h=400") : unsplashUrl(PHOTO_LIBRARY["business"][(i + 4) % 15], 600, 400);
+  const reasonImg = images[i + 4] ? images[i + 4].url.replace(/w=\d+/, "w=600").replace(/h=\d+/, "h=400") : unsplashUrl(PHOTO_LIBRARY["business"][(i + 4) % 15]!, 600, 400);
   return `<div class="reason-card fi">
 <img class="reason-img" src="${esc(reasonImg)}" alt="${esc(item.title)}" loading="lazy">
 <div class="reason-body">
@@ -298,7 +298,7 @@ ${useCases.map((item, i) => {
     target: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>',
   };
   const ucIcon = ucIcoMap[item.icon_keyword] || ucIcoMap["zap"];
-  const ucImg = images[i + 5] ? images[i + 5].url.replace(/w=\d+/, "w=600").replace(/h=\d+/, "h=400") : unsplashUrl(PHOTO_LIBRARY["business"][(i + 7) % 15], 600, 400);
+  const ucImg = images[i + 7] ? images[i + 7].url.replace(/w=\d+/, "w=600").replace(/h=\d+/, "h=400") : unsplashUrl(PHOTO_LIBRARY["business"][(i + 7) % 15], 600, 400);
   return `<div class="uc-card fi">
 <img class="uc-card-img" src="${esc(ucImg)}" alt="${esc(item.title)}" loading="lazy">
 <div class="uc-card-body">
@@ -317,7 +317,7 @@ ${funcs.length > 0 ? `<section class="sec" id="functions">
 <div class="sec-hd"><p class="sec-bg-txt">Functions</p><p class="sec-eng">Main Features</p><h2 class="sec-tit fi">${esc(d.service_name)}の主な機能</h2></div>
 <div class="func-grid">
 ${funcs.map((item, i) => {
-  const funcImg = images[i + 8] ? images[i + 8].url.replace(/w=\d+/, "w=600").replace(/h=\d+/, "h=400") : unsplashUrl(PHOTO_LIBRARY["tech"][(i + 5) % 15], 600, 400);
+  const funcImg = images[i + 10] ? images[i + 10].url.replace(/w=\d+/, "w=600").replace(/h=\d+/, "h=400") : unsplashUrl(PHOTO_LIBRARY["tech"][(i + 10) % 15], 600, 400);
   return `<div class="func-card fi">
 <img class="func-card-img" src="${esc(funcImg)}" alt="${esc(item.title)}" loading="lazy">
 <div class="func-body">
@@ -336,7 +336,7 @@ ${columns.length > 0 ? `<section class="sec">
 <div class="sec-hd"><p class="sec-bg-txt">Column</p><p class="sec-eng">Column</p><h2 class="sec-tit fi">お役立ち情報</h2></div>
 <div class="col-grid">
 ${columns.map((col, i) => {
-  const colImg = images[i + 14] ? images[i + 14].url.replace(/w=\d+/, "w=200").replace(/h=\d+/, "h=200") : unsplashUrl(PHOTO_LIBRARY["business"][(i + 11) % 15], 200, 200);
+  const colImg = images[i + 16] ? images[i + 16].url.replace(/w=\d+/, "w=200").replace(/h=\d+/, "h=200") : unsplashUrl(PHOTO_LIBRARY["business"][(i + 11) % 15]!, 200, 200);
   return `<div class="col-card fi">
 <img class="col-thumb" src="${esc(colImg)}" alt="${esc(col.title)}" loading="lazy">
 <div class="col-body">
@@ -389,7 +389,7 @@ ${cas.length > 0 ? `<section class="sec" id="cases" style="background:var(--bg2)
 <div class="sec-hd"><p class="sec-bg-txt">Results</p><p class="sec-eng">Case Results</p><h2 class="sec-tit fi">実績事例</h2></div>
 <div class="tm-grid">
 ${cas.map((item, i) => {
-  const caseImg = images[i + 11] ? images[i + 11].url.replace(/w=\d+/, "w=600").replace(/h=\d+/, "h=400") : unsplashUrl(PHOTO_LIBRARY["business"][(i + 13) % 15], 600, 400);
+  const caseImg = images[i + 13] ? images[i + 13].url.replace(/w=\d+/, "w=600").replace(/h=\d+/, "h=400") : unsplashUrl(PHOTO_LIBRARY["business"][(i + 13) % 15]!, 600, 400);
   return `<div class="tm-card fi">
 <img class="tm-card-img" src="${esc(caseImg)}" alt="${esc(item.category)}" loading="lazy">
 <div class="tm-card-body">
