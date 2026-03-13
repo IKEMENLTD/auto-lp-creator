@@ -455,14 +455,40 @@ ${faq.map(item => `<dl class="faq-item"><dt class="faq-q">${esc(item.q)}</dt><dd
 <div class="cta-sub">${esc(c.cta_sub || "")}</div>
 <div class="cta-cards">
 <div class="cta-card">
-<div class="cta-card-icon dl"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></div>
+<figure><svg width="140" height="90" viewBox="0 0 140 90" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M30 15h80v60H30z" fill="#f0f0f0" stroke="#bbb" stroke-width="1.5" rx="2"/>
+<path d="M30 15h40v60H30z" fill="#fff" stroke="#bbb" stroke-width="1.5"/>
+<circle cx="50" cy="40" r="10" fill="none" stroke="var(--c)" stroke-width="2.5"/>
+<path d="M50 33v7h7" stroke="var(--c)" stroke-width="2" stroke-linecap="round"/>
+<line x1="43" y1="55" x2="57" y2="55" stroke="#ccc" stroke-width="2"/>
+<line x1="45" y1="60" x2="55" y2="60" stroke="#ccc" stroke-width="1.5"/>
+<rect x="80" y="30" width="6" height="25" rx="1" fill="var(--c)" opacity=".5"/>
+<rect x="89" y="38" width="6" height="17" rx="1" fill="var(--c)" opacity=".7"/>
+<rect x="98" y="25" width="6" height="30" rx="1" fill="var(--c)" opacity=".9"/>
+<rect x="85" y="28" width="22" height="14" rx="2" fill="#fff" stroke="var(--c)" stroke-width="1"/>
+<line x1="89" y1="33" x2="103" y2="33" stroke="var(--c)" stroke-width="1" opacity=".5"/>
+<line x1="89" y1="37" x2="99" y2="37" stroke="var(--c)" stroke-width="1" opacity=".3"/>
+<line x1="25" y1="8" x2="28" y2="3" stroke="#bbb" stroke-width="1.5" stroke-linecap="round"/>
+<line x1="32" y1="6" x2="32" y2="0" stroke="#bbb" stroke-width="1.5" stroke-linecap="round"/>
+<line x1="39" y1="8" x2="36" y2="3" stroke="#bbb" stroke-width="1.5" stroke-linecap="round"/>
+</svg></figure>
 <h3>料金プランやサービス詳細など<br>サービス紹介資料はこちら</h3>
-<a href="#contact" class="btn btn-primary">${esc(c.cta_text)} ${arrowSvg}</a>
+<a href="#contact" class="btn btn-trial">資料ダウンロード</a>
 </div>
 <div class="cta-card">
-<div class="cta-card-icon contact"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></div>
+<figure><svg width="140" height="90" viewBox="0 0 140 90" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect x="30" y="10" width="80" height="55" rx="4" fill="#f0f0f0" stroke="#bbb" stroke-width="1.5"/>
+<rect x="35" y="15" width="70" height="45" rx="2" fill="#fff"/>
+<circle cx="70" cy="37" r="14" fill="none" stroke="var(--c)" stroke-width="2.5"/>
+<path d="M70 28v9l6 3" stroke="var(--c)" stroke-width="2" stroke-linecap="round"/>
+<rect x="58" y="67" width="24" height="4" rx="1" fill="#bbb"/>
+<rect x="52" y="72" width="36" height="3" rx="1" fill="#ccc"/>
+<line x1="65" y1="3" x2="65" y2="8" stroke="#bbb" stroke-width="1.5" stroke-linecap="round"/>
+<line x1="70" y1="1" x2="70" y2="8" stroke="#bbb" stroke-width="1.5" stroke-linecap="round"/>
+<line x1="75" y1="3" x2="75" y2="8" stroke="#bbb" stroke-width="1.5" stroke-linecap="round"/>
+</svg></figure>
 <h3>${esc(pName)}に直接相談したい方は<br>こちらからお問い合わせください</h3>
-<a href="#contact" class="btn btn-primary">お問い合わせ ${arrowSvg}</a>
+<a href="#contact" class="btn btn-outline">お問い合わせ</a>
 </div>
 </div>
 </section>
@@ -475,7 +501,6 @@ ${faq.map(item => `<dl class="faq-item"><dt class="faq-q">${esc(item.q)}</dt><dd
 <div class="ft-logo">${esc(d.company_name.charAt(0))}</div>
 <div class="ft-company">${esc(d.company_name)}</div>
 </div>
-<div class="ft-desc">${esc(c.company_profile || d.service_name + "を提供しています。")}</div>
 <div class="ft-address">〒000-0000 ○○県○○市○○区0-00-000</div>
 </div>
 <div class="ft-right">
