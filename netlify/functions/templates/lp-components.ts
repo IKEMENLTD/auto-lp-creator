@@ -320,12 +320,8 @@ section.sec:nth-of-type(odd) { background:var(--bg); }
 .cta-sec::before { display:none; }
 .cta-tit { color:#fff; }
 .cta-sub { color:rgba(255,255,255,.7); }
-/* 中間CTA（セクション間に挿入） */
-.mid-cta { text-align:center; padding:30px 0; }
-.mid-cta a { display:inline-flex; align-items:center; gap:8px; border-radius:34px; padding:14px 36px; font-weight:700; text-decoration:none; transition:.2s; margin:0 8px; }
-.mid-cta a.trial { background:var(--c); color:#fff; }
-.mid-cta a.doc { background:var(--card-bg); color:var(--c); border:2px solid var(--c); }
-.mid-cta a:hover { opacity:.85; }
+/* 中間CTA（セクション間に挿入）— corporateテーマ上書き */
+.mid-cta a.doc { background:var(--card-bg); }
 /* ヒーローダッシュボード（明るい背景用） */
 .hero-dash { background:#fff; border:1px solid var(--bd); box-shadow:0 8px 32px rgba(0,0,0,.08); }
 .hero-dash-header { border-bottom:1px solid var(--bd); padding-bottom:14px; margin-bottom:16px; }
@@ -384,13 +380,8 @@ section.sec:nth-of-type(odd) { background:var(--bg); }
 @media(max-width:768px){
   .sec-tit { font-size:22px; }
   .hd-nav a.btn-accent { font-size:12px; padding:6px 16px; }
-  .mid-cta a { padding:10px 24px; font-size:14px; }
   .str-ico { width:48px; height:48px; }
   .fv-headline { font-size:clamp(22px,5vw,32px); }
-}
-@media(max-width:480px){
-  .mid-cta { display:flex; flex-direction:column; align-items:center; gap:8px; }
-  .mid-cta a { margin:0; width:80%; justify-content:center; }
 }
 /* corporate trust badges */
 .trust-badge-item { background:rgba(26,179,148,.1); border-color:rgba(26,179,148,.25); color:var(--c); }

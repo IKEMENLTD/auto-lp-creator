@@ -197,18 +197,32 @@ ${p.theme === "corporate" ? CORPORATE_THEME : ""}
 .uc-grid.items-1 .uc-card,.uc-grid.items-2 .uc-card{width:calc((100% - 48px) / 3);min-width:280px}
 @media(max-width:750px){.uc-grid{grid-template-columns:1fr;gap:16px}.uc-grid.items-1 .uc-card,.uc-grid.items-2 .uc-card{width:100%;min-width:auto}.uc-card-img{height:160px}}
 
-/* ===== FUNCTIONS (主な機能) ===== */
-.func-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;max-width:1000px;margin:0 auto}
-.func-card{overflow:hidden;border-radius:var(--r);background:var(--bg);border:1px solid var(--bd);transition:box-shadow .4s,transform .4s}
-.func-card:hover{box-shadow:0 12px 36px rgba(0,0,0,.08);transform:translateY(-4px)}
-.func-card-img{width:100%;height:160px;object-fit:cover;display:block}
-.func-body{padding:20px}
-.func-body h4{font-size:15px;font-weight:800;margin-bottom:6px}
-.func-body p{font-size:13px;color:var(--t2);line-height:1.8;margin:0}
-/* Center when fewer than 3 items */
-.func-grid.items-1,.func-grid.items-2{display:flex;flex-wrap:wrap;justify-content:center}
-.func-grid.items-1 .func-card,.func-grid.items-2 .func-card{width:calc((100% - 48px) / 3);min-width:280px}
-@media(max-width:750px){.func-grid{grid-template-columns:1fr;gap:16px}.func-grid.items-1 .func-card,.func-grid.items-2 .func-card{width:100%;min-width:auto}.func-card-img{height:140px}.func-body{padding:16px}}
+/* ===== FUNCTIONS (主な機能 - 2列交互レイアウト) ===== */
+.func-rows{display:flex;flex-direction:column;gap:40px;max-width:960px;margin:0 auto}
+.func-row{display:grid;grid-template-columns:1fr 1fr;gap:32px;align-items:center;background:var(--bg);border:1px solid var(--bd);border-radius:var(--r);overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.06);transition:box-shadow .4s,transform .4s}
+.func-row:hover{box-shadow:0 12px 36px rgba(0,0,0,.08);transform:translateY(-3px)}
+.func-row-rev{direction:rtl}.func-row-rev>*{direction:ltr}
+.func-row-img{overflow:hidden}
+.func-row-img img{width:100%;height:100%;min-height:220px;object-fit:cover;display:block}
+.func-row-mockup{padding:16px;background:#f8fafb}
+.func-row-mockup svg{width:100%;height:auto;display:block}
+.func-row-text{padding:32px 28px}
+.func-row-text h4{font-size:18px;font-weight:800;margin-bottom:10px;line-height:1.4}
+.func-row-text p{font-size:14px;color:var(--t2);line-height:1.8;margin:0}
+@media(max-width:750px){.func-row{grid-template-columns:1fr;gap:0}.func-row-rev{direction:ltr}.func-row-img img{min-height:180px;height:200px}.func-row-text{padding:20px}}
+
+/* ===== PRODUCT MOCKUP (Features/Functions用) ===== */
+.feat-card-mockup{background:#f8fafb;padding:12px;overflow:hidden}
+.feat-card-mockup svg{width:100%;height:auto;display:block}
+
+/* ===== MID-CTA (セクション間CTA) ===== */
+.mid-cta{text-align:center;padding:30px 0}
+.mid-cta a{display:inline-flex;align-items:center;gap:8px;border-radius:34px;padding:14px 36px;font-weight:700;text-decoration:none;transition:.2s;margin:0 8px}
+.mid-cta a.trial{background:var(--c);color:#fff}
+.mid-cta a.doc{background:var(--bg);color:var(--c);border:2px solid var(--c)}
+.mid-cta a:hover{opacity:.85}
+@media(max-width:768px){.mid-cta a{padding:10px 24px;font-size:14px}}
+@media(max-width:480px){.mid-cta{display:flex;flex-direction:column;align-items:center;gap:8px}.mid-cta a{margin:0;width:80%;justify-content:center}}
 
 /* ===== COLUMNS (お役立ち記事) ===== */
 .col-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:24px;max-width:800px;margin:0 auto}

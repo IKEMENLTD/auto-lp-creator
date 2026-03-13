@@ -71,6 +71,127 @@ export function selectTheme(d: FlatData): LpTheme {
 }
 
 // ============================================================
+// プロダクトUIモックアップSVG生成
+// ============================================================
+
+const MOCKUP_VARIANTS = [
+  // Dashboard
+  (w: number, h: number) => `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect width="${w}" height="${h}" fill="#f8fafb"/>
+<rect x="0" y="0" width="${w}" height="36" fill="#1e293b"/>
+<circle cx="16" cy="18" r="5" fill="#ef4444"/><circle cx="32" cy="18" r="5" fill="#f59e0b"/><circle cx="48" cy="18" r="5" fill="#22c55e"/>
+<rect x="16" y="52" width="${w * 0.28}" height="80" rx="6" fill="#fff" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="24" y="62" width="40" height="8" rx="2" fill="var(--c)" opacity=".8"/>
+<rect x="24" y="78" width="60" height="6" rx="2" fill="#e2e8f0"/>
+<rect x="24" y="90" width="50" height="6" rx="2" fill="#e2e8f0"/>
+<rect x="24" y="102" width="70" height="6" rx="2" fill="#e2e8f0"/>
+<rect x="24" y="114" width="45" height="6" rx="2" fill="#e2e8f0"/>
+<rect x="${w * 0.35}" y="52" width="${w * 0.28}" height="80" rx="6" fill="#fff" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="${w * 0.35 + 12}" y="62" width="24" height="24" rx="12" fill="var(--c)" opacity=".15"/>
+<text x="${w * 0.35 + 24}" y="80" text-anchor="middle" font-size="14" font-weight="800" fill="var(--c)">85%</text>
+<rect x="${w * 0.35 + 12}" y="96" width="60" height="6" rx="2" fill="#e2e8f0"/>
+<rect x="${w * 0.35 + 12}" y="108" width="40" height="6" rx="2" fill="#e2e8f0"/>
+<rect x="${w * 0.7}" y="52" width="${w * 0.25}" height="80" rx="6" fill="#fff" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="${w * 0.7 + 8}" y="72" width="12" height="40" rx="2" fill="var(--c)" opacity=".3"/>
+<rect x="${w * 0.7 + 24}" y="62" width="12" height="50" rx="2" fill="var(--c)" opacity=".5"/>
+<rect x="${w * 0.7 + 40}" y="80" width="12" height="32" rx="2" fill="var(--c)" opacity=".7"/>
+<rect x="${w * 0.7 + 56}" y="56" width="12" height="56" rx="2" fill="var(--c)" opacity=".9"/>
+<rect x="16" y="148" width="${w - 32}" height="60" rx="6" fill="#fff" stroke="#e2e8f0" stroke-width="1"/>
+<line x1="16" y1="168" x2="${w - 16}" y2="168" stroke="#e2e8f0" stroke-width="1"/>
+<polyline points="28,192 ${w * 0.25},180 ${w * 0.4},188 ${w * 0.55},175 ${w * 0.7},182 ${w * 0.85},170" stroke="var(--c)" stroke-width="2" fill="none" stroke-linecap="round"/>
+</svg>`,
+
+  // Data table
+  (w: number, h: number) => `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect width="${w}" height="${h}" fill="#f8fafb"/>
+<rect x="0" y="0" width="${w}" height="36" fill="#1e293b"/>
+<circle cx="16" cy="18" r="5" fill="#ef4444"/><circle cx="32" cy="18" r="5" fill="#f59e0b"/><circle cx="48" cy="18" r="5" fill="#22c55e"/>
+<rect x="16" y="50" width="120" height="28" rx="4" fill="#fff" stroke="var(--c)" stroke-width="1.5"/>
+<text x="36" y="68" font-size="11" fill="var(--c)" font-weight="600">Search...</text>
+<rect x="${w - 110}" y="50" width="94" height="28" rx="14" fill="var(--c)"/>
+<text x="${w - 63}" y="68" text-anchor="middle" font-size="11" fill="#fff" font-weight="700">+ 新規作成</text>
+<rect x="16" y="90" width="${w - 32}" height="28" rx="0" fill="var(--c)" opacity=".08"/>
+${[0,1,2,3,4].map(r => `<rect x="16" y="${90 + r * 28}" width="${w - 32}" height="28" fill="${r === 0 ? 'var(--c)' : r % 2 === 0 ? '#f8fafb' : '#fff'}" opacity="${r === 0 ? '.08' : '1'}"/>
+<line x1="16" y1="${118 + r * 28}" x2="${w - 16}" y2="${118 + r * 28}" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="24" y="${97 + r * 28}" width="${r === 0 ? 40 : 60}" height="6" rx="2" fill="${r === 0 ? 'var(--c)' : '#94a3b8'}" opacity="${r === 0 ? '.6' : '.4'}"/>
+<rect x="${w * 0.3}" y="${97 + r * 28}" width="${r === 0 ? 50 : 70}" height="6" rx="2" fill="${r === 0 ? 'var(--c)' : '#94a3b8'}" opacity="${r === 0 ? '.6' : '.3'}"/>
+<rect x="${w * 0.6}" y="${97 + r * 28}" width="${r === 0 ? 30 : 40}" height="6" rx="2" fill="${r === 0 ? 'var(--c)' : '#94a3b8'}" opacity="${r === 0 ? '.6' : '.3'}"/>
+<circle cx="${w - 40}" cy="${100 + r * 28}" r="${r === 0 ? 0 : 8}" fill="${r % 3 === 1 ? 'rgba(34,197,94,.1)' : 'rgba(59,130,246,.1)'}"/>
+`).join("")}
+</svg>`,
+
+  // Analytics chart
+  (w: number, h: number) => `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect width="${w}" height="${h}" fill="#f8fafb"/>
+<rect x="0" y="0" width="${w}" height="36" fill="#1e293b"/>
+<circle cx="16" cy="18" r="5" fill="#ef4444"/><circle cx="32" cy="18" r="5" fill="#f59e0b"/><circle cx="48" cy="18" r="5" fill="#22c55e"/>
+<rect x="16" y="52" width="${w * 0.45}" height="24" rx="4" fill="var(--c)" opacity=".08"/>
+<text x="28" y="68" font-size="11" fill="var(--c)" font-weight="700">Analytics Overview</text>
+${[0,1,2].map(i => `<rect x="${16 + i * (w * 0.32)}" y="88" width="${w * 0.28}" height="56" rx="6" fill="#fff" stroke="#e2e8f0" stroke-width="1"/>
+<text x="${28 + i * (w * 0.32)}" y="108" font-size="18" font-weight="800" fill="${i === 0 ? 'var(--c)' : '#334155'}">${['2,847', '94.2%', '¥1.2M'][i]}</text>
+<rect x="${28 + i * (w * 0.32)}" y="118" width="${[50, 40, 60][i]}" height="5" rx="2" fill="#cbd5e1"/>
+<rect x="${28 + i * (w * 0.32)}" y="128" width="${[30, 55, 35][i]}" height="5" rx="2" fill="#e2e8f0"/>`).join("")}
+<rect x="16" y="156" width="${w - 32}" height="60" rx="6" fill="#fff" stroke="#e2e8f0" stroke-width="1"/>
+<path d="M32,200 Q${w * 0.2},175 ${w * 0.35},185 T${w * 0.55},178 T${w * 0.75},172 T${w - 32},165" stroke="var(--c)" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+<path d="M32,200 Q${w * 0.2},175 ${w * 0.35},185 T${w * 0.55},178 T${w * 0.75},172 T${w - 32},165 L${w - 32},210 L32,210 Z" fill="var(--c)" opacity=".06"/>
+</svg>`,
+
+  // Workflow / process
+  (w: number, h: number) => `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect width="${w}" height="${h}" fill="#f8fafb"/>
+<rect x="0" y="0" width="${w}" height="36" fill="#1e293b"/>
+<circle cx="16" cy="18" r="5" fill="#ef4444"/><circle cx="32" cy="18" r="5" fill="#f59e0b"/><circle cx="48" cy="18" r="5" fill="#22c55e"/>
+${[0,1,2].map(i => {
+    const x = 16 + i * (w * 0.32);
+    const labels = ['To Do', 'In Progress', 'Done'];
+    const colors = ['#64748b', 'var(--c)', '#22c55e'];
+    return `<rect x="${x}" y="52" width="${w * 0.28}" height="24" rx="4" fill="${colors[i]}" opacity=".1"/>
+<text x="${x + 10}" y="68" font-size="11" fill="${colors[i]}" font-weight="700">${labels[i]}</text>
+${[0,1,2].map(j => `<rect x="${x}" y="${86 + j * 48}" width="${w * 0.28}" height="40" rx="6" fill="#fff" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="${x + 10}" y="${96 + j * 48}" width="${[60, 50, 70][j]}" height="6" rx="2" fill="#334155" opacity=".6"/>
+<rect x="${x + 10}" y="${108 + j * 48}" width="${[80, 65, 55][j]}" height="5" rx="2" fill="#cbd5e1"/>
+<circle cx="${x + w * 0.28 - 16}" cy="${106 + j * 48}" r="6" fill="${colors[i]}" opacity=".2"/>`).join("")}`;
+  }).join("")}
+</svg>`,
+
+  // Form / settings
+  (w: number, h: number) => `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect width="${w}" height="${h}" fill="#f8fafb"/>
+<rect x="0" y="0" width="${w}" height="36" fill="#1e293b"/>
+<circle cx="16" cy="18" r="5" fill="#ef4444"/><circle cx="32" cy="18" r="5" fill="#f59e0b"/><circle cx="48" cy="18" r="5" fill="#22c55e"/>
+<rect x="${w * 0.15}" y="52" width="${w * 0.7}" height="${h - 68}" rx="8" fill="#fff" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="${w * 0.2}" y="66" width="80" height="8" rx="2" fill="#334155" opacity=".7"/>
+${[0,1,2,3].map(i => `<rect x="${w * 0.2}" y="${92 + i * 44}" width="50" height="6" rx="2" fill="#94a3b8"/>
+<rect x="${w * 0.2}" y="${104 + i * 44}" width="${w * 0.6}" height="28" rx="4" fill="#f1f5f9" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="${w * 0.22}" y="${114 + i * 44}" width="${[80, 120, 60, 100][i]}" height="6" rx="2" fill="#94a3b8" opacity=".4"/>`).join("")}
+<rect x="${w * 0.5}" y="${h - 44}" width="${w * 0.2}" height="28" rx="14" fill="var(--c)"/>
+<text x="${w * 0.6}" y="${h - 26}" text-anchor="middle" font-size="11" fill="#fff" font-weight="700">保存</text>
+</svg>`,
+
+  // Report / document
+  (w: number, h: number) => `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect width="${w}" height="${h}" fill="#f8fafb"/>
+<rect x="0" y="0" width="${w}" height="36" fill="#1e293b"/>
+<circle cx="16" cy="18" r="5" fill="#ef4444"/><circle cx="32" cy="18" r="5" fill="#f59e0b"/><circle cx="48" cy="18" r="5" fill="#22c55e"/>
+<rect x="16" y="52" width="${w * 0.55}" height="20" rx="2" fill="#334155" opacity=".15"/>
+<text x="24" y="66" font-size="12" fill="#334155" font-weight="700">Monthly Report</text>
+<rect x="16" y="84" width="${w * 0.45}" height="90" rx="6" fill="#fff" stroke="#e2e8f0" stroke-width="1"/>
+${([40, 55, 35, 65, 50] as number[]).map((h, i) => `<rect x="${28 + i * (w * 0.08)}" y="${144 - h}" width="${w * 0.06}" height="${h}" rx="2" fill="var(--c)" opacity="${0.3 + i * 0.15}"/>`).join("")}
+<rect x="${w * 0.52}" y="84" width="${w * 0.43}" height="90" rx="6" fill="#fff" stroke="#e2e8f0" stroke-width="1"/>
+<circle cx="${w * 0.73}" cy="124" r="28" fill="none" stroke="var(--c)" stroke-width="6" stroke-dasharray="120 56" stroke-linecap="round"/>
+<text x="${w * 0.73}" y="128" text-anchor="middle" font-size="14" font-weight="800" fill="var(--c)">72%</text>
+<rect x="16" y="186" width="${w - 32}" height="28" rx="4" fill="#fff" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="28" y="196" width="100" height="6" rx="2" fill="#cbd5e1"/>
+<rect x="${w - 100}" y="196" width="60" height="6" rx="2" fill="var(--c)" opacity=".3"/>
+</svg>`,
+];
+
+function productMockupSvg(index: number, width: number, height: number): string {
+  const variant = MOCKUP_VARIANTS[index % MOCKUP_VARIANTS.length]!;
+  return variant(width, height);
+}
+
+// ============================================================
 // LP Step 3: Build HTML (高品質テンプレート)
 // ============================================================
 
@@ -232,11 +353,11 @@ ${hasImg && images[0] ? `<img src="${esc(images[0].url.replace(/w=\d+/, "w=800")
 </div>
 </section>
 
-${theme === "corporate" ? `<!-- MID-CTA: About後 -->
+<!-- MID-CTA: About後 -->
 <div class="mid-cta">
 <a href="#contact" class="trial">${esc(c.cta_text)}</a>
 <a href="#contact" class="doc">資料ダウンロード</a>
-</div>` : ""}
+</div>
 
 <!-- FEATURES: できること（サービス + 強み統合） -->
 <section class="sec dot-bg" id="features" style="background:var(--bg2)">
@@ -244,9 +365,9 @@ ${theme === "corporate" ? `<!-- MID-CTA: About後 -->
 <div class="sec-hd"><p class="sec-bg-txt">Features</p><p class="sec-eng">Features</p><h2 class="sec-tit fi">${esc(d.service_name)}でできること</h2></div>
 <div class="feat-grid${svc.length < 3 ? ` items-${svc.length}` : ''}">
 ${svc.map((item, i) => {
-  const featImg = images[i + 1] ? images[i + 1].url.replace(/w=\d+/, "w=600").replace(/h=\d+/, "h=400") : unsplashUrl(PHOTO_LIBRARY["business"][(i + 1) % 15], 600, 400);
+  const hasRealImg = images[i + 1] && images[i + 1].url;
   return `<div class="feat-card fi">
-<img class="feat-card-img" src="${esc(featImg)}" alt="${esc(item.title)}" loading="lazy">
+${hasRealImg ? `<img class="feat-card-img" src="${esc(images[i + 1].url.replace(/w=\d+/, "w=600").replace(/h=\d+/, "h=400"))}" alt="${esc(item.title)}" loading="lazy">` : `<div class="feat-card-mockup">${productMockupSvg(i, 600, 220)}</div>`}
 <div class="feat-body">
 <h4>${esc(item.title)}</h4>
 <p>${esc(item.desc)}</p>
@@ -257,11 +378,11 @@ ${svc.map((item, i) => {
 </div>
 </section>
 
-${theme === "corporate" ? `<!-- MID-CTA: Features後 -->
+<!-- MID-CTA: Features後 -->
 <div class="mid-cta">
 <a href="#contact" class="trial">${esc(c.cta_text)}</a>
 <a href="#contact" class="doc">資料ダウンロード</a>
-</div>` : ""}
+</div>
 
 <!-- REASONS: 選ばれる理由 -->
 ${reasons.length > 0 ? `<section class="sec" id="reasons">
@@ -282,6 +403,12 @@ ${reasons.map((item, i) => {
 </div>
 </div>
 </section>` : ""}
+
+${reasons.length > 0 ? `<!-- MID-CTA: Reasons後 -->
+<div class="mid-cta">
+<a href="#contact" class="trial">${esc(c.cta_text)}</a>
+<a href="#contact" class="doc">資料ダウンロード</a>
+</div>` : ""}
 
 <!-- USE CASES: 活用シーン -->
 ${useCases.length > 0 ? `<section class="sec" id="usecases" style="background:var(--bg2)">
@@ -311,16 +438,24 @@ ${useCases.map((item, i) => {
 </div>
 </section>` : ""}
 
+${useCases.length > 0 ? `<!-- MID-CTA: UseCases後 -->
+<div class="mid-cta">
+<a href="#contact" class="trial">${esc(c.cta_text)}</a>
+<a href="#contact" class="doc">資料ダウンロード</a>
+</div>` : ""}
+
 <!-- FUNCTIONS: 主な機能 -->
 ${funcs.length > 0 ? `<section class="sec" id="functions">
 <div class="inner">
 <div class="sec-hd"><p class="sec-bg-txt">Functions</p><p class="sec-eng">Main Features</p><h2 class="sec-tit fi">${esc(d.service_name)}の主な機能</h2></div>
-<div class="func-grid${funcs.length < 3 ? ` items-${funcs.length}` : ''}">
+<div class="func-rows">
 ${funcs.map((item, i) => {
-  const funcImg = images[i + 10] ? images[i + 10].url.replace(/w=\d+/, "w=600").replace(/h=\d+/, "h=400") : unsplashUrl(PHOTO_LIBRARY["tech"][(i + 10) % 15], 600, 400);
-  return `<div class="func-card fi">
-<img class="func-card-img" src="${esc(funcImg)}" alt="${esc(item.title)}" loading="lazy">
-<div class="func-body">
+  const hasRealImg = images[i + 10] && images[i + 10].url;
+  return `<div class="func-row${i % 2 === 1 ? ' func-row-rev' : ''} fi">
+<div class="func-row-img">
+${hasRealImg ? `<img src="${esc(images[i + 10].url.replace(/w=\d+/, "w=600").replace(/h=\d+/, "h=400"))}" alt="${esc(item.title)}" loading="lazy">` : `<div class="func-row-mockup">${productMockupSvg(i + 2, 520, 280)}</div>`}
+</div>
+<div class="func-row-text">
 <h4>${esc(item.title)}</h4>
 <p>${esc(item.desc)}</p>
 </div>
@@ -329,6 +464,12 @@ ${funcs.map((item, i) => {
 </div>
 </div>
 </section>` : ""}
+
+${funcs.length > 0 ? `<!-- MID-CTA: Functions後 -->
+<div class="mid-cta">
+<a href="#contact" class="trial">${esc(c.cta_text)}</a>
+<a href="#contact" class="doc">資料ダウンロード</a>
+</div>` : ""}
 
 <!-- COLUMNS: お役立ち記事 -->
 ${columns.length > 0 ? `<section class="sec">
