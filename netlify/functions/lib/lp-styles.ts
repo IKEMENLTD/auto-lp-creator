@@ -166,7 +166,10 @@ ${p.theme === "corporate" ? CORPORATE_THEME : ""}
 .feat-body{padding:20px}
 .feat-body h4{font-size:16px;font-weight:800;margin-bottom:8px}
 .feat-body p{font-size:13px;color:var(--t2);line-height:1.8;margin:0}
-@media(max-width:750px){.feat-grid{grid-template-columns:1fr;gap:16px}.feat-card-img{height:180px}.feat-body{padding:16px}}
+/* Center when fewer than 3 items */
+.feat-grid.items-1,.feat-grid.items-2{display:flex;flex-wrap:wrap;justify-content:center}
+.feat-grid.items-1 .feat-card,.feat-grid.items-2 .feat-card{width:calc((100% - 48px) / 3);min-width:280px}
+@media(max-width:750px){.feat-grid{grid-template-columns:1fr;gap:16px}.feat-grid.items-1 .feat-card,.feat-grid.items-2 .feat-card{width:100%;min-width:auto}.feat-card-img{height:180px}.feat-body{padding:16px}}
 
 /* ===== REASONS (選ばれる理由) ===== */
 .reason-list{display:flex;flex-direction:column;gap:32px;max-width:960px;margin:0 auto}
@@ -189,7 +192,10 @@ ${p.theme === "corporate" ? CORPORATE_THEME : ""}
 .uc-card-body{padding:20px}
 .uc-card-body h4{font-size:15px;font-weight:800;margin-bottom:8px}
 .uc-card-body p{font-size:13px;color:var(--t2);line-height:1.8;margin:0}
-@media(max-width:750px){.uc-grid{grid-template-columns:1fr;gap:16px}.uc-card-img{height:160px}}
+/* Center when fewer than 3 items */
+.uc-grid.items-1,.uc-grid.items-2{display:flex;flex-wrap:wrap;justify-content:center}
+.uc-grid.items-1 .uc-card,.uc-grid.items-2 .uc-card{width:calc((100% - 48px) / 3);min-width:280px}
+@media(max-width:750px){.uc-grid{grid-template-columns:1fr;gap:16px}.uc-grid.items-1 .uc-card,.uc-grid.items-2 .uc-card{width:100%;min-width:auto}.uc-card-img{height:160px}}
 
 /* ===== FUNCTIONS (主な機能) ===== */
 .func-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;max-width:1000px;margin:0 auto}
@@ -199,7 +205,10 @@ ${p.theme === "corporate" ? CORPORATE_THEME : ""}
 .func-body{padding:20px}
 .func-body h4{font-size:15px;font-weight:800;margin-bottom:6px}
 .func-body p{font-size:13px;color:var(--t2);line-height:1.8;margin:0}
-@media(max-width:750px){.func-grid{grid-template-columns:1fr;gap:16px}.func-card-img{height:140px}.func-body{padding:16px}}
+/* Center when fewer than 3 items */
+.func-grid.items-1,.func-grid.items-2{display:flex;flex-wrap:wrap;justify-content:center}
+.func-grid.items-1 .func-card,.func-grid.items-2 .func-card{width:calc((100% - 48px) / 3);min-width:280px}
+@media(max-width:750px){.func-grid{grid-template-columns:1fr;gap:16px}.func-grid.items-1 .func-card,.func-grid.items-2 .func-card{width:100%;min-width:auto}.func-card-img{height:140px}.func-body{padding:16px}}
 
 /* ===== COLUMNS (お役立ち記事) ===== */
 .col-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:24px;max-width:800px;margin:0 auto}

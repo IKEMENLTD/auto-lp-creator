@@ -110,7 +110,10 @@ export const TESTIMONIAL_CARD = `
 .tm-avatar{width:48px;height:48px;border-radius:50%;background:var(--cg);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:16px}
 .tm-name{font-size:14px;font-weight:800}
 .tm-role{font-size:12px;color:var(--t3)}
-@media(max-width:750px){.tm-grid{grid-template-columns:1fr}.tm-card-img{height:160px}}
+/* Center when fewer than 3 items */
+.tm-grid.items-1,.tm-grid.items-2{display:flex;flex-wrap:wrap;justify-content:center}
+.tm-grid.items-1 .tm-card,.tm-grid.items-2 .tm-card{width:calc((100% - 48px) / 3);min-width:280px}
+@media(max-width:750px){.tm-grid{grid-template-columns:1fr}.tm-grid.items-1 .tm-card,.tm-grid.items-2 .tm-card{width:100%;min-width:auto}.tm-card-img{height:160px}}
 `;
 
 /** 比較テーブル */

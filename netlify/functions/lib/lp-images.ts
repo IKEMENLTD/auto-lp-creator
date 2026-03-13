@@ -185,45 +185,44 @@ export function selectImages(d: FlatData): LpImage[] {
   else if (industry.includes("美容") || industry.includes("サロン") || industry.includes("エステ")) category = "beauty";
   else if (industry.includes("製造") || industry.includes("工場") || industry.includes("メーカー")) category = "manufacturing";
 
-  const photos = PHOTO_LIBRARY[category] || PHOTO_LIBRARY["business"]!;
-  // サブカテゴリ: メインと異なるカテゴリから追加画像を補充
+  // 全カテゴリからユニークなIDプールを構築（メイン→サブ→その他の順）
   const subCategory = category === "business" ? "tech" : "business";
-  const subPhotos = PHOTO_LIBRARY[subCategory]!;
+  const allCategories = [category, subCategory, ...Object.keys(PHOTO_LIBRARY).filter(k => k !== category && k !== subCategory)];
 
+  const usedIds = new Set<string>();
+  const uniqueIds: string[] = [];
+  for (const cat of allCategories) {
+    for (const id of (PHOTO_LIBRARY[cat] || [])) {
+      if (!usedIds.has(id)) {
+        usedIds.add(id);
+        uniqueIds.push(id);
+      }
+    }
+  }
+
+  // 会社名ハッシュでオフセット
   let hash = 0;
   for (let i = 0; i < d.company_name.length; i++) {
     hash = ((hash << 5) - hash + d.company_name.charCodeAt(i)) | 0;
   }
-  const offset = Math.abs(hash) % photos.length;
-  const subOffset = Math.abs(hash) % subPhotos.length;
+  const offset = Math.abs(hash) % uniqueIds.length;
+  const pick = (i: number) => uniqueIds[(offset + i) % uniqueIds.length]!;
 
-  const p = (i: number) => photos[(offset + i) % photos.length]!;
-  const sub = (i: number) => subPhotos[(subOffset + i) % subPhotos.length]!;
-
-  return [
-    // 0: Hero
-    { url: unsplashUrl(p(0), 1920, 1080), alt: `${d.company_name} ヒーロー画像` },
-    // 1-3: Features
-    { url: unsplashUrl(p(1), 800, 600), alt: `${d.service_name} サービス1` },
-    { url: unsplashUrl(p(2), 800, 600), alt: `${d.service_name} サービス2` },
-    { url: unsplashUrl(p(3), 800, 600), alt: `${d.service_name} サービス3` },
-    // 4-6: Reasons
-    { url: unsplashUrl(p(4), 800, 600), alt: `${d.service_name} 理由1` },
-    { url: unsplashUrl(p(5), 800, 600), alt: `${d.service_name} 理由2` },
-    { url: unsplashUrl(p(6), 800, 600), alt: `${d.service_name} 理由3` },
-    // 7-9: Use Cases (サブカテゴリから取得して被り回避)
-    { url: unsplashUrl(sub(0), 800, 600), alt: `${d.service_name} 活用1` },
-    { url: unsplashUrl(sub(1), 800, 600), alt: `${d.service_name} 活用2` },
-    { url: unsplashUrl(sub(2), 800, 600), alt: `${d.service_name} 活用3` },
-    // 10-12: Functions (サブカテゴリの別オフセット)
-    { url: unsplashUrl(sub(5), 800, 600), alt: `${d.service_name} 機能1` },
-    { url: unsplashUrl(sub(6), 800, 600), alt: `${d.service_name} 機能2` },
-    { url: unsplashUrl(sub(7), 800, 600), alt: `${d.service_name} 機能3` },
-    // 13-15: Cases
-    { url: unsplashUrl(p(7), 800, 600), alt: `${d.service_name} 事例1` },
-    { url: unsplashUrl(p(8), 800, 600), alt: `${d.service_name} 事例2` },
-    { url: unsplashUrl(p(9), 800, 600), alt: `${d.service_name} 事例3` },
-    // 16: Columns
-    { url: unsplashUrl(p(10), 200, 200), alt: `${d.service_name} コラム` },
+  // 17枚、すべて異なるID
+  const labels = [
+    "ヒーロー画像", "サービス1", "サービス2", "サービス3",
+    "理由1", "理由2", "理由3",
+    "活用1", "活用2", "活用3",
+    "機能1", "機能2", "機能3",
+    "事例1", "事例2", "事例3",
+    "コラム",
   ];
+
+  return labels.map((label, i) => {
+    const isHero = i === 0;
+    const isThumb = i === 16;
+    const w = isHero ? 1920 : isThumb ? 200 : 800;
+    const h = isHero ? 1080 : isThumb ? 200 : 600;
+    return { url: unsplashUrl(pick(i), w, h), alt: `${i === 0 ? d.company_name : d.service_name} ${label}` };
+  });
 }

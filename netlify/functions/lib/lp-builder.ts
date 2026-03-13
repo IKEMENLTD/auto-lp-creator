@@ -242,7 +242,7 @@ ${theme === "corporate" ? `<!-- MID-CTA: About後 -->
 <section class="sec dot-bg" id="features" style="background:var(--bg2)">
 <div class="inner">
 <div class="sec-hd"><p class="sec-bg-txt">Features</p><p class="sec-eng">Features</p><h2 class="sec-tit fi">${esc(d.service_name)}でできること</h2></div>
-<div class="feat-grid">
+<div class="feat-grid${svc.length < 3 ? ` items-${svc.length}` : ''}">
 ${svc.map((item, i) => {
   const featImg = images[i + 1] ? images[i + 1].url.replace(/w=\d+/, "w=600").replace(/h=\d+/, "h=400") : unsplashUrl(PHOTO_LIBRARY["business"][(i + 1) % 15], 600, 400);
   return `<div class="feat-card fi">
@@ -287,7 +287,7 @@ ${reasons.map((item, i) => {
 ${useCases.length > 0 ? `<section class="sec" id="usecases" style="background:var(--bg2)">
 <div class="inner">
 <div class="sec-hd"><p class="sec-bg-txt">UseCase</p><p class="sec-eng">Use Cases</p><h2 class="sec-tit fi">活用シーン</h2></div>
-<div class="uc-grid">
+<div class="uc-grid${useCases.length < 3 ? ` items-${useCases.length}` : ''}">
 ${useCases.map((item, i) => {
   const ucIcoMap: Record<string, string> = {
     search: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>',
@@ -315,7 +315,7 @@ ${useCases.map((item, i) => {
 ${funcs.length > 0 ? `<section class="sec" id="functions">
 <div class="inner">
 <div class="sec-hd"><p class="sec-bg-txt">Functions</p><p class="sec-eng">Main Features</p><h2 class="sec-tit fi">${esc(d.service_name)}の主な機能</h2></div>
-<div class="func-grid">
+<div class="func-grid${funcs.length < 3 ? ` items-${funcs.length}` : ''}">
 ${funcs.map((item, i) => {
   const funcImg = images[i + 10] ? images[i + 10].url.replace(/w=\d+/, "w=600").replace(/h=\d+/, "h=400") : unsplashUrl(PHOTO_LIBRARY["tech"][(i + 10) % 15], 600, 400);
   return `<div class="func-card fi">
@@ -357,7 +357,7 @@ ${columns.map((col, i) => {
 <section class="offer offer-accent">
 <div class="inner" style="position:relative;z-index:1">
 <p class="offer-tit">${esc(c.cta_sub || "まずはお気軽にご相談ください")}</p>
-<p class="offer-sub" style="color:rgba(255,255,255,.7)">${esc(pName)}が直接対応します</p>
+<p class="offer-sub" style="color:rgba(255,255,255,.7)">${esc(d.company_name)}が直接対応します</p>
 <a href="#contact" class="btn btn-lg btn-white">${esc(c.cta_text)} ${arrowSvg}</a>
 ${microHtml}
 </div>
@@ -384,27 +384,31 @@ ${cmp.map(row => `<div class="cmp-row">${cmpCheck} <span><strong>${esc(row.featu
 </section>` : ""}
 
 <!-- CASES: 導入事例 -->
-${cas.length > 0 ? `<section class="sec" id="cases" style="background:var(--bg2)">
+${cas.length > 0 ? (() => {
+  const logoCompanies = ["未来医療福祉コンソーシアム", "VELOX.AI", "INTEGRA LINK", "ARCHETYPE SERVICES"];
+  return `<section class="sec" id="cases" style="background:var(--bg2)">
 <div class="inner">
 <div class="sec-hd"><p class="sec-bg-txt">Results</p><p class="sec-eng">Case Results</p><h2 class="sec-tit fi">実績事例</h2></div>
-<div class="tm-grid">
+<div class="tm-grid${cas.length < 3 ? ` items-${cas.length}` : ''}">
 ${cas.map((item, i) => {
   const caseImg = images[i + 13] ? images[i + 13].url.replace(/w=\d+/, "w=600").replace(/h=\d+/, "h=400") : unsplashUrl(PHOTO_LIBRARY["business"][(i + 13) % 15]!, 600, 400);
+  const companyName = logoCompanies[i % logoCompanies.length];
   return `<div class="tm-card fi">
 <img class="tm-card-img" src="${esc(caseImg)}" alt="${esc(item.category)}" loading="lazy">
 <div class="tm-card-body">
 <div class="tm-result">${esc(item.result)}</div>
 <p class="tm-text">${esc(item.detail)}</p>
 <div class="tm-author">
-<div class="tm-avatar" style="font-size:12px">${esc(item.category.slice(0,2))}</div>
-<div><div class="tm-name">${esc(item.category)}</div></div>
+<div class="tm-avatar" style="font-size:12px">${esc(companyName.slice(0,2))}</div>
+<div><div class="tm-name">${esc(companyName)}</div><div class="tm-role">${esc(item.category)}</div></div>
 </div>
 </div>
 </div>`;
 }).join("")}
 </div>
 </div>
-</section>` : ""}
+</section>`;
+})() : ""}
 
 <!-- STATS: 実績数字 (CARD_STAT + STATS_GRID) -->
 <section class="sec${cas.length > 0 ? "" : " dot-bg"}"${cas.length > 0 ? "" : ` style="background:var(--bg2)"`}>
@@ -487,7 +491,7 @@ ${faq.map(item => `<dl class="faq-item"><dt class="faq-q">${esc(item.q)}</dt><dd
 <line x1="70" y1="1" x2="70" y2="8" stroke="#bbb" stroke-width="1.5" stroke-linecap="round"/>
 <line x1="75" y1="3" x2="75" y2="8" stroke="#bbb" stroke-width="1.5" stroke-linecap="round"/>
 </svg></figure>
-<h3>${esc(pName)}に直接相談したい方は<br>こちらからお問い合わせください</h3>
+<h3>${esc(d.company_name)}に直接相談したい方は<br>こちらからお問い合わせください</h3>
 <a href="#contact" class="btn btn-outline">お問い合わせ</a>
 </div>
 </div>
@@ -515,7 +519,7 @@ ${faq.map(item => `<dl class="faq-item"><dt class="faq-q">${esc(item.q)}</dt><dd
 </footer>
 
 <!-- MOBILE CTA -->
-<div class="m-cta"><a href="#contact">${esc(c.cta_text)}</a><p class="m-cta-sub">${esc(pName)} / 相談無料 / オンライン対応</p></div>
+<div class="m-cta"><a href="#contact">${esc(c.cta_text)}</a><p class="m-cta-sub">${esc(d.company_name)} / 相談無料 / オンライン対応</p></div>
 
 <!-- SCROLL ANIMATION + FAQ TOGGLE -->
 <script>
