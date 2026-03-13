@@ -566,19 +566,6 @@ ${microDarkHtml}
 </div>
 </section>
 
-<!-- FLOW -->
-<section class="sec" style="background:var(--bg2)">
-<div class="inner">
-<div class="sec-hd"><p class="sec-bg-txt">Flow</p><p class="sec-eng">Flow</p><h2 class="sec-tit fi">ご依頼の流れ</h2></div>
-<div class="flow-list fi" style="max-width:640px;margin:0 auto">
-${f.map((item, i) => `<div class="flow-item">
-<div class="flow-num">${i + 1}</div>
-<div class="flow-body"><h3 class="flow-h3">${esc(item.title)}</h3><p class="flow-desc">${esc(item.desc)}</p></div>
-</div>`).join("")}
-</div>
-</div>
-</section>
-
 <!-- COMPANY + FAQ -->
 <section class="sec">
 <div class="inner">
