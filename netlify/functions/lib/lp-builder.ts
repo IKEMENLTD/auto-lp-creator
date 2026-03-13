@@ -301,6 +301,9 @@ export function buildLpHtml(c: LpContent, d: FlatData, images: LpImage[] = [], t
   const brandName = rawBrand.replace(/[（(].+?[）)]/g, "").trim();
   const brandSub = (rawBrand.match(/[（(](.+?)[）)]/) || [])[1] || "";
 
+  // CTAテキストから矢印記号を除去（arrowSvgとの二重表示防止）
+  if (c.cta_text) c.cta_text = c.cta_text.replace(/[→>＞►▶➤➜➡⇒\s]+$/g, "").trim();
+
   // Award badge image (laurel wreath + No.1) - served as static asset
   const awardImg = "/images/award-01.png";
 
@@ -546,23 +549,34 @@ ${theme === "corporate" ? CORPORATE_THEME : ""}
 .company-info strong{color:var(--t1);font-size:16px;display:block;margin-bottom:4px}
 
 /* ===== FINAL CTA ===== */
-.cta-sec{padding:64px 24px;background:var(--dark);text-align:center;position:relative;overflow:hidden}
-.cta-sec::before{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:700px;height:500px;background:radial-gradient(circle,rgba(255,255,255,.04),transparent 70%)}
-.cta-tit{font-size:clamp(22px,3.5vw,30px);font-weight:900;color:#fff;margin-bottom:10px;position:relative}
-.cta-sub{font-size:14px;color:rgba(255,255,255,.5);margin-bottom:24px;position:relative}
+.cta-sec{padding:60px 24px 70px;background:#f5f7fa;text-align:center}
+.cta-tit{font-size:clamp(20px,3vw,26px);font-weight:900;color:var(--t1);margin-bottom:8px}
+.cta-sub{font-size:14px;color:var(--t2);margin-bottom:36px}
+.cta-cards{display:flex;justify-content:center;gap:32px;max-width:720px;margin:0 auto;flex-wrap:wrap}
+.cta-card{flex:1;min-width:260px;max-width:340px;background:#fff;border-radius:12px;box-shadow:0 0 18px 2px rgba(0,0,0,.05);padding:32px 24px;display:flex;flex-direction:column;align-items:center;gap:16px;transition:box-shadow .3s,transform .3s}
+.cta-card:hover{box-shadow:0 8px 28px rgba(0,0,0,.1);transform:translateY(-3px)}
+.cta-card-icon{width:80px;height:80px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:36px}
+.cta-card-icon.dl{background:rgba(var(--c-rgb),0.1);color:var(--c)}
+.cta-card-icon.contact{background:rgba(var(--c-rgb),0.06);color:var(--c)}
+.cta-card h3{font-size:16px;font-weight:700;color:var(--t1);line-height:1.6;margin:0}
+.cta-card .btn{margin-top:auto}.cta-card .btn-primary{background:var(--c);color:#fff;padding:12px 28px;font-size:14px;border-radius:34px}.cta-card .btn-primary:hover{box-shadow:0 8px 24px rgba(var(--c-rgb),.3);transform:translateY(-1px)}
+@media(max-width:600px){.cta-cards{flex-direction:column;align-items:center}}
 
 /* ===== FOOTER ===== */
-.ft{padding:48px 24px;border-top:1px solid var(--bd);font-size:12px;color:var(--t3)}
-.ft-inner{max-width:1100px;margin:0 auto;display:flex;align-items:flex-start;justify-content:space-between;gap:32px;flex-wrap:wrap}
-.ft-brand{display:flex;align-items:center;gap:14px;margin-bottom:12px}
+.ft{padding:48px 24px 36px;background:#fff;border-top:1px solid var(--bd);font-size:12px;color:var(--t3)}
+.ft-inner{max-width:1100px;margin:0 auto;display:flex;align-items:flex-start;justify-content:space-between;gap:40px;flex-wrap:wrap}
+.ft-left{display:flex;flex-direction:column;gap:10px}
+.ft-brand{display:flex;align-items:center;gap:14px}
 .ft-logo{width:40px;height:40px;border-radius:8px;background:var(--cg);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:18px;flex-shrink:0}
 .ft-company{font-size:16px;font-weight:800;color:var(--t1)}
+.ft-desc{font-size:12px;color:var(--t2);line-height:1.8;max-width:400px}
 .ft-address{font-size:12px;color:var(--t3);line-height:1.8}
-.ft-links{display:flex;gap:20px;flex-wrap:wrap;padding-top:6px}
+.ft-right{display:flex;flex-direction:column;align-items:flex-end;gap:16px}
+.ft-links{display:flex;gap:20px;flex-wrap:wrap}
 .ft-links a{font-size:12px;color:var(--t3);text-decoration:none;transition:color .2s}
 .ft-links a:hover{color:var(--c)}
-.ft-copy{font-size:11px;color:var(--t3);margin-top:12px}
-@media(max-width:750px){.ft-inner{flex-direction:column;align-items:center;text-align:center}.ft-brand{justify-content:center}.ft-links{justify-content:center}}
+.ft-copy{font-size:11px;color:var(--t3)}
+@media(max-width:750px){.ft-inner{flex-direction:column;align-items:center;text-align:center}.ft-left{align-items:center}.ft-brand{justify-content:center}.ft-right{align-items:center}.ft-links{justify-content:center}}
 
 /* ===== MOBILE CTA BAR ===== */
 .m-cta{display:none;position:fixed;bottom:0;left:0;right:0;padding:10px 16px;background:rgba(255,255,255,.95);backdrop-filter:blur(12px);border-top:1px solid var(--bd);z-index:100}
@@ -969,32 +983,42 @@ ${faq.map(item => `<dl class="faq-item"><dt class="faq-q">${esc(item.q)}</dt><dd
 </div>
 </section>
 
-<!-- WAVE: → final CTA (simple valley+peak) -->
-<div class="dvd"><svg viewBox="0 0 1200 72" preserveAspectRatio="none"><rect width="1200" height="72" fill="var(--dark)"/><path d="M0,0 C300,60 600,60 900,20 C1050,0 1150,25 1200,15 L1200,0 L0,0 Z" fill="var(--bg)"/></svg></div>
-
 <!-- FINAL CTA -->
 <section class="cta-sec" id="contact">
-<div class="cta-tit" style="position:relative">${esc(pName)}に相談する</div>
+<div class="cta-tit">「<span style="color:var(--c)">${esc(brandName)}</span>」導入に関してご不明な点がございましたら<br>お気軽にお問い合わせください</div>
 <div class="cta-sub">${esc(c.cta_sub || "")}</div>
-<a href="#contact" class="btn btn-lg btn-white" style="position:relative">${esc(c.cta_text)} ${arrowSvg}</a>
-${microHtml}
+<div class="cta-cards">
+<div class="cta-card">
+<div class="cta-card-icon dl"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></div>
+<h3>料金プランやサービス詳細など<br>サービス紹介資料はこちら</h3>
+<a href="#contact" class="btn btn-primary">${esc(c.cta_text)} ${arrowSvg}</a>
+</div>
+<div class="cta-card">
+<div class="cta-card-icon contact"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></div>
+<h3>${esc(pName)}に直接相談したい方は<br>こちらからお問い合わせください</h3>
+<a href="#contact" class="btn btn-primary">お問い合わせ ${arrowSvg}</a>
+</div>
+</div>
 </section>
 
 <!-- FOOTER -->
 <footer class="ft">
 <div class="ft-inner">
-<div>
+<div class="ft-left">
 <div class="ft-brand">
 <div class="ft-logo">${esc(d.company_name.charAt(0))}</div>
 <div class="ft-company">${esc(d.company_name)}</div>
 </div>
+<div class="ft-desc">${esc(c.company_profile || d.service_name + "を提供しています。")}</div>
 <div class="ft-address">〒000-0000 ○○県○○市○○区0-00-000</div>
-<div class="ft-copy">&copy; ${esc(d.company_name)} All Rights Reserved.</div>
 </div>
+<div class="ft-right">
 <div class="ft-links">
 <a href="#">運営会社</a>
 <a href="#">プライバシーポリシー</a>
 <a href="#">利用規約</a>
+</div>
+<div class="ft-copy">&copy; ${esc(d.company_name)} All Rights Reserved.</div>
 </div>
 </div>
 </footer>
