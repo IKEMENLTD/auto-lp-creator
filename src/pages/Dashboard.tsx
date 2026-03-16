@@ -129,20 +129,23 @@ export const Dashboard: React.FC = () => {
     }
   }, []);
 
+  // 録音開始: recording状態かつ未録音かつ一時停止中でもない場合のみstart()
   useEffect(() => {
-    if (recordingState === 'recording' && sessionId && !audio.isRecording) {
+    if (recordingState === 'recording' && sessionId && !audio.isRecording && !audio.isPaused) {
       void audio.start();
     }
-  }, [recordingState, sessionId, audio.isRecording, audio.start]);
+  }, [recordingState, sessionId, audio.isRecording, audio.isPaused, audio.start]);
 
+  // Fix 3: pause/resumeでストリームを破棄せず、MediaRecorderのpause/resumeを使用
   const handlePauseRecording = useCallback(() => {
-    audio.stop();
+    audio.pause();
     setRecordingState('paused');
   }, [audio]);
 
   const handleResumeRecording = useCallback(() => {
+    audio.resume();
     setRecordingState('recording');
-  }, []);
+  }, [audio]);
 
   const handleStopRecording = useCallback(async () => {
     try {
@@ -344,7 +347,8 @@ export const Dashboard: React.FC = () => {
     (j) => j.status === 'completed' && j.result_url !== null,
   );
 
-  const error = globalError ?? session.error;
+  // Fix 2: audio.errorもUI表示対象に追加
+  const error = globalError ?? audio.error ?? session.error;
 
   // ================================================================
   // idle 状態: 開始画面（2分岐）
@@ -601,7 +605,7 @@ export const Dashboard: React.FC = () => {
       {/* 録音コントロール + 共有 */}
       <footer className="sticky bottom-0 z-50 px-4 py-3 bg-gray-900 border-t border-gray-800">
         <RecordingControls
-          state={recordingState === 'pasting' || recordingState === 'selecting' ? 'ended' : recordingState}
+          state={(recordingState as string) === 'pasting' || (recordingState as string) === 'selecting' ? 'ended' as const : recordingState}
           onStart={() => void handleStartRecording()}
           onPause={handlePauseRecording}
           onResume={handleResumeRecording}

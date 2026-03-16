@@ -17,11 +17,8 @@ import type {
 
 // ============================================================
 // モック設定
-// Supabase チェインAPIモック - mockReturnValue/mockResolvedValueOnce を
-// 両方使うため untyped jest.fn() + SupabaseMock ラッパーで管理
 // ============================================================
 
-/** Supabase チェインモックの型安全ラッパー */
 interface SupabaseMock {
   single: jest.Mock<() => Promise<{ data: unknown; error: unknown }>>;
   maybeSingle: jest.Mock<() => Promise<{ data: unknown; error: unknown }>>;
@@ -98,6 +95,10 @@ jest.unstable_mockModule('@supabase/supabase-js', () => ({
   }),
 }));
 
+// ============================================================
+// 遅延インポート (jest.unstable_mockModule 後に行う)
+// ============================================================
+
 // 動的インポート (jest.unstable_mockModule 後に行う)
 const {
   getSupabaseClient,
@@ -116,7 +117,6 @@ beforeAll(() => {
 });
 
 afterEach(() => {
-  // モックをクリアして再設定
   Object.values(mocks).forEach((m) => m.mockClear());
 
   mocks.select.mockReturnValue({

@@ -6,13 +6,12 @@
  * Supabase / Haiku API はモック化。
  */
 
-import { jest } from "@jest/globals";
+import { jest, describe, test, expect, beforeEach, afterEach, beforeAll } from "@jest/globals";
 
 // ============================================================
 // モック設定
 // ============================================================
 
-// haiku-client のモック
 const mockExtractAndMerge = jest.fn<(...args: unknown[]) => Promise<unknown>>();
 const mockCheckGenerationReadiness = jest.fn<(...args: unknown[]) => unknown>();
 const mockCreateEmptyExtractedData = jest.fn<() => unknown>();
@@ -23,7 +22,10 @@ jest.unstable_mockModule("../netlify/functions/lib/haiku-client.js", () => ({
   createEmptyExtractedData: mockCreateEmptyExtractedData,
 }));
 
-// テスト対象のインポート（モック後にdynamic import）
+// ============================================================
+// テスト対象の遅延インポート
+// ============================================================
+
 const { processTranscriptChunk, resolveSessionFromMeetingId } =
   await import("../netlify/functions/lib/audio-pipeline.js");
 
@@ -31,51 +33,53 @@ const { processTranscriptChunk, resolveSessionFromMeetingId } =
 // Supabase モッククライアントファクトリ
 // ============================================================
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-type MockFn = jest.Mock<(...args: unknown[]) => unknown>;
+type MockFn = jest.Mock<(...args: any[]) => any>;
 
 function createMockFn(): MockFn {
-  return jest.fn<(...args: unknown[]) => unknown>();
+  return jest.fn<(...args: any[]) => any>();
 }
 
-interface SupabaseResult {
-  data: unknown;
-  error: { message: string; code?: string } | null;
-}
-
-function createMockSupabase(overrides?: {
-  insertResult?: SupabaseResult;
-  selectResult?: SupabaseResult;
-  updateResult?: SupabaseResult;
-}): { from: MockFn } {
-  const defaultInsert: SupabaseResult = { data: { id: "chunk-uuid-123" }, error: null };
-  const defaultSelect: SupabaseResult = {
-    data: { extracted_data: null, version: 0 },
-    error: null,
-  };
-  const defaultUpdate: SupabaseResult = { data: null, error: null };
-
-  const insertResult = overrides?.insertResult ?? defaultInsert;
-  const selectResult = overrides?.selectResult ?? defaultSelect;
-  const updateResult = overrides?.updateResult ?? defaultUpdate;
-
+function createMockSupabase() {
   const mockFrom = createMockFn();
 
-  mockFrom.mockReturnValue({
-    select: createMockFn().mockReturnValue({
-      eq: createMockFn().mockReturnValue({
-        single: createMockFn().mockReturnValue(Promise.resolve(selectResult)),
-      }),
-      single: createMockFn().mockReturnValue(Promise.resolve(insertResult)),
-    }),
-    insert: createMockFn().mockReturnValue({
-      select: createMockFn().mockReturnValue({
-        single: createMockFn().mockReturnValue(Promise.resolve(insertResult)),
-      }),
-    }),
-    update: createMockFn().mockReturnValue({
-      eq: createMockFn().mockReturnValue(Promise.resolve(updateResult)),
-    }),
+  const chunkInsertSingle = createMockFn().mockResolvedValue({
+    data: { id: "chunk-uuid-123" },
+    error: null,
+  });
+  const chunkInsertSelect = createMockFn().mockReturnValue({
+    single: chunkInsertSingle,
+  });
+  const chunkInsert = createMockFn().mockReturnValue({
+    select: chunkInsertSelect,
+  });
+  const chunkUpdateEq = createMockFn().mockResolvedValue({ data: null, error: null });
+  const chunkUpdate = createMockFn().mockReturnValue({
+    eq: chunkUpdateEq,
+  });
+
+  const sessionSelectSingle = createMockFn().mockResolvedValue({
+    data: { extracted_data: null, version: 0 },
+    error: null,
+  });
+  const sessionSelectEq = createMockFn().mockReturnValue({
+    single: sessionSelectSingle,
+  });
+  const sessionSelect = createMockFn().mockReturnValue({
+    eq: sessionSelectEq,
+  });
+  const sessionUpdateEq = createMockFn().mockResolvedValue({ data: null, error: null });
+  const sessionUpdate = createMockFn().mockReturnValue({
+    eq: sessionUpdateEq,
+  });
+
+  mockFrom.mockImplementation((table: string) => {
+    if (table === "chunks") {
+      return { insert: chunkInsert, update: chunkUpdate };
+    }
+    if (table === "sessions") {
+      return { select: sessionSelect, update: sessionUpdate };
+    }
+    return {};
   });
 
   return { from: mockFrom };
@@ -96,23 +100,12 @@ describe("processTranscriptChunk", () => {
       merged: {
         company_name: { value: "テスト会社", confidence: 1.0 },
         industry: { value: "BtoBサービス", confidence: 0.6 },
-        service_name: { value: null, confidence: 0.3 },
-        target_customer: { value: null, confidence: 0.3 },
-        price_range: { value: null, confidence: 0.3 },
-        strengths: { value: [], confidence: 0.3 },
-        pain_points: { value: [], confidence: 0.3 },
-        current_marketing: { value: null, confidence: 0.3 },
-        desired_outcome: { value: null, confidence: 0.3 },
-        contact_info: { value: { phone: null, email: null, line: null, address: null }, confidence: 0.3 },
-        tone_keywords: { value: [], confidence: 0.3 },
-        upsell_signals: { value: [], confidence: 0.3 },
       },
       fieldsUpdated: ["company_name", "industry"],
     });
 
     mockCheckGenerationReadiness.mockReturnValue({
-      "LP": { ready: false, missing: ["service_name", "target_customer", "strengths"], filled: ["company_name", "industry"], confidence_avg: 0.8 },
-      "議事録": { ready: true, missing: [], filled: [], confidence_avg: 0 },
+      LP: { ready: false, missing: ["service_name"], filled: ["company_name"], confidence_avg: 0.8 },
     });
   });
 
@@ -125,7 +118,7 @@ describe("processTranscriptChunk", () => {
     const mockSupabase = createMockSupabase();
 
     await expect(
-      processTranscriptChunk("session-1", "テスト", 0, mockSupabase as never),
+      processTranscriptChunk("session-1", "テスト", 0, mockSupabase),
     ).rejects.toThrow("ANTHROPIC_API_KEY");
   });
 
@@ -136,7 +129,7 @@ describe("processTranscriptChunk", () => {
       "session-1",
       "テスト会話テキスト",
       0,
-      mockSupabase as never,
+      mockSupabase,
     );
 
     expect(result.fields_updated).toEqual(["company_name", "industry"]);
@@ -153,15 +146,15 @@ describe("resolveSessionFromMeetingId", () => {
   test("既存セッションが見つかった場合はそのsession_idを返す", async () => {
     const mockFrom = createMockFn();
 
-    mockFrom.mockImplementation((table: unknown) => {
+    mockFrom.mockImplementation((table: string) => {
       if (table === "sessions") {
         return {
           select: createMockFn().mockReturnValue({
             eq: createMockFn().mockReturnValue({
-              single: createMockFn().mockReturnValue(Promise.resolve({
+              single: createMockFn().mockResolvedValue({
                 data: { session_id: "existing-session" },
                 error: null,
-              })),
+              }),
             }),
           }),
         };
@@ -169,31 +162,17 @@ describe("resolveSessionFromMeetingId", () => {
       if (table === "chunks") {
         return {
           select: createMockFn().mockReturnValue({
-            eq: createMockFn().mockReturnValue(Promise.resolve({
+            eq: createMockFn().mockResolvedValue({
               count: 3,
               error: null,
-            })),
+            }),
           }),
         };
       }
-      return {
-        select: createMockFn().mockReturnValue({
-          eq: createMockFn().mockReturnValue({
-            single: createMockFn().mockReturnValue(Promise.resolve({
-              data: null,
-              error: null,
-            })),
-          }),
-        }),
-      };
+      return {};
     });
 
-    const mockSupabase = { from: mockFrom };
-
-    const result = await resolveSessionFromMeetingId(
-      "meeting-123",
-      mockSupabase as never,
-    );
+    const result = await resolveSessionFromMeetingId("meeting-123", { from: mockFrom });
 
     expect(result.sessionId).toBe("existing-session");
     expect(result.chunkIndex).toBe(3);

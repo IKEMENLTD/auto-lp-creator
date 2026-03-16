@@ -142,7 +142,7 @@ function clearOldSessions(): void {
       });
       entries.sort((a, b) => a.savedAt - b.savedAt);
       for (let i = 0; i < entries.length - 10; i++) {
-        localStorage.removeItem(entries[i].key);
+        localStorage.removeItem(entries[i]!.key);
       }
     }
   } catch {
@@ -319,29 +319,35 @@ export function useSession(sessionId: string): UseSessionReturn {
   // sessionIdが仮IDの場合はスキップ
   const isSessionValid = sessionId !== '__none__';
 
-  // プレビュー抽出 (一定間隔で蓄積テキストからフィールドを抽出してカード表示を更新)
-  // 企業選択後のみ実行（選択前はdetect-companiesのフローを優先）
+  // Fix 6: プレビュー抽出 - 録音中も企業未選択で動作（バックエンドが自動判定）
+  // 企業選択後はフォーカス抽出に切り替え
   useEffect(() => {
     if (status !== 'active') return;
     if (!isSessionValid) return;
-    if (!targetCompany) return; // 企業未選択時はスキップ
 
     const interval = setInterval(async () => {
       // 新しいチャンクがなければスキップ
       if (transcriptChunks.length <= lastExtractedChunkCount.current) return;
       if (transcriptChunks.length === 0) return;
+      // 最低3チャンク（約21秒分）蓄積してから抽出開始
+      if (transcriptChunks.length < 3 && !targetCompany) return;
 
       lastExtractedChunkCount.current = transcriptChunks.length;
 
       try {
+        const body: Record<string, unknown> = {
+          session_id: sessionId,
+          transcript: transcriptChunks.map(c => c.text).join('\n'),
+        };
+        // 企業が選択済みならフォーカス抽出
+        if (targetCompany) {
+          body['target_company'] = targetCompany;
+        }
+
         const res = await fetch('/api/extract-preview', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            session_id: sessionId,
-            transcript: transcriptChunks.map(c => c.text).join('\n'),
-            target_company: targetCompany,
-          }),
+          body: JSON.stringify(body),
         });
         if (res.ok) {
           const data = await res.json() as { extracted_data?: ExtractedDataMap };

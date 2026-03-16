@@ -18,10 +18,13 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 
 export interface UseAudioCaptureReturn {
   readonly isRecording: boolean;
+  readonly isPaused: boolean;
   readonly chunkCount: number;
   readonly error: string | null;
   readonly interimText: string;
   readonly start: () => Promise<void>;
+  readonly pause: () => void;
+  readonly resume: () => void;
   readonly stop: () => void;
 }
 
@@ -44,6 +47,9 @@ export function setOnTranscript(cb: TranscriptCallback | null): void {
 /** 録音チャンク間隔 (ms) */
 const CHUNK_INTERVAL_MS = 7_000;
 
+/** 連続エラー回数の閾値（これを超えたらUIにエラーを出す） */
+const ERROR_THRESHOLD = 2;
+
 // ============================================================
 // 録音サイクル管理クラス
 // ============================================================
@@ -59,6 +65,10 @@ interface RecordingCycleOptions {
 class RecordingCycle {
   private recorder: MediaRecorder | null = null;
   private running = false;
+  private paused = false;
+  private timerId: ReturnType<typeof setTimeout> | null = null;
+  private pausedAt: number | null = null;
+  private remainingMs: number = CHUNK_INTERVAL_MS;
   private readonly opts: RecordingCycleOptions;
 
   constructor(opts: RecordingCycleOptions) {
@@ -67,19 +77,72 @@ class RecordingCycle {
 
   start(): void {
     this.running = true;
+    this.paused = false;
     this.cycle();
   }
 
   stop(): void {
     this.running = false;
+    this.paused = false;
+    this.clearTimer();
     if (this.recorder && this.recorder.state !== 'inactive') {
       this.recorder.stop();
     }
     this.recorder = null;
   }
 
+  pause(): void {
+    if (!this.running || this.paused) return;
+    this.paused = true;
+
+    // タイマーを停止し、残り時間を記録
+    if (this.timerId !== null) {
+      this.clearTimer();
+      if (this.pausedAt === null) {
+        // 残り時間を推定（次のcycle開始からの経過で計算）
+        this.pausedAt = Date.now();
+      }
+    }
+
+    if (this.recorder && this.recorder.state === 'recording') {
+      this.recorder.pause();
+    }
+  }
+
+  resume(): void {
+    if (!this.running || !this.paused) return;
+    this.paused = false;
+
+    if (this.recorder && this.recorder.state === 'paused') {
+      this.recorder.resume();
+
+      // 残り時間でタイマーを再設定
+      const elapsed = this.pausedAt ? Date.now() - this.pausedAt : 0;
+      const remaining = Math.max(this.remainingMs - elapsed, 500);
+      this.pausedAt = null;
+
+      this.timerId = setTimeout(() => {
+        this.timerId = null;
+        if (this.recorder && this.recorder.state === 'recording') {
+          this.recorder.stop();
+        }
+      }, remaining);
+    } else {
+      // レコーダーがpausedでない場合は新サイクル開始
+      this.pausedAt = null;
+      this.cycle();
+    }
+  }
+
+  private clearTimer(): void {
+    if (this.timerId !== null) {
+      clearTimeout(this.timerId);
+      this.timerId = null;
+    }
+  }
+
   private cycle(): void {
-    if (!this.running) return;
+    if (!this.running || this.paused) return;
 
     const chunks: Blob[] = [];
     const rec = new MediaRecorder(this.opts.stream, { mimeType: this.opts.mimeType });
@@ -96,7 +159,7 @@ class RecordingCycle {
       if (blob.size > 1000) {
         this.opts.onChunk(blob, this.opts.speaker);
       }
-      if (this.running) {
+      if (this.running && !this.paused) {
         this.cycle();
       }
     };
@@ -106,8 +169,11 @@ class RecordingCycle {
     };
 
     rec.start();
+    this.remainingMs = CHUNK_INTERVAL_MS;
+    this.pausedAt = Date.now(); // サイクル開始時刻を記録
 
-    setTimeout(() => {
+    this.timerId = setTimeout(() => {
+      this.timerId = null;
       if (rec.state === 'recording') {
         rec.stop();
       }
@@ -121,6 +187,7 @@ class RecordingCycle {
 
 export function useAudioCapture(sessionId: string): UseAudioCaptureReturn {
   const [isRecording, setIsRecording] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
   const [chunkCount, setChunkCount] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [interimText, setInterimText] = useState('');
@@ -131,7 +198,10 @@ export function useAudioCapture(sessionId: string): UseAudioCaptureReturn {
   const displayCycleRef = useRef<RecordingCycle | null>(null);
   const sessionIdRef = useRef(sessionId);
   const chunkIndexRef = useRef(0);
-  const sendQueueRef = useRef<Promise<void>>(Promise.resolve());
+  // Fix 5: ストリームごとの独立キュー
+  const micQueueRef = useRef<Promise<void>>(Promise.resolve());
+  const displayQueueRef = useRef<Promise<void>>(Promise.resolve());
+  const consecutiveErrorsRef = useRef(0);
   sessionIdRef.current = sessionId;
 
   // クリーンアップ
@@ -178,9 +248,18 @@ export function useAudioCapture(sessionId: string): UseAudioCaptureReturn {
       if (!res.ok) {
         const errBody = await res.text().catch(() => '');
         console.error('Whisper API エラー:', res.status, errBody);
+        // Fix 2: 連続エラー時のみUIに通知
+        consecutiveErrorsRef.current += 1;
+        if (consecutiveErrorsRef.current >= ERROR_THRESHOLD) {
+          setError(`文字起こしに失敗しています (${res.status})`);
+        }
         setInterimText('');
         return;
       }
+
+      // 成功時はエラーカウントをリセット
+      consecutiveErrorsRef.current = 0;
+      setError(null);
 
       const data = await res.json() as { text?: string; speaker?: string };
       setInterimText('');
@@ -193,6 +272,10 @@ export function useAudioCapture(sessionId: string): UseAudioCaptureReturn {
       }
     } catch (err) {
       console.error('チャンク送信エラー:', err);
+      consecutiveErrorsRef.current += 1;
+      if (consecutiveErrorsRef.current >= ERROR_THRESHOLD) {
+        setError('文字起こしサーバーに接続できません');
+      }
       setInterimText('');
     }
   }
@@ -207,13 +290,15 @@ export function useAudioCapture(sessionId: string): UseAudioCaptureReturn {
         : 'audio/webm';
 
       chunkIndexRef.current = 0;
+      consecutiveErrorsRef.current = 0;
       setChunkCount(0);
 
-      // チャンク受信コールバック（キュー制御で順次送信）
+      // Fix 5: ストリームごとのチャンク送信（並列化）
       const handleChunk = (blob: Blob, speaker: string) => {
         const idx = chunkIndexRef.current;
         chunkIndexRef.current += 1;
-        sendQueueRef.current = sendQueueRef.current.then(() =>
+        const queueRef = speaker === '相手' ? displayQueueRef : micQueueRef;
+        queueRef.current = queueRef.current.then(() =>
           sendChunkToWhisper(blob, idx, speaker)
         );
       };
@@ -221,6 +306,7 @@ export function useAudioCapture(sessionId: string): UseAudioCaptureReturn {
       const handleError = (msg: string) => {
         setError(msg);
         setIsRecording(false);
+        setIsPaused(false);
       };
 
       // 1. マイク取得
@@ -252,14 +338,18 @@ export function useAudioCapture(sessionId: string): UseAudioCaptureReturn {
         });
         displayStreamRef.current = displayStream;
 
-        // ビデオトラックは不要なので停止
-        displayStream.getVideoTracks().forEach((t) => t.stop());
+        // Fix 4: ビデオトラックは停止せず無効化のみ（停止するとChromeで音声も死ぬ）
+        displayStream.getVideoTracks().forEach((t) => {
+          t.enabled = false;
+        });
 
         const audioTracks = displayStream.getAudioTracks();
         if (audioTracks.length > 0) {
-          // 相手音声の録音サイクル開始
+          // 音声トラックのみの新ストリームを作成してRecordingCycleに渡す
+          const audioOnlyStream = new MediaStream(audioTracks);
+
           const displayCycle = new RecordingCycle({
-            stream: displayStream,
+            stream: audioOnlyStream,
             mimeType,
             speaker: '相手',
             onChunk: handleChunk,
@@ -268,12 +358,18 @@ export function useAudioCapture(sessionId: string): UseAudioCaptureReturn {
           displayCycleRef.current = displayCycle;
           displayCycle.start();
 
-          // 画面共有終了検知
-          audioTracks[0].onended = () => {
+          // 画面共有終了検知（ビデオ or オーディオトラック終了）
+          const onTrackEnded = () => {
             console.log('相手音声トラック終了');
             displayCycleRef.current?.stop();
             displayCycleRef.current = null;
           };
+          audioTracks[0]!.onended = onTrackEnded;
+          // ビデオトラック終了でも検知（ユーザーが「共有を停止」をクリック）
+          const videoTracks = displayStream.getVideoTracks();
+          if (videoTracks[0]) {
+            videoTracks[0].onended = onTrackEnded;
+          }
         } else {
           console.log('画面共有に音声トラックなし → マイクのみ');
         }
@@ -282,10 +378,27 @@ export function useAudioCapture(sessionId: string): UseAudioCaptureReturn {
       }
 
       setIsRecording(true);
+      setIsPaused(false);
     } catch (err) {
       const msg = err instanceof Error ? err.message : '録音の開始に失敗しました';
       setError(msg);
     }
+  }, []);
+
+  // Fix 3: pause/resume でストリームを破棄しない
+  const pause = useCallback(() => {
+    micCycleRef.current?.pause();
+    displayCycleRef.current?.pause();
+    setIsPaused(true);
+    setIsRecording(false);
+    setInterimText('');
+  }, []);
+
+  const resume = useCallback(() => {
+    micCycleRef.current?.resume();
+    displayCycleRef.current?.resume();
+    setIsPaused(false);
+    setIsRecording(true);
   }, []);
 
   const stop = useCallback(() => {
@@ -303,15 +416,19 @@ export function useAudioCapture(sessionId: string): UseAudioCaptureReturn {
       displayStreamRef.current = null;
     }
     setIsRecording(false);
+    setIsPaused(false);
     setInterimText('');
   }, []);
 
   return {
     isRecording,
+    isPaused,
     chunkCount,
     error,
     interimText,
     start,
+    pause,
+    resume,
     stop,
   };
 }

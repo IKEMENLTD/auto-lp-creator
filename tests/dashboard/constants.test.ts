@@ -36,8 +36,8 @@ describe('CONFIDENCE_THRESHOLD', () => {
 });
 
 describe('REQUIRED_FIELDS', () => {
-  it('全7制作物タイプに必須フィールドが定義されている', () => {
-    expect(Object.keys(REQUIRED_FIELDS)).toHaveLength(7);
+  it('全9制作物タイプに必須フィールドが定義されている', () => {
+    expect(Object.keys(REQUIRED_FIELDS)).toHaveLength(9);
     expect(REQUIRED_FIELDS.lp).toBeDefined();
     expect(REQUIRED_FIELDS.ad_creative).toBeDefined();
     expect(REQUIRED_FIELDS.flyer).toBeDefined();
@@ -45,6 +45,8 @@ describe('REQUIRED_FIELDS', () => {
     expect(REQUIRED_FIELDS.line_design).toBeDefined();
     expect(REQUIRED_FIELDS.minutes).toBeDefined();
     expect(REQUIRED_FIELDS.profile).toBeDefined();
+    expect(REQUIRED_FIELDS.system_proposal).toBeDefined();
+    expect(REQUIRED_FIELDS.proposal).toBeDefined();
   });
 
   it('各制作物の必須フィールドは空配列でない', () => {
@@ -57,8 +59,8 @@ describe('REQUIRED_FIELDS', () => {
 });
 
 describe('DELIVERABLE_ORDER', () => {
-  it('7制作物すべてが含まれている', () => {
-    expect(DELIVERABLE_ORDER).toHaveLength(7);
+  it('9制作物すべてが含まれている', () => {
+    expect(DELIVERABLE_ORDER).toHaveLength(9);
     const types = new Set(DELIVERABLE_ORDER);
     expect(types.has('lp')).toBe(true);
     expect(types.has('ad_creative')).toBe(true);
@@ -67,6 +69,8 @@ describe('DELIVERABLE_ORDER', () => {
     expect(types.has('line_design')).toBe(true);
     expect(types.has('minutes')).toBe(true);
     expect(types.has('profile')).toBe(true);
+    expect(types.has('system_proposal')).toBe(true);
+    expect(types.has('proposal')).toBe(true);
   });
 });
 

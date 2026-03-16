@@ -2,6 +2,7 @@
  * sonnet-prompts テスト
  */
 
+import { jest } from "@jest/globals";
 import {
   getIndustryDefaults,
   selectTemplate,
