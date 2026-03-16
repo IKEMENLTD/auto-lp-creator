@@ -690,10 +690,10 @@ ${cmp.map(row => `<div class="cmp-row">${cmpCheck} <span><strong>${esc(row.featu
 </div>
 </section>` : ""}
 
-<!-- STATS: 実績数字 (CARD_STAT + STATS_GRID) -->
+<!-- STATS: 実績 (CARD_STAT + STATS_GRID) -->
 <section class="sec${cas.length > 0 ? "" : " dot-bg"}"${cas.length > 0 ? "" : ` style="background:var(--bg2)"`}>
 <div class="inner">
-<div class="sec-hd"><p class="sec-bg-txt">Results</p><p class="sec-eng">Track Record</p><h2 class="sec-tit fi">数字で見る実績</h2></div>
+<div class="sec-hd"><p class="sec-bg-txt">Results</p><p class="sec-eng">Track Record</p><h2 class="sec-tit fi">実績</h2></div>
 <div class="stats-grid" style="margin-top:0">
 ${s.map(st => `<div class="card stat-card fi">
 <div class="stat-num">${esc(st.number)}</div>
@@ -704,19 +704,36 @@ ${microDarkHtml}
 </div>
 </section>
 
-<!-- COMPANY + FAQ -->
-<section class="sec">
+<!-- FAQ -->
+${faq.length > 0 ? `<section class="sec">
 <div class="inner">
-${c.company_profile ? `<div class="company-box fi" style="margin-bottom:64px">
-<div class="company-logo">${esc(d.company_name.charAt(0))}</div>
-<div class="company-info"><strong>${esc(d.company_name)}</strong><p>${esc(c.company_profile)}</p></div>
-</div>` : ""}
-${faq.length > 0 ? `<div style="max-width:720px;margin:0 auto">
+<div style="max-width:720px;margin:0 auto">
 <div class="sec-hd"><p class="sec-bg-txt">FAQ</p><p class="sec-eng">FAQ</p><h2 class="sec-tit fi">よくある質問</h2></div>
 <div class="faq-list fi">
 ${faq.map(item => `<dl class="faq-item"><dt class="faq-q">${esc(item.q)}</dt><dd class="faq-a">${esc(item.a)}</dd></dl>`).join("")}
 </div>
-</div>` : ""}
+</div>
+</div>
+</section>` : ""}
+
+<!-- PLAN: 有料版案内 -->
+<section class="sec" style="background:var(--bg2)">
+<div class="inner">
+<div class="sec-hd"><p class="sec-bg-txt">Plan</p><p class="sec-eng">Plan</p><h2 class="sec-tit fi">料金プランやサービス詳細など</h2></div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:24px;margin-top:32px">
+<div class="card fi" style="text-align:center;padding:32px 24px">
+<figure style="margin-bottom:16px"><svg width="140" height="90" viewBox="0 0 140 90" fill="none"><rect x="10" y="5" width="120" height="80" rx="4" fill="#f5f5f5" stroke="#ddd"/><path d="M30 30h80M30 45h60M30 60h40" stroke="#bbb" stroke-width="2" stroke-linecap="round"/><circle cx="110" cy="25" r="8" fill="var(--c)" opacity=".2"/></svg></figure>
+<h3 style="font-size:1.1rem;margin-bottom:8px">サービス紹介資料はこちら</h3>
+<p style="font-size:.85rem;color:var(--tx2);margin-bottom:16px">料金プランや導入事例など、詳しい資料をダウンロードいただけます</p>
+<a href="#contact" class="btn" style="display:inline-block">資料ダウンロード</a>
+</div>
+<div class="card fi" style="text-align:center;padding:32px 24px">
+<figure style="margin-bottom:16px"><svg width="140" height="90" viewBox="0 0 140 90" fill="none"><rect x="10" y="5" width="120" height="80" rx="4" fill="#f5f5f5" stroke="#ddd"/><path d="M50 35l15 15 25-25" stroke="var(--c)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></figure>
+<h3 style="font-size:1.1rem;margin-bottom:8px">無料トライアルのお申込み</h3>
+<p style="font-size:.85rem;color:var(--tx2);margin-bottom:16px">実際の管理画面など、まずは無料でお試しいただけます</p>
+<a href="#contact" class="btn btn-outline" style="display:inline-block">無料トライアル</a>
+</div>
+</div>
 </div>
 </section>
 
