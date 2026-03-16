@@ -100,10 +100,10 @@ export default async function handler(
     // Whisper API呼び出し（リトライ付き）
     let whisperResponse: Response | null = null;
     for (let attempt = 0; attempt < 3; attempt++) {
-      // File オブジェクトを毎回新規作成（ストリームは1回しか読めないため）
-      const file = new File([audioBytes], "audio.webm", { type: "audio/webm" });
+      // Blob で音声データを毎回新規作成（ストリームは1回しか読めないため）
+      const blob = new Blob([audioBytes], { type: "audio/webm" });
       const whisperFormData = new FormData();
-      whisperFormData.append("file", file);
+      whisperFormData.append("file", blob, "audio.webm");
       whisperFormData.append("model", model);
       whisperFormData.append("language", "ja");
       whisperFormData.append("response_format", "json");
