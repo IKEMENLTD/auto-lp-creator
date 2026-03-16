@@ -283,7 +283,7 @@ ${p.theme === "corporate" ? CORPORATE_THEME : ""}
 .ft-links{display:flex;flex-direction:column;gap:0}
 .ft-links a{font-size:14px;color:var(--t2);text-decoration:none;transition:color .2s;padding:4px 0}
 .ft-links a:hover{color:var(--c)}
-.ft-copy{font-size:14px;color:var(--t3);text-align:right}
+.ft-copy{font-size:14px;color:var(--t3);text-align:center;width:100%;margin-top:24px;padding-top:16px;border-top:1px solid var(--bd)}
 @media(max-width:750px){.ft-inner{flex-direction:column;align-items:center;text-align:center;gap:24px}.ft-left{align-items:center}.ft-brand{justify-content:center}.ft-right{align-items:center}.ft-links{align-items:center}.ft-copy{text-align:center}}
 
 /* ===== MOBILE CTA BAR ===== */

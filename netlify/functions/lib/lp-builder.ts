@@ -776,9 +776,9 @@ ${faq.map(item => `<dl class="faq-item"><dt class="faq-q">${esc(item.q)}</dt><dd
 <a href="#">プライバシーポリシー</a>
 <a href="#">利用規約</a>
 </div>
+</div>
+</div>
 <div class="ft-copy">&copy; ${esc(d.company_name)} All Rights Reserved.</div>
-</div>
-</div>
 </footer>
 
 <!-- MOBILE CTA -->
