@@ -577,6 +577,39 @@ ${useCases.length > 0 ? `<!-- MID-CTA: UseCases後 -->
 <a href="#contact" class="doc">資料ダウンロード</a>
 </div>` : ""}
 
+<!-- CASES: 導入事例 -->
+${cas.length > 0 ? (() => {
+  const logoCompanies = ["未来医療福祉コンソーシアム", "VELOX.AI", "INTEGRA LINK", "ARCHETYPE SERVICES"];
+  return `<section class="sec" id="cases" style="background:var(--bg2)">
+<div class="inner">
+<div class="sec-hd"><p class="sec-bg-txt">Results</p><p class="sec-eng">Case Results</p><h2 class="sec-tit fi">実績事例</h2></div>
+<div class="tm-grid${cas.length < 3 ? ` items-${cas.length}` : ''}">
+${cas.map((item, i) => {
+  const caseImg = images[i + 13] ? images[i + 13].url.replace(/w=\d+/, "w=600").replace(/h=\d+/, "h=400") : unsplashUrl(PHOTO_LIBRARY["business"][(i + 13) % 15]!, 600, 400);
+  const companyName = logoCompanies[i % logoCompanies.length];
+  return `<div class="tm-card fi">
+<img class="tm-card-img" src="${esc(caseImg)}" alt="${esc(item.category)}" loading="lazy">
+<div class="tm-card-body">
+<div class="tm-result">${esc(item.result)}</div>
+<p class="tm-text">${esc(item.detail)}</p>
+<div class="tm-author">
+<div class="tm-avatar" style="font-size:12px">${esc(companyName.slice(0,2))}</div>
+<div><div class="tm-name">${esc(companyName)}</div><div class="tm-role">${esc(item.category)}</div></div>
+</div>
+</div>
+</div>`;
+}).join("")}
+</div>
+</div>
+</section>`;
+})() : ""}
+
+${cas.length > 0 ? `<!-- MID-CTA: Cases後 -->
+<div class="mid-cta">
+<a href="#contact" class="trial">${esc(c.cta_text)}</a>
+<a href="#contact" class="doc">資料ダウンロード</a>
+</div>` : ""}
+
 <!-- FUNCTIONS: 主な機能 -->
 ${funcs.length > 0 ? `<section class="sec" id="functions">
 <div class="inner">
@@ -656,33 +689,6 @@ ${cmp.map(row => `<div class="cmp-row">${cmpCheck} <span><strong>${esc(row.featu
 </div>
 </div>
 </section>` : ""}
-
-<!-- CASES: 導入事例 -->
-${cas.length > 0 ? (() => {
-  const logoCompanies = ["未来医療福祉コンソーシアム", "VELOX.AI", "INTEGRA LINK", "ARCHETYPE SERVICES"];
-  return `<section class="sec" id="cases" style="background:var(--bg2)">
-<div class="inner">
-<div class="sec-hd"><p class="sec-bg-txt">Results</p><p class="sec-eng">Case Results</p><h2 class="sec-tit fi">実績事例</h2></div>
-<div class="tm-grid${cas.length < 3 ? ` items-${cas.length}` : ''}">
-${cas.map((item, i) => {
-  const caseImg = images[i + 13] ? images[i + 13].url.replace(/w=\d+/, "w=600").replace(/h=\d+/, "h=400") : unsplashUrl(PHOTO_LIBRARY["business"][(i + 13) % 15]!, 600, 400);
-  const companyName = logoCompanies[i % logoCompanies.length];
-  return `<div class="tm-card fi">
-<img class="tm-card-img" src="${esc(caseImg)}" alt="${esc(item.category)}" loading="lazy">
-<div class="tm-card-body">
-<div class="tm-result">${esc(item.result)}</div>
-<p class="tm-text">${esc(item.detail)}</p>
-<div class="tm-author">
-<div class="tm-avatar" style="font-size:12px">${esc(companyName.slice(0,2))}</div>
-<div><div class="tm-name">${esc(companyName)}</div><div class="tm-role">${esc(item.category)}</div></div>
-</div>
-</div>
-</div>`;
-}).join("")}
-</div>
-</div>
-</section>`;
-})() : ""}
 
 <!-- STATS: 実績数字 (CARD_STAT + STATS_GRID) -->
 <section class="sec${cas.length > 0 ? "" : " dot-bg"}"${cas.length > 0 ? "" : ` style="background:var(--bg2)"`}>
