@@ -210,6 +210,8 @@ export function useSession(sessionId: string): UseSessionReturn {
 
   const startTimeRef = useRef<number>(restored?.startTime ?? Date.now());
   const lastExtractedChunkCount = useRef<number>(restored?.transcriptChunks?.length ?? 0);
+  const transcriptChunksRef = useRef<TranscriptChunk[]>(transcriptChunks);
+  const targetCompanyRef = useRef<string | null>(targetCompany);
 
   // sessionId変更時にリセット（初回マウントではなく、実際にIDが変わった時のみ）
   const prevSessionIdRef = useRef<string>(sessionId);
@@ -256,6 +258,10 @@ export function useSession(sessionId: string): UseSessionReturn {
       savedAt: Date.now(),
     });
   }, [sessionId, extractedData, jobs, transcriptChunks, targetCompany, status]);
+
+  // refを最新に同期
+  useEffect(() => { transcriptChunksRef.current = transcriptChunks; }, [transcriptChunks]);
+  useEffect(() => { targetCompanyRef.current = targetCompany; }, [targetCompany]);
 
   // 経過時間タイマー
   useEffect(() => {
@@ -321,27 +327,31 @@ export function useSession(sessionId: string): UseSessionReturn {
 
   // Fix 6: プレビュー抽出 - 録音中も企業未選択で動作（バックエンドが自動判定）
   // 企業選択後はフォーカス抽出に切り替え
+  // ※ transcriptChunks を deps から外し ref 経由で参照することで、
+  //   チャンク追加のたびにインターバルがリセットされる問題を防止
   useEffect(() => {
     if (status !== 'active') return;
     if (!isSessionValid) return;
 
     const interval = setInterval(async () => {
+      const chunks = transcriptChunksRef.current;
+      const company = targetCompanyRef.current;
       // 新しいチャンクがなければスキップ
-      if (transcriptChunks.length <= lastExtractedChunkCount.current) return;
-      if (transcriptChunks.length === 0) return;
+      if (chunks.length <= lastExtractedChunkCount.current) return;
+      if (chunks.length === 0) return;
       // 最低3チャンク（約21秒分）蓄積してから抽出開始
-      if (transcriptChunks.length < 3 && !targetCompany) return;
+      if (chunks.length < 3 && !company) return;
 
-      lastExtractedChunkCount.current = transcriptChunks.length;
+      lastExtractedChunkCount.current = chunks.length;
 
       try {
         const body: Record<string, unknown> = {
           session_id: sessionId,
-          transcript: transcriptChunks.map(c => c.text).join('\n'),
+          transcript: chunks.map(c => c.text).join('\n'),
         };
         // 企業が選択済みならフォーカス抽出
-        if (targetCompany) {
-          body['target_company'] = targetCompany;
+        if (company) {
+          body['target_company'] = company;
         }
 
         const res = await fetch('/api/extract-preview', {
@@ -361,7 +371,7 @@ export function useSession(sessionId: string): UseSessionReturn {
     }, PREVIEW_EXTRACT_INTERVAL_MS);
 
     return () => clearInterval(interval);
-  }, [sessionId, status, transcriptChunks, isSessionValid, targetCompany]);
+  }, [sessionId, status, isSessionValid]);
 
   // ジョブ状態ポーリング
   useEffect(() => {
