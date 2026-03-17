@@ -22,7 +22,7 @@ import { buildLpHtml, buildAdHtml, buildMinutesHtml, buildGenericHtml, selectIma
 // 定数
 // ============================================================
 
-const LP_MODEL = "claude-haiku-4-5-20251001";
+const LP_MODEL = "claude-sonnet-4-20250514";
 const CLAUDE_MODEL = "claude-sonnet-4-20250514";
 const VALID_TYPES = new Set<string>(["lp", "ad_creative", "flyer", "hearing_form", "line_design", "minutes", "profile", "system_proposal", "proposal"]);
 
