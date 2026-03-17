@@ -891,7 +891,7 @@ body{font-family:'Noto Sans JP',sans-serif;background:#fafafa;color:#1a1a1a;min-
 .doc-header .sub{font-size:15px;opacity:.85;max-width:600px;margin:0 auto}
 
 /* コンテナ */
-.doc-body{max-width:760px;margin:-24px auto 0;padding:0 16px 48px;position:relative;z-index:1}
+.doc-body{max-width:760px;margin:24px auto 0;padding:0 16px 48px;position:relative;z-index:1}
 
 /* セクションカード */
 .sec-card{background:#fff;border-radius:12px;padding:28px 24px;margin-bottom:20px;box-shadow:0 1px 3px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04);border:1px solid #f0f0f0;transition:box-shadow .2s}
