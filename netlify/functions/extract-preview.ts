@@ -15,7 +15,7 @@ import Anthropic from "@anthropic-ai/sdk";
 // ============================================================
 
 const CLAUDE_MODEL = "claude-haiku-4-5-20251001";
-const MAX_TOKENS = 2000;
+const MAX_TOKENS = 3000;
 const CHUNK_SIZE = 8000;
 const CHUNK_OVERLAP = 500;
 const MAX_CHUNKS = 3;
@@ -77,6 +77,8 @@ async function callHaiku(transcript: string, apiKey: string, targetCompany: stri
     }],
   });
 
+  console.log(`[extract] haiku stop=${response.stop_reason} usage=${JSON.stringify(response.usage)}`);
+
   const block = response.content[0];
   if (!block || block.type !== "text") {
     throw new Error("Haiku応答なし");
@@ -94,7 +96,36 @@ async function callHaiku(transcript: string, apiKey: string, targetCompany: stri
     }
   }
 
-  return JSON.parse(text) as ExtractedData;
+  // 切れたJSONの修復（max_tokensで出力が途中で切れた場合）
+  if (response.stop_reason === "max_tokens") {
+    console.warn("[extract] OUTPUT TRUNCATED - attempting repair");
+    let repaired = text;
+    repaired = repaired.replace(/,\s*"[^"]*"?\s*$/, "");
+    repaired = repaired.replace(/,\s*\{[^}]*$/, "");
+    repaired = repaired.replace(/,\s*\[[^\]]*$/, "");
+    repaired = repaired.replace(/,\s*$/, "");
+
+    const openBrackets = (repaired.match(/\[/g) || []).length;
+    const closeBrackets = (repaired.match(/\]/g) || []).length;
+    const opens = (repaired.match(/{/g) || []).length;
+    const closes = (repaired.match(/}/g) || []).length;
+
+    for (let i = 0; i < openBrackets - closeBrackets; i++) repaired += "]";
+    for (let i = 0; i < opens - closes; i++) repaired += "}";
+
+    try {
+      return JSON.parse(repaired) as ExtractedData;
+    } catch {
+      console.error("[extract] repair failed, trying original");
+    }
+  }
+
+  try {
+    return JSON.parse(text) as ExtractedData;
+  } catch (e) {
+    console.error("[extract] JSON parse failed. first 300 chars:", text.slice(0, 300), "last 100 chars:", text.slice(-100));
+    throw e;
+  }
 }
 
 // ============================================================
