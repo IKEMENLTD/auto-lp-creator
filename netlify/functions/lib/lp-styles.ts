@@ -16,6 +16,7 @@ interface StyleParams {
 export function buildLpStyles(p: StyleParams): string {
   return `
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+h1,h2,h3,h4,.sec-tit,.hero-headline,.cta-tit,.sec-head h2{word-break:keep-all;overflow-wrap:break-word}
 .only-sp{display:none}
 :root{--c:${p.primary};--cg:${p.gradient};--ca:${p.accent};--c-rgb:${p.cRgb};--dark:#0f172a;--t1:#1e293b;--t2:#475569;--t3:#94a3b8;--bg:#fff;--bg2:#f1f5f9;--bd:#e2e8f0;--r:10px}
 html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}

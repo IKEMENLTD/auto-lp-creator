@@ -880,6 +880,7 @@ export function buildGenericHtml(content: GenericContent, d: FlatData, type: str
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
+h1,h2,h3,.sec-head h2,.doc-header h1{word-break:keep-all;overflow-wrap:break-word}
 :root{--ac:${accent};--ac-rgb:${hexToRgb(accent)}}
 body{font-family:'Noto Sans JP',sans-serif;background:#fafafa;color:#1a1a1a;min-height:100vh}
 @media print{.no-print{display:none}body{background:#fff}}
