@@ -67,8 +67,6 @@ export const Dashboard: React.FC = () => {
       setIsDetecting(true);
       setGlobalError(null);
 
-      const fireTime = Date.now();
-
       // Background Function起動（即座に202が返る）
       await fetch('/api/detect-companies', {
         method: 'POST',
@@ -76,27 +74,31 @@ export const Dashboard: React.FC = () => {
         body: JSON.stringify({ transcript, session_id: sessionId ?? 'detect' }),
       });
 
-      // ポーリングで結果を待つ（最初3秒待ってからスタート）
+      // ポーリングで結果を待つ
       await new Promise(r => setTimeout(r, 3000));
 
       const detectSessionId = sessionId ?? 'detect';
+      const startTime = Date.now();
       const POLL_TIMEOUT_MS = 60_000;
+      let sawProcessing = false;
 
       const poll = async (): Promise<void> => {
-        while (Date.now() - fireTime < POLL_TIMEOUT_MS) {
+        while (Date.now() - startTime < POLL_TIMEOUT_MS) {
           try {
-            const pollResult = await api.pollJobStatus(detectSessionId, 'detect') as PollStatusResponse & { updatedAt?: string };
+            const pollResult = await api.pollJobStatus(detectSessionId, 'detect') as PollStatusResponse;
 
-            // 起動前の古いステータスは無視
-            if (pollResult.updatedAt) {
-              const statusTime = new Date(pollResult.updatedAt).getTime();
-              if (statusTime < fireTime - 1000) {
-                await new Promise(r => setTimeout(r, 2000));
-                continue;
-              }
+            if (pollResult.status === 'processing') {
+              sawProcessing = true;
+              await new Promise(r => setTimeout(r, 2000));
+              continue;
             }
 
             if (pollResult.status === 'completed') {
+              // processingを見ていないcompletedは古い結果
+              if (!sawProcessing) {
+                await new Promise(r => setTimeout(r, 2000));
+                continue;
+              }
               const resultData = pollResult.data as { companies?: DetectedCompany[] } | undefined;
               const companies = resultData?.companies || [];
 
@@ -116,9 +118,13 @@ export const Dashboard: React.FC = () => {
             }
 
             if (pollResult.status === 'failed') {
+              if (!sawProcessing) {
+                await new Promise(r => setTimeout(r, 2000));
+                continue;
+              }
               throw new Error(pollResult.error ?? '企業検出に失敗しました');
             }
-            // processing / unknown → 待って続行
+            // unknown → 待って続行
             await new Promise(r => setTimeout(r, 2000));
           } catch (err) {
             if (err instanceof Error && err.message !== '企業検出に失敗しました') {

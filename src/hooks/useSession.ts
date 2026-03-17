@@ -298,9 +298,6 @@ export function useSession(sessionId: string): UseSessionReturn {
     try {
       setError(null);
 
-      // 起動時刻を記録（この時刻より前のステータスは古いので無視する）
-      const fireTime = Date.now();
-
       // Background Function起動（即座に202が返る）
       await fetch('/api/extract-preview', {
         method: 'POST',
@@ -313,31 +310,31 @@ export function useSession(sessionId: string): UseSessionReturn {
       });
 
       // ポーリングで結果を待つ（最大60秒）
-      // 最初の3秒は必ず待つ（Background Functionがステータスを書き込む時間を確保）
+      // Phase 1: processingになるまで待つ（Background Functionの起動を確認）
+      // Phase 2: completedまたはfailedになるまで待つ
+      const POLL_TIMEOUT_MS = 60_000;
+      const startTime = Date.now();
+      let sawProcessing = false;
+
+      // 最初の3秒は待つ（Background Functionがステータスを書き込む時間）
       await new Promise(r => setTimeout(r, 3000));
 
-      const POLL_TIMEOUT_MS = 60_000;
-
-      while (Date.now() - fireTime < POLL_TIMEOUT_MS) {
+      while (Date.now() - startTime < POLL_TIMEOUT_MS) {
         try {
-          const pollResult = await api.pollJobStatus(sessionId, 'extract') as { status: string; data?: unknown; error?: string; updatedAt?: string };
+          const pollResult = await api.pollJobStatus(sessionId, 'extract');
 
-          // updatedAtが起動前のものなら古いステータス → 無視して待つ
-          if (pollResult.updatedAt) {
-            const statusTime = new Date(pollResult.updatedAt).getTime();
-            if (statusTime < fireTime - 1000) {
-              await new Promise(r => setTimeout(r, 2000));
-              continue;
-            }
-          }
-
-          // processingなら新しいジョブが走っている → 待つ
           if (pollResult.status === 'processing') {
+            sawProcessing = true;
             await new Promise(r => setTimeout(r, 2000));
             continue;
           }
 
           if (pollResult.status === 'completed') {
+            // processingを一度も見ていないcompletedは古い結果 → 待つ
+            if (!sawProcessing) {
+              await new Promise(r => setTimeout(r, 2000));
+              continue;
+            }
             const resultData = pollResult.data as { extracted_data?: ExtractedDataMap } | undefined;
             if (resultData?.extracted_data) {
               setExtractedData(resultData.extracted_data);
@@ -346,11 +343,15 @@ export function useSession(sessionId: string): UseSessionReturn {
           }
 
           if (pollResult.status === 'failed') {
+            if (!sawProcessing) {
+              await new Promise(r => setTimeout(r, 2000));
+              continue;
+            }
             console.warn('[useSession] extractForCompany failed:', pollResult.error);
             return;
           }
 
-          // unknown = まだステータスが書き込まれていない → 待つ
+          // unknown → 待つ
           await new Promise(r => setTimeout(r, 2000));
         } catch {
           await new Promise(r => setTimeout(r, 2000));
