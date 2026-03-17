@@ -134,8 +134,20 @@ async function callClaudeJsonOnce<T>(client: Anthropic, system: string, user: st
 // LP Draft / Evaluate
 // ============================================================
 
+// FAQ等のキー名揺れを正規化
+function normalizeLpContent(raw: LpContent): LpContent {
+  if (raw.faq) {
+    raw.faq = raw.faq.map((item: Record<string, unknown>) => ({
+      q: (item.q || item.question || "") as string,
+      a: (item.a || item.answer || "") as string,
+    }));
+  }
+  return raw;
+}
+
 async function lpDraft(d: ReturnType<typeof flatten>, transcript: string, apiKey: string, rawData?: Record<string, unknown>): Promise<LpContent> {
-  return callClaudeJson<LpContent>(LP_DRAFT_PROMPT, bizContext(d, transcript, rawData), apiKey, 4000, LP_MODEL);
+  const raw = await callClaudeJson<LpContent>(LP_DRAFT_PROMPT, bizContext(d, transcript, rawData), apiKey, 4000, LP_MODEL);
+  return normalizeLpContent(raw);
 }
 
 async function lpEvaluate(draft: LpContent, d: ReturnType<typeof flatten>, transcript: string, apiKey: string): Promise<LpContent> {
@@ -152,7 +164,8 @@ ${truncated}
 【評価対象のコピー】
 ${JSON.stringify(draft)}`;
 
-  return callClaudeJson<LpContent>(LP_EVALUATE_PROMPT, input, apiKey, 4000, LP_MODEL);
+  const raw = await callClaudeJson<LpContent>(LP_EVALUATE_PROMPT, input, apiKey, 4000, LP_MODEL);
+  return normalizeLpContent(raw);
 }
 
 // ============================================================
