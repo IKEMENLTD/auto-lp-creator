@@ -67,6 +67,8 @@ export const Dashboard: React.FC = () => {
       setIsDetecting(true);
       setGlobalError(null);
 
+      const fireTime = Date.now();
+
       // Background Function起動（即座に202が返る）
       await fetch('/api/detect-companies', {
         method: 'POST',
@@ -74,17 +76,25 @@ export const Dashboard: React.FC = () => {
         body: JSON.stringify({ transcript, session_id: sessionId ?? 'detect' }),
       });
 
-      // ポーリングで結果を待つ
+      // ポーリングで結果を待つ（最初3秒待ってからスタート）
+      await new Promise(r => setTimeout(r, 3000));
+
       const detectSessionId = sessionId ?? 'detect';
-      const pollStartTime = Date.now();
       const POLL_TIMEOUT_MS = 60_000;
 
       const poll = async (): Promise<void> => {
-        while (Date.now() - pollStartTime < POLL_TIMEOUT_MS) {
-          await new Promise(r => setTimeout(r, 2000));
-
+        while (Date.now() - fireTime < POLL_TIMEOUT_MS) {
           try {
-            const pollResult = await api.pollJobStatus(detectSessionId, 'detect') as PollStatusResponse;
+            const pollResult = await api.pollJobStatus(detectSessionId, 'detect') as PollStatusResponse & { updatedAt?: string };
+
+            // 起動前の古いステータスは無視
+            if (pollResult.updatedAt) {
+              const statusTime = new Date(pollResult.updatedAt).getTime();
+              if (statusTime < fireTime - 1000) {
+                await new Promise(r => setTimeout(r, 2000));
+                continue;
+              }
+            }
 
             if (pollResult.status === 'completed') {
               const resultData = pollResult.data as { companies?: DetectedCompany[] } | undefined;
@@ -108,10 +118,12 @@ export const Dashboard: React.FC = () => {
             if (pollResult.status === 'failed') {
               throw new Error(pollResult.error ?? '企業検出に失敗しました');
             }
-            // processing → 続行
+            // processing / unknown → 待って続行
+            await new Promise(r => setTimeout(r, 2000));
           } catch (err) {
             if (err instanceof Error && err.message !== '企業検出に失敗しました') {
               // ポーリングエラーは無視して続行
+              await new Promise(r => setTimeout(r, 2000));
               continue;
             }
             throw err;

@@ -298,6 +298,9 @@ export function useSession(sessionId: string): UseSessionReturn {
     try {
       setError(null);
 
+      // 起動時刻を記録（この時刻より前のステータスは古いので無視する）
+      const fireTime = Date.now();
+
       // Background Function起動（即座に202が返る）
       await fetch('/api/extract-preview', {
         method: 'POST',
@@ -309,15 +312,30 @@ export function useSession(sessionId: string): UseSessionReturn {
         }),
       });
 
-      // ポーリングで結果を待つ（最大45秒）
-      const pollStartTime = Date.now();
-      const POLL_TIMEOUT_MS = 45_000;
+      // ポーリングで結果を待つ（最大60秒）
+      // 最初の3秒は必ず待つ（Background Functionがステータスを書き込む時間を確保）
+      await new Promise(r => setTimeout(r, 3000));
 
-      while (Date.now() - pollStartTime < POLL_TIMEOUT_MS) {
-        await new Promise(r => setTimeout(r, 2000));
+      const POLL_TIMEOUT_MS = 60_000;
 
+      while (Date.now() - fireTime < POLL_TIMEOUT_MS) {
         try {
-          const pollResult = await api.pollJobStatus(sessionId, 'extract');
+          const pollResult = await api.pollJobStatus(sessionId, 'extract') as { status: string; data?: unknown; error?: string; updatedAt?: string };
+
+          // updatedAtが起動前のものなら古いステータス → 無視して待つ
+          if (pollResult.updatedAt) {
+            const statusTime = new Date(pollResult.updatedAt).getTime();
+            if (statusTime < fireTime - 1000) {
+              await new Promise(r => setTimeout(r, 2000));
+              continue;
+            }
+          }
+
+          // processingなら新しいジョブが走っている → 待つ
+          if (pollResult.status === 'processing') {
+            await new Promise(r => setTimeout(r, 2000));
+            continue;
+          }
 
           if (pollResult.status === 'completed') {
             const resultData = pollResult.data as { extracted_data?: ExtractedDataMap } | undefined;
@@ -331,9 +349,11 @@ export function useSession(sessionId: string): UseSessionReturn {
             console.warn('[useSession] extractForCompany failed:', pollResult.error);
             return;
           }
-          // processing → 続行
+
+          // unknown = まだステータスが書き込まれていない → 待つ
+          await new Promise(r => setTimeout(r, 2000));
         } catch {
-          // ポーリングエラーは無視
+          await new Promise(r => setTimeout(r, 2000));
         }
       }
     } catch {

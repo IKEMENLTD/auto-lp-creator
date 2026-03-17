@@ -99,6 +99,7 @@ export default async function handler(request: Request): Promise<Response> {
           status: "completed",
           data,
           view_url: viewUrl,
+          updatedAt: jobStatus.updatedAt,
         }),
         { status: 200, headers: { "Content-Type": "application/json", ...CORS } },
       );
@@ -110,6 +111,7 @@ export default async function handler(request: Request): Promise<Response> {
         status: jobStatus.status,
         step: jobStatus.step,
         error: jobStatus.error,
+        updatedAt: jobStatus.updatedAt,
       }),
       { status: 200, headers: { "Content-Type": "application/json", ...CORS } },
     );
