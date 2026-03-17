@@ -99,7 +99,7 @@ export default async function handler(
 
     // Whisper API呼び出し（リトライ付き）
     let whisperResponse: Response | null = null;
-    for (let attempt = 0; attempt < 3; attempt++) {
+    for (let attempt = 0; attempt < 2; attempt++) {
       // Blob で音声データを毎回新規作成（ストリームは1回しか読めないため）
       const blob = new Blob([audioBytes], { type: "audio/webm" });
       const whisperFormData = new FormData();

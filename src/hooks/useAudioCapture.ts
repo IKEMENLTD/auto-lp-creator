@@ -202,6 +202,7 @@ export function useAudioCapture(sessionId: string): UseAudioCaptureReturn {
   const micQueueRef = useRef<Promise<void>>(Promise.resolve());
   const displayQueueRef = useRef<Promise<void>>(Promise.resolve());
   const consecutiveErrorsRef = useRef(0);
+  const stoppedRef = useRef(false);
   sessionIdRef.current = sessionId;
 
   // クリーンアップ
@@ -212,6 +213,7 @@ export function useAudioCapture(sessionId: string): UseAudioCaptureReturn {
   }, []);
 
   function cleanup() {
+    stoppedRef.current = true;
     micCycleRef.current?.stop();
     micCycleRef.current = null;
     displayCycleRef.current?.stop();
@@ -230,6 +232,7 @@ export function useAudioCapture(sessionId: string): UseAudioCaptureReturn {
   // Whisper APIに音声チャンクを送信
   async function sendChunkToWhisper(blob: Blob, index: number, speaker: string): Promise<void> {
     if (blob.size < 1000) return;
+    if (stoppedRef.current) return;
 
     setInterimText(`文字起こし中... (${speaker})`);
 
@@ -291,6 +294,7 @@ export function useAudioCapture(sessionId: string): UseAudioCaptureReturn {
 
       chunkIndexRef.current = 0;
       consecutiveErrorsRef.current = 0;
+      stoppedRef.current = false;
       setChunkCount(0);
 
       // Fix 5: ストリームごとのチャンク送信（並列化）
@@ -402,6 +406,7 @@ export function useAudioCapture(sessionId: string): UseAudioCaptureReturn {
   }, []);
 
   const stop = useCallback(() => {
+    stoppedRef.current = true;
     micCycleRef.current?.stop();
     micCycleRef.current = null;
     displayCycleRef.current?.stop();
