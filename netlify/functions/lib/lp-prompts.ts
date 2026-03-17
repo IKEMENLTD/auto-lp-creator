@@ -162,7 +162,9 @@ export const GENERIC_PROMPTS: Record<string, string> = {
 {"headline":"キャッチコピー","sub":"サブコピー","sections":[{"title":"セクション名","content":"内容"}]}
 表面(キャッチ・3ポイント・CTA)と裏面(詳細・流れ・会社情報)を含める。JSONのみ出力。`,
   hearing_form: `ヒアリングフォームをJSON生成:
-{"headline":"フォームタイトル","sub":"説明文","sections":[{"title":"質問","content":"選択肢や入力形式の説明"}]}
+{"headline":"フォームタイトル","sub":"説明文","sections":[{"title":"質問文","type":"text|textarea|select|radio|checkbox","options":["選択肢1","選択肢2"],"placeholder":"入力例"}]}
+type説明: text=1行入力, textarea=複数行, select=ドロップダウン, radio=単一選択, checkbox=複数選択。
+optionsはselect/radio/checkboxの時のみ必須。placeholderはtext/textareaの時のみ。
 業種特化の質問10問。JSONのみ出力。`,
   line_design: `7日間LINE配信設計をJSON生成:
 {"headline":"設計タイトル","sub":"戦略概要","sections":[{"title":"Day N: タイトル","content":"メッセージ内容と目的"}]}

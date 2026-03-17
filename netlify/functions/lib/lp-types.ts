@@ -81,8 +81,16 @@ export interface MinutesContent {
   upsell_notes: string;
 }
 
+export interface GenericSection {
+  title: string;
+  content?: string;
+  type?: 'text' | 'textarea' | 'select' | 'radio' | 'checkbox';
+  options?: string[];
+  placeholder?: string;
+}
+
 export interface GenericContent {
-  sections: { title: string; content: string }[];
+  sections: GenericSection[];
   headline: string;
   sub: string;
 }

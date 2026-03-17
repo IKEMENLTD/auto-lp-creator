@@ -906,6 +906,19 @@ body{font-family:'Noto Sans JP',sans-serif;background:#fafafa;color:#1a1a1a;min-
 /* フッター */
 .doc-footer{text-align:center;padding:24px 16px 32px;color:#aaa;font-size:12px;border-top:1px solid #eee;max-width:760px;margin:0 auto}
 
+/* フォーム */
+.form-input{display:block;width:100%;padding:10px 14px;margin-top:8px;border:1.5px solid #ddd;border-radius:8px;font-size:14px;font-family:inherit;transition:border-color .2s;background:#fafafa}
+.form-input:focus{outline:none;border-color:var(--ac);background:#fff}
+.form-textarea{resize:vertical;min-height:80px}
+.form-hint{font-size:13px;color:#888;margin:4px 0 0 50px}
+.form-options{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px;padding-left:50px}
+.form-option{display:flex;align-items:center;gap:6px;font-size:14px;cursor:pointer;padding:8px 14px;border:1.5px solid #e0e0e0;border-radius:8px;transition:all .2s}
+.form-option:hover{border-color:var(--ac);background:rgba(var(--ac-rgb),.05)}
+.form-option input{accent-color:var(--ac)}
+.form-submit{text-align:center;margin-top:28px}
+.form-btn{padding:14px 48px;background:var(--ac);color:#fff;font-size:16px;font-weight:700;border:none;border-radius:10px;cursor:pointer;transition:opacity .2s}
+.form-btn:hover{opacity:.85}
+
 /* モバイル */
 @media(max-width:600px){
   .doc-header{padding:32px 16px 28px}
@@ -914,6 +927,8 @@ body{font-family:'Noto Sans JP',sans-serif;background:#fafafa;color:#1a1a1a;min-
   .sec-head{gap:10px}
   .sec-num{width:30px;height:30px;font-size:13px;border-radius:8px}
   .sec-head h2{font-size:15px}
+  .form-hint{margin-left:0}
+  .form-options{padding-left:0}
 }
 </style>
 </head><body>
@@ -923,9 +938,35 @@ body{font-family:'Noto Sans JP',sans-serif;background:#fafafa;color:#1a1a1a;min-
 <p class="sub">${esc(content.sub)}</p>
 </header>
 <main class="doc-body">
-${(content.sections || []).map((s, i) => `<article class="sec-card">
+${type === 'hearing_form'
+  ? `<form class="hearing-form" onsubmit="event.preventDefault();alert('送信しました（デモ）')">\n${(content.sections || []).map((s, i) => {
+    const fieldName = `q${i}`;
+    const inputType = (s as Record<string,unknown>).type as string || 'text';
+    const options = ((s as Record<string,unknown>).options as string[] | undefined) || [];
+    const placeholder = ((s as Record<string,unknown>).placeholder as string | undefined) || '';
+    let inputHtml = '';
+    if (inputType === 'textarea') {
+      inputHtml = `<textarea name="${fieldName}" class="form-input form-textarea" placeholder="${esc(placeholder)}" rows="3"></textarea>`;
+    } else if (inputType === 'select') {
+      inputHtml = `<select name="${fieldName}" class="form-input"><option value="">選択してください</option>${options.map(o => `<option value="${esc(o)}">${esc(o)}</option>`).join('')}</select>`;
+    } else if (inputType === 'radio') {
+      inputHtml = `<div class="form-options">${options.map((o, j) => `<label class="form-option"><input type="radio" name="${fieldName}" value="${esc(o)}"><span>${esc(o)}</span></label>`).join('')}</div>`;
+    } else if (inputType === 'checkbox') {
+      inputHtml = `<div class="form-options">${options.map((o, j) => `<label class="form-option"><input type="checkbox" name="${fieldName}_${j}" value="${esc(o)}"><span>${esc(o)}</span></label>`).join('')}</div>`;
+    } else {
+      inputHtml = `<input type="text" name="${fieldName}" class="form-input" placeholder="${esc(placeholder)}">`;
+    }
+    return `<div class="sec-card form-field">
 <div class="sec-head"><span class="sec-num">${i + 1}</span><h2>${esc(s.title)}</h2></div>
-<div class="sec-content">${esc(s.content)}</div>
+${s.content ? `<p class="form-hint">${esc(s.content)}</p>` : ''}
+${inputHtml}
+</div>`;
+  }).join("\n")}
+<div class="form-submit"><button type="submit" class="form-btn">送信する</button></div>
+</form>`
+  : (content.sections || []).map((s, i) => `<article class="sec-card">
+<div class="sec-head"><span class="sec-num">${i + 1}</span><h2>${esc(s.title)}</h2></div>
+<div class="sec-content">${esc(s.content || '')}</div>
 </article>`).join("\n")}
 </main>
 <footer class="doc-footer">${esc(d.company_name)}</footer>
