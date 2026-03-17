@@ -84,7 +84,7 @@ ${p.theme === "corporate" ? CORPORATE_THEME : ""}
 .fv-btns .btn-outline-accent:hover{background:var(--c);color:#fff}
 /* Hero dashboard mockup */
 @keyframes heroFadeUp{0%{opacity:0;transform:translateY(20px)}100%{opacity:1;transform:translateY(0)}}
-@keyframes heroBarGrow{0%{width:0}100%{width:var(--bar-w)}}
+@keyframes heroBarGrow{0%{width:0}100%{width:inherit}}
 @keyframes heroPulse{0%,100%{opacity:.6}50%{opacity:1}}
 @keyframes heroFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
 .hero-dash{width:100%;max-width:420px;background:#1e293b;backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:24px;animation:heroFloat 4s ease-in-out infinite;box-shadow:0 20px 60px rgba(0,0,0,.18)}
