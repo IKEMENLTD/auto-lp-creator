@@ -49,6 +49,9 @@ export const Dashboard: React.FC = () => {
   const [detectedCompanies, setDetectedCompanies] = useState<DetectedCompany[]>([]);
   const [isDetecting, setIsDetecting] = useState(false);
 
+  // 録音前の説明ダイアログ
+  const [showRecordingGuide, setShowRecordingGuide] = useState(false);
+
   // sessionId がない場合は仮IDで初期化（セッション開始後に差し替え）
   const activeSessionId = sessionId ?? '__none__';
   const session = useSession(activeSessionId);
@@ -369,7 +372,7 @@ export const Dashboard: React.FC = () => {
           <button
             type="button"
             className="flex items-center justify-center gap-3 w-full py-4 px-6 bg-red-500/10 border border-red-500/40 rounded-lg text-red-400 font-medium transition-all active:scale-95 hover:bg-red-500/20"
-            onClick={() => void handleStartRecording()}
+            onClick={() => setShowRecordingGuide(true)}
           >
             <Mic className="w-5 h-5" />
             録音開始
@@ -416,6 +419,51 @@ export const Dashboard: React.FC = () => {
         <p className="mt-8 text-xs text-gray-600">
           音声解析 + AI制作物自動生成
         </p>
+
+        {/* 録音開始前の説明ダイアログ */}
+        {showRecordingGuide && (
+          <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4" onClick={() => setShowRecordingGuide(false)}>
+            <div className="bg-gray-900 border border-gray-700 rounded-xl max-w-sm w-full p-6" onClick={(e) => e.stopPropagation()}>
+              <h3 className="text-lg font-bold text-gray-100 mb-4">録音を開始します</h3>
+              <div className="space-y-3 text-sm text-gray-300">
+                <div className="flex items-start gap-3">
+                  <span className="text-lg">🎤</span>
+                  <div>
+                    <p className="font-medium text-gray-100">マイクの許可</p>
+                    <p className="text-gray-400 text-xs mt-0.5">あなたの声を文字起こしするために使用します</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <span className="text-lg">🖥️</span>
+                  <div>
+                    <p className="font-medium text-gray-100">画面共有の許可（任意）</p>
+                    <p className="text-gray-400 text-xs mt-0.5">オンライン会議の相手の声を取得するために、会議中のタブの共有が必要です。「タブの音声も共有する」をONにしてください</p>
+                    <p className="text-gray-500 text-xs mt-1">※ 対面の場合はキャンセルでOK。マイクだけで録音します</p>
+                  </div>
+                </div>
+              </div>
+              <div className="flex gap-3 mt-6">
+                <button
+                  type="button"
+                  className="flex-1 py-2.5 px-4 rounded-lg border border-gray-600 text-gray-400 text-sm hover:bg-gray-800 transition-colors"
+                  onClick={() => setShowRecordingGuide(false)}
+                >
+                  戻る
+                </button>
+                <button
+                  type="button"
+                  className="flex-1 py-2.5 px-4 rounded-lg bg-red-500 text-white font-medium text-sm hover:bg-red-600 transition-colors"
+                  onClick={() => {
+                    setShowRecordingGuide(false);
+                    void handleStartRecording();
+                  }}
+                >
+                  OK・録音開始
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
