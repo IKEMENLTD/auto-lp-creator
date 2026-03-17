@@ -131,9 +131,9 @@ ${p.theme === "corporate" ? CORPORATE_THEME : ""}
 .banner-item-inner::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(120deg,transparent,transparent 40px,rgba(255,255,255,.03) 40px,rgba(255,255,255,.03) 80px),linear-gradient(135deg,rgba(255,255,255,.05) 25%,transparent 25%,transparent 50%,rgba(255,255,255,.05) 50%,rgba(255,255,255,.05) 75%,transparent 75%);background-size:100% 100%,20px 20px;z-index:0}
 .banner-item:nth-child(1) .banner-item-inner{background:linear-gradient(135deg,var(--c) 0%,#1a3a4a 100%)}
 .banner-item:nth-child(2) .banner-item-inner{background:linear-gradient(135deg,#1a2744 0%,#2a4a7a 100%)}
-.banner-item-text{flex:1;padding:18px 20px;position:relative;z-index:1;display:flex;flex-direction:column;justify-content:center}
-.banner-item-text h4{font-size:15px;font-weight:900;line-height:1.5;margin-bottom:8px;text-shadow:0 1px 3px rgba(0,0,0,.3)}
-.banner-item-cta{display:inline-block;background:var(--c);color:#fff;font-size:11px;font-weight:700;padding:6px 16px;border-radius:20px;width:fit-content;text-shadow:none}
+.banner-item-text{flex:1;padding:18px 20px;position:relative;z-index:1;display:flex;flex-direction:column;justify-content:center;gap:10px}
+.banner-item-text h4{font-size:15px;font-weight:900;line-height:1.5;margin:0;text-shadow:0 1px 3px rgba(0,0,0,.3)}
+.banner-item-cta{display:inline-block;background:var(--c);color:#fff;font-size:11px;font-weight:700;padding:6px 16px;border-radius:20px;width:fit-content;text-shadow:none;margin-top:auto}
 .banner-item:nth-child(2) .banner-item-cta{background:#3b82f6}
 .banner-item-mockup{width:130px;flex-shrink:0;position:relative;z-index:1;display:flex;align-items:center;justify-content:center;padding:12px 14px 12px 0}
 .banner-item-doc{width:90px;background:#fff;border-radius:3px;box-shadow:4px 4px 12px rgba(0,0,0,.3);padding:8px 7px;transform:rotate(-3deg)}
