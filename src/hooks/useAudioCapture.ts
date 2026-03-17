@@ -203,6 +203,7 @@ export function useAudioCapture(sessionId: string): UseAudioCaptureReturn {
   const displayQueueRef = useRef<Promise<void>>(Promise.resolve());
   const consecutiveErrorsRef = useRef(0);
   const stoppedRef = useRef(false);
+  const abortRef = useRef<AbortController | null>(null);
   sessionIdRef.current = sessionId;
 
   // クリーンアップ
@@ -214,6 +215,8 @@ export function useAudioCapture(sessionId: string): UseAudioCaptureReturn {
 
   function cleanup() {
     stoppedRef.current = true;
+    abortRef.current?.abort();
+    abortRef.current = null;
     micCycleRef.current?.stop();
     micCycleRef.current = null;
     displayCycleRef.current?.stop();
@@ -246,6 +249,7 @@ export function useAudioCapture(sessionId: string): UseAudioCaptureReturn {
       const res = await fetch('/api/transcribe-chunk', {
         method: 'POST',
         body: formData,
+        signal: abortRef.current?.signal,
       });
 
       if (!res.ok) {
@@ -274,6 +278,8 @@ export function useAudioCapture(sessionId: string): UseAudioCaptureReturn {
         }
       }
     } catch (err) {
+      // AbortErrorは停止時の正常動作なので無視
+      if (err instanceof DOMException && err.name === 'AbortError') return;
       console.error('チャンク送信エラー:', err);
       consecutiveErrorsRef.current += 1;
       if (consecutiveErrorsRef.current >= ERROR_THRESHOLD) {
@@ -295,6 +301,7 @@ export function useAudioCapture(sessionId: string): UseAudioCaptureReturn {
       chunkIndexRef.current = 0;
       consecutiveErrorsRef.current = 0;
       stoppedRef.current = false;
+      abortRef.current = new AbortController();
       setChunkCount(0);
 
       // Fix 5: ストリームごとのチャンク送信（並列化）
@@ -407,6 +414,8 @@ export function useAudioCapture(sessionId: string): UseAudioCaptureReturn {
 
   const stop = useCallback(() => {
     stoppedRef.current = true;
+    abortRef.current?.abort();
+    abortRef.current = null;
     micCycleRef.current?.stop();
     micCycleRef.current = null;
     displayCycleRef.current?.stop();
