@@ -36,6 +36,17 @@ type ExtractedData = Record<string, ExtractedField>;
 // ステータスBlob書き込み
 // ============================================================
 
+async function clearOldStatus(sessionId: string): Promise<void> {
+  try {
+    const statusStore = getStore("job-status");
+    await statusStore.delete(`status/${sessionId}/extract`);
+    const resultStore = getStore("job-results");
+    await resultStore.delete(`result/${sessionId}/extract`);
+  } catch {
+    // 削除失敗は無視
+  }
+}
+
 async function writeStatus(sessionId: string, status: string, extra?: Record<string, string>): Promise<void> {
   try {
     const store = getStore("job-status");
@@ -198,6 +209,8 @@ export default async function handler(request: Request): Promise<Response> {
       return new Response(null, { status: 202 });
     }
 
+    // 古いステータスを削除してからprocessingを書く
+    await clearOldStatus(sessionId);
     await writeStatus(sessionId, "processing");
 
     const chunks = splitTranscript(transcript.trim());

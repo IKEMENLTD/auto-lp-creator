@@ -310,31 +310,19 @@ export function useSession(sessionId: string): UseSessionReturn {
       });
 
       // ポーリングで結果を待つ（最大60秒）
-      // Phase 1: processingになるまで待つ（Background Functionの起動を確認）
-      // Phase 2: completedまたはfailedになるまで待つ
+      // Background Function側で古いステータスを削除済みなので、
+      // unknownの間は待ち、processing/completed/failedはそのまま受け入れる
       const POLL_TIMEOUT_MS = 60_000;
       const startTime = Date.now();
-      let sawProcessing = false;
 
-      // 最初の3秒は待つ（Background Functionがステータスを書き込む時間）
-      await new Promise(r => setTimeout(r, 3000));
+      // 最初の2秒は待つ（Background Functionがステータスを書き込む時間）
+      await new Promise(r => setTimeout(r, 2000));
 
       while (Date.now() - startTime < POLL_TIMEOUT_MS) {
         try {
           const pollResult = await api.pollJobStatus(sessionId, 'extract');
 
-          if (pollResult.status === 'processing') {
-            sawProcessing = true;
-            await new Promise(r => setTimeout(r, 2000));
-            continue;
-          }
-
           if (pollResult.status === 'completed') {
-            // processingを一度も見ていないcompletedは古い結果 → 待つ
-            if (!sawProcessing) {
-              await new Promise(r => setTimeout(r, 2000));
-              continue;
-            }
             const resultData = pollResult.data as { extracted_data?: ExtractedDataMap } | undefined;
             if (resultData?.extracted_data) {
               setExtractedData(resultData.extracted_data);
@@ -343,15 +331,11 @@ export function useSession(sessionId: string): UseSessionReturn {
           }
 
           if (pollResult.status === 'failed') {
-            if (!sawProcessing) {
-              await new Promise(r => setTimeout(r, 2000));
-              continue;
-            }
             console.warn('[useSession] extractForCompany failed:', pollResult.error);
             return;
           }
 
-          // unknown → 待つ
+          // processing / unknown → 待つ
           await new Promise(r => setTimeout(r, 2000));
         } catch {
           await new Promise(r => setTimeout(r, 2000));

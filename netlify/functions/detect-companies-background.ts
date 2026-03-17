@@ -53,6 +53,17 @@ JSONのみ出力。他のテキスト不要。`;
 // ステータスBlob書き込み
 // ============================================================
 
+async function clearOldStatus(sessionId: string): Promise<void> {
+  try {
+    const statusStore = getStore("job-status");
+    await statusStore.delete(`status/${sessionId}/detect`);
+    const resultStore = getStore("job-results");
+    await resultStore.delete(`result/${sessionId}/detect`);
+  } catch {
+    // 削除失敗は無視
+  }
+}
+
 async function writeStatus(sessionId: string, status: string, extra?: Record<string, string>): Promise<void> {
   try {
     const store = getStore("job-status");
@@ -103,6 +114,7 @@ export default async function handler(request: Request): Promise<Response> {
       return new Response(null, { status: 202 });
     }
 
+    await clearOldStatus(sessionId);
     await writeStatus(sessionId, "processing");
 
     const client = new Anthropic({ apiKey });

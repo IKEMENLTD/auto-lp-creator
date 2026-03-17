@@ -30,6 +30,15 @@ const VALID_TYPES = new Set<string>(["lp", "ad_creative", "flyer", "hearing_form
 // ステータスBlob書き込み
 // ============================================================
 
+async function clearOldStatus(sessionId: string, type: string): Promise<void> {
+  try {
+    const store = getStore("job-status");
+    await store.delete(`status/${sessionId}/${type}`);
+  } catch {
+    // 削除失敗は無視
+  }
+}
+
 async function writeStatus(sessionId: string, type: string, status: string, extra?: Record<string, string>): Promise<void> {
   try {
     const store = getStore("job-status");
@@ -253,7 +262,8 @@ export default async function handler(request: Request): Promise<Response> {
     const processedTranscript = truncateTranscript(transcript);
     const start = Date.now();
 
-    // ステータス: processing
+    // 古いステータスを削除してからprocessingを書く
+    await clearOldStatus(sessionId, type);
     await writeStatus(sessionId, type, "processing", { step: "starting" });
 
     let html: string;

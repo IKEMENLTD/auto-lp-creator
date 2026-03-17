@@ -75,30 +75,19 @@ export const Dashboard: React.FC = () => {
       });
 
       // ポーリングで結果を待つ
-      await new Promise(r => setTimeout(r, 3000));
+      // Background Function側で古いステータスを削除済みなので、シンプルに待つ
+      await new Promise(r => setTimeout(r, 2000));
 
       const detectSessionId = sessionId ?? 'detect';
       const startTime = Date.now();
       const POLL_TIMEOUT_MS = 60_000;
-      let sawProcessing = false;
 
       const poll = async (): Promise<void> => {
         while (Date.now() - startTime < POLL_TIMEOUT_MS) {
           try {
             const pollResult = await api.pollJobStatus(detectSessionId, 'detect') as PollStatusResponse;
 
-            if (pollResult.status === 'processing') {
-              sawProcessing = true;
-              await new Promise(r => setTimeout(r, 2000));
-              continue;
-            }
-
             if (pollResult.status === 'completed') {
-              // processingを見ていないcompletedは古い結果
-              if (!sawProcessing) {
-                await new Promise(r => setTimeout(r, 2000));
-                continue;
-              }
               const resultData = pollResult.data as { companies?: DetectedCompany[] } | undefined;
               const companies = resultData?.companies || [];
 
@@ -118,10 +107,6 @@ export const Dashboard: React.FC = () => {
             }
 
             if (pollResult.status === 'failed') {
-              if (!sawProcessing) {
-                await new Promise(r => setTimeout(r, 2000));
-                continue;
-              }
               throw new Error(pollResult.error ?? '企業検出に失敗しました');
             }
             // unknown → 待って続行

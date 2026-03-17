@@ -30,7 +30,7 @@ export const CARD_STAT = `
 
 /** プライマリCTAボタン */
 export const BTN_PRIMARY = `
-.btn{display:inline-flex;align-items:center;gap:8px;font-weight:800;border-radius:var(--r);transition:transform .2s,box-shadow .2s;cursor:pointer;text-decoration:none;border:none}
+.btn{display:inline-flex;align-items:center;gap:8px;font-weight:800;border-radius:34px;transition:transform .2s,box-shadow .2s;cursor:pointer;text-decoration:none;border:none}
 .btn:hover{transform:translateY(-2px)}
 .btn-lg{padding:18px 48px;font-size:16px}
 .btn-md{padding:14px 32px;font-size:14px}
@@ -192,8 +192,8 @@ export const SERVICE_CARD = `
 .svc-card{position:relative;background:var(--bg);border:1px solid var(--bd);border-radius:var(--r);overflow:hidden;transition:box-shadow .4s,transform .4s}
 .svc-card:hover{box-shadow:0 20px 60px rgba(var(--c-rgb),.1);transform:translateY(-5px)}
 .svc-head{padding:28px 24px 20px;background:linear-gradient(135deg,rgba(var(--c-rgb),.04),rgba(var(--c-rgb),.01));border-bottom:1px solid var(--bd)}
-.svc-ico-ring{width:52px;height:52px;display:flex;align-items:center;justify-content:center;border-radius:14px;background:var(--bg);border:2px solid rgba(var(--c-rgb),.15);box-shadow:0 4px 12px rgba(var(--c-rgb),.06);margin-bottom:14px}
-.svc-ico-ring svg{width:24px;height:24px;color:var(--c)}
+.svc-ico-ring{width:80px;height:80px;display:flex;align-items:center;justify-content:center;border-radius:18px;background:var(--bg);border:2px solid rgba(var(--c-rgb),.15);box-shadow:0 4px 12px rgba(var(--c-rgb),.06);margin-bottom:14px}
+.svc-ico-ring svg{width:36px;height:36px;color:var(--c)}
 .svc-card h3{font-size:16px;font-weight:800;color:var(--t1);margin:0}
 .svc-card h3::after{content:'';display:block;width:24px;height:2px;background:var(--cg);margin-top:10px;border-radius:1px;transition:width .3s}
 .svc-card:hover h3::after{width:48px}
