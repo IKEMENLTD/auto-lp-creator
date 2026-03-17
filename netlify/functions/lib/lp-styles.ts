@@ -23,7 +23,7 @@ html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
 body{font-family:'Noto Sans JP','Inter',sans-serif;color:var(--t1);background:var(--bg);line-height:1.8;-webkit-font-smoothing:antialiased}
 a{text-decoration:none;color:inherit}
 img{max-width:100%;display:block}
-.inner{max-width:1100px;margin:0 auto;padding:0 24px}
+.inner{max-width:1330px;margin:0 auto;padding:0 24px}
 
 /* ===== ALL COMPONENTS ===== */
 ${SCROLL_ANIM}
@@ -47,12 +47,12 @@ ${p.theme === "corporate" ? CORPORATE_THEME : ""}
 
 /* ===== HEADER ===== */
 .hd{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(255,255,255,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--bd);height:64px;display:flex;align-items:center;padding:0 32px}
-.hd-wrap{display:flex;align-items:center;justify-content:space-between;width:100%}
-.hd-logo{font-weight:800;font-size:18px;color:var(--c);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:50%}
-.hd-nav{display:flex;gap:16px;align-items:center;flex-shrink:0}
+.hd-wrap{display:flex;align-items:center;justify-content:space-between;width:100%;gap:16px}
+.hd-logo{font-weight:800;font-size:18px;color:var(--c);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:40%;flex-shrink:0}
+.hd-nav{display:flex;gap:12px;align-items:center;flex-shrink:1;overflow:hidden}
 .hd-nav a{font-size:13px;color:var(--t2);font-weight:500;transition:color .2s;white-space:nowrap}
 .hd-nav a:hover{color:var(--c)}
-.hd-nav a.btn-accent{color:#fff}
+.hd-nav a.btn-accent{color:#fff;flex-shrink:0}
 
 /* ===== HERO ===== */
 .fv{position:relative;display:flex;align-items:center;overflow:hidden;padding-top:64px;background:linear-gradient(160deg,#f8fafe 0%,#eef3fb 40%,#f0f7ff 100%)}
@@ -161,7 +161,7 @@ ${p.theme === "corporate" ? CORPORATE_THEME : ""}
 
 /* ===== FEATURES (できること) ===== */
 .feat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;max-width:1000px;margin:0 auto}
-.feat-card{overflow:hidden;border-radius:var(--r);background:var(--bg);border:1px solid var(--bd);box-shadow:0 2px 8px rgba(0,0,0,.06);transition:box-shadow .4s,transform .4s}
+.feat-card{overflow:hidden;border-radius:var(--r);background:var(--bg);border:1px solid var(--bd);box-shadow:0 5px 7px rgb(159 157 157 / 13%);transition:box-shadow .4s,transform .4s}
 .feat-card:hover{box-shadow:0 12px 36px rgba(0,0,0,.08);transform:translateY(-4px)}
 .feat-card-img{width:100%;height:200px;object-fit:cover;display:block}
 .feat-body{padding:20px}
@@ -174,7 +174,7 @@ ${p.theme === "corporate" ? CORPORATE_THEME : ""}
 
 /* ===== REASONS (選ばれる理由) ===== */
 .reason-list{display:flex;flex-direction:column;gap:32px;max-width:960px;margin:0 auto}
-.reason-card{display:grid;grid-template-columns:280px 1fr;gap:28px;align-items:center;background:var(--bg);border:1px solid var(--bd);border-radius:var(--r);overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.06);transition:box-shadow .4s,transform .4s}
+.reason-card{display:grid;grid-template-columns:280px 1fr;gap:28px;align-items:center;background:var(--bg);border:1px solid var(--bd);border-radius:var(--r);overflow:hidden;box-shadow:0 5px 7px rgb(159 157 157 / 13%);transition:box-shadow .4s,transform .4s}
 .reason-card:hover{box-shadow:0 12px 36px rgba(0,0,0,.08);transform:translateY(-3px)}
 .reason-card:nth-child(even){direction:rtl}.reason-card:nth-child(even)>*{direction:ltr}
 .reason-img{width:100%;height:100%;min-height:200px;object-fit:cover;display:block}
@@ -200,7 +200,7 @@ ${p.theme === "corporate" ? CORPORATE_THEME : ""}
 
 /* ===== FUNCTIONS (主な機能 - 2列交互レイアウト) ===== */
 .func-rows{display:flex;flex-direction:column;gap:40px;max-width:960px;margin:0 auto}
-.func-row{display:grid;grid-template-columns:1fr 1fr;gap:32px;align-items:center;background:var(--bg);border:1px solid var(--bd);border-radius:var(--r);overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.06);transition:box-shadow .4s,transform .4s}
+.func-row{display:grid;grid-template-columns:1fr 1fr;gap:32px;align-items:center;background:var(--bg);border:1px solid var(--bd);border-radius:var(--r);overflow:hidden;box-shadow:0 5px 7px rgb(159 157 157 / 13%);transition:box-shadow .4s,transform .4s}
 .func-row:hover{box-shadow:0 12px 36px rgba(0,0,0,.08);transform:translateY(-3px)}
 .func-row-rev{direction:rtl}.func-row-rev>*{direction:ltr}
 .func-row-img{overflow:hidden}
@@ -227,7 +227,7 @@ ${p.theme === "corporate" ? CORPORATE_THEME : ""}
 
 /* ===== COLUMNS (お役立ち記事) ===== */
 .col-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:24px;max-width:800px;margin:0 auto}
-.col-card{display:flex;gap:16px;padding:20px;background:var(--bg);border:1px solid var(--bd);border-radius:var(--r);transition:box-shadow .3s,transform .3s;cursor:default}
+.col-card{display:flex;align-items:flex-start;gap:16px;padding:20px;background:var(--bg);border:1px solid var(--bd);border-radius:var(--r);transition:box-shadow .3s,transform .3s;cursor:default;overflow:hidden}
 .col-card:hover{box-shadow:0 8px 24px rgba(0,0,0,.06);transform:translateY(-2px)}
 .col-thumb{flex-shrink:0;width:80px;height:80px;border-radius:8px;object-fit:cover}
 .col-body h4{font-size:14px;font-weight:800;line-height:1.5;margin-bottom:4px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
@@ -269,7 +269,7 @@ ${p.theme === "corporate" ? CORPORATE_THEME : ""}
 .cta-card .btn-trial:hover{opacity:.85}
 .cta-card .btn-outline{background:#fff;color:var(--c);border:2px solid var(--c)}
 .cta-card .btn-outline:hover{background:var(--c);color:#fff}
-.cta-card .btn::after{content:">";position:absolute;right:20px;top:50%;transform:translateY(-50%);font-size:16px}
+.cta-card .btn::after{content:none}
 @media(max-width:600px){.cta-cards{flex-direction:column;align-items:center;row-gap:24px}.cta-card{width:100%;max-width:340px}}
 
 /* ===== FOOTER ===== */
@@ -315,7 +315,7 @@ ${p.theme === "corporate" ? CORPORATE_THEME : ""}
 /* solution */
 .sol-text{font-size:14px}
 /* service */
-.svc-head{padding:22px 20px 16px}.svc-ico-ring{width:44px;height:44px;border-radius:10px}
+.svc-head{padding:22px 20px 16px}.svc-ico-ring{width:60px;height:60px;border-radius:14px}
 .svc-body{padding:16px 20px 22px}.svc-body p{font-size:13px}
 /* CTA */
 .offer{padding:32px 0}.offer-accent{padding:36px 0}.offer-tit{font-size:clamp(16px,4.5vw,20px)}
