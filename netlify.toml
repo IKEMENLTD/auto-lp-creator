@@ -10,6 +10,10 @@
   node_bundler = "esbuild"
   external_node_modules = ["@netlify/blobs"]
 
+# extract-previewは同期関数（Haikuで高速なため26秒で十分）
+[functions."extract-preview"]
+  timeout = 26
+
 # Background Functions（-background suffix）は15分タイムアウト。個別設定不要。
 
 # Netlify Functions v2 uses config.path for routing

@@ -1,14 +1,13 @@
 /**
- * 抽出プレビューAPI - Netlify Background Function
+ * 抽出プレビューAPI - Netlify Function (同期)
  *
  * POST /api/extract-preview
  *
- * Background Function: 即座に202を返し、裏でHaikuによる抽出を実行。
- * 結果はNetlify Blobsに保存。
+ * Haikuで高速抽出（26秒制限内に収まる）。
+ * Background Functionではなく通常の同期関数として動作。
  */
 
 import type { Config } from "@netlify/functions";
-import { getStore } from "@netlify/blobs";
 import Anthropic from "@anthropic-ai/sdk";
 
 // ============================================================
@@ -33,44 +32,14 @@ interface ExtractedField {
 type ExtractedData = Record<string, ExtractedField>;
 
 // ============================================================
-// ステータスBlob書き込み
+// CORSヘッダー
 // ============================================================
 
-async function clearOldStatus(sessionId: string): Promise<void> {
-  try {
-    const statusStore = getStore("job-status");
-    await statusStore.delete(`status/${sessionId}/extract`);
-    const resultStore = getStore("job-results");
-    await resultStore.delete(`result/${sessionId}/extract`);
-  } catch {
-    // 削除失敗は無視
-  }
-}
-
-async function writeStatus(sessionId: string, status: string, extra?: Record<string, string>): Promise<void> {
-  try {
-    const store = getStore("job-status");
-    const key = `status/${sessionId}/extract`;
-    const data = JSON.stringify({
-      status,
-      updatedAt: new Date().toISOString(),
-      ...extra,
-    });
-    await store.set(key, data);
-  } catch (err) {
-    console.warn("[extract-bg] status write failed:", err);
-  }
-}
-
-async function writeResult(sessionId: string, extractedData: ExtractedData): Promise<void> {
-  try {
-    const store = getStore("job-results");
-    const key = `result/${sessionId}/extract`;
-    await store.set(key, JSON.stringify({ extracted_data: extractedData }));
-  } catch (err) {
-    console.warn("[extract-bg] result write failed:", err);
-  }
-}
+const CORS: Record<string, string> = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization",
+};
 
 // ============================================================
 // システムプロンプト
@@ -149,7 +118,7 @@ function splitTranscript(transcript: string): string[] {
 }
 
 // ============================================================
-// 抽出結果マージ
+// 抽出結果マージ（最高confidence優先）
 // ============================================================
 
 function mergeExtractions(results: ExtractedData[]): ExtractedData {
@@ -191,41 +160,45 @@ function mergeExtractions(results: ExtractedData[]): ExtractedData {
 }
 
 // ============================================================
-// メインハンドラー（Background Function）
+// メインハンドラー（同期）
 // ============================================================
 
 export default async function handler(request: Request): Promise<Response> {
   if (request.method === "OPTIONS") {
-    return new Response(null, { status: 204 });
+    return new Response(null, { status: 204, headers: CORS });
   }
 
-  // sessionIdをtry外で保持（エラーハンドラーで使うため）
-  let sessionId = "unknown";
+  if (request.method !== "POST") {
+    return new Response(
+      JSON.stringify({ error: "POST only" }),
+      { status: 405, headers: { "Content-Type": "application/json", ...CORS } },
+    );
+  }
 
   try {
     const body = (await request.json()) as Record<string, unknown>;
-    sessionId = (body["session_id"] as string) || "unknown";
+    const sessionId = (body["session_id"] as string) || "unknown";
     const transcript = body["transcript"] as string | undefined;
 
     if (!transcript || typeof transcript !== "string" || transcript.trim().length === 0) {
-      console.error("[extract-bg] no transcript");
-      return new Response(null, { status: 202 });
+      return new Response(
+        JSON.stringify({ error: "transcript は必須です" }),
+        { status: 400, headers: { "Content-Type": "application/json", ...CORS } },
+      );
     }
 
     const targetCompany = (body["target_company"] as string | undefined) || null;
 
     const apiKey = process.env["ANTHROPIC_API_KEY"];
     if (!apiKey) {
-      await writeStatus(sessionId, "failed", { error: "ANTHROPIC_API_KEY未設定" });
-      return new Response(null, { status: 202 });
+      return new Response(
+        JSON.stringify({ error: "ANTHROPIC_API_KEY 未設定" }),
+        { status: 500, headers: { "Content-Type": "application/json", ...CORS } },
+      );
     }
 
-    // 古いステータスを削除してからprocessingを書く
-    await clearOldStatus(sessionId);
-    await writeStatus(sessionId, "processing");
-
     const chunks = splitTranscript(transcript.trim());
-    console.log(`[extract-bg] ${transcript.length}chars → ${chunks.length}chunks, target=${targetCompany || "auto"}`);
+    console.log(`[extract] ${transcript.length}chars → ${chunks.length}chunks, target=${targetCompany || "auto"}`);
 
     const startTime = Date.now();
 
@@ -234,25 +207,28 @@ export default async function handler(request: Request): Promise<Response> {
     if (chunks.length === 1) {
       extractedData = await callHaiku(chunks[0]!, apiKey, targetCompany);
     } else {
-      const results = await Promise.all(
-        chunks.map(chunk => callHaiku(chunk, apiKey, targetCompany))
-      );
+      // 長文: チャンクを順番に処理（並列だとタイムアウトリスクが上がる）
+      const results: ExtractedData[] = [];
+      for (const chunk of chunks) {
+        results.push(await callHaiku(chunk, apiKey, targetCompany));
+      }
       extractedData = mergeExtractions(results);
     }
 
     const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
-    console.log(`[extract-bg] done: ${elapsed}s, ${Object.keys(extractedData).length} fields`);
+    console.log(`[extract] done: ${elapsed}s, ${Object.keys(extractedData).length} fields`);
 
-    await writeResult(sessionId, extractedData);
-    await writeStatus(sessionId, "completed");
-
+    return new Response(
+      JSON.stringify({ extracted_data: extractedData }),
+      { status: 200, headers: { "Content-Type": "application/json", ...CORS } },
+    );
   } catch (error) {
-    console.error("[extract-bg] error:", error);
-    const msg = error instanceof Error ? error.message : "抽出エラー";
-    await writeStatus(sessionId, "failed", { error: msg });
+    console.error("[extract] error:", error);
+    return new Response(
+      JSON.stringify({ error: error instanceof Error ? error.message : "抽出エラー" }),
+      { status: 500, headers: { "Content-Type": "application/json", ...CORS } },
+    );
   }
-
-  return new Response(null, { status: 202 });
 }
 
 export const config: Config = {
