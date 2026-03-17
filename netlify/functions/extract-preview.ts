@@ -16,9 +16,9 @@ import Anthropic from "@anthropic-ai/sdk";
 
 const CLAUDE_MODEL = "claude-haiku-4-5-20251001";
 const MAX_TOKENS = 2000;
-const CHUNK_SIZE = 4000;
+const CHUNK_SIZE = 8000;
 const CHUNK_OVERLAP = 500;
-const MAX_CHUNKS = 5;
+const MAX_CHUNKS = 3;
 
 // ============================================================
 // 型定義
@@ -207,11 +207,10 @@ export default async function handler(request: Request): Promise<Response> {
     if (chunks.length === 1) {
       extractedData = await callHaiku(chunks[0]!, apiKey, targetCompany);
     } else {
-      // 長文: チャンクを順番に処理（並列だとタイムアウトリスクが上がる）
-      const results: ExtractedData[] = [];
-      for (const chunk of chunks) {
-        results.push(await callHaiku(chunk, apiKey, targetCompany));
-      }
+      // 複数チャンク: 並列実行（26秒以内に収めるため）
+      const results = await Promise.all(
+        chunks.map(chunk => callHaiku(chunk, apiKey, targetCompany))
+      );
       extractedData = mergeExtractions(results);
     }
 
