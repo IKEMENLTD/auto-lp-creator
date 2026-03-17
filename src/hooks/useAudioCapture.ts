@@ -319,17 +319,6 @@ export function useAudioCapture(sessionId: string): UseAudioCaptureReturn {
         return;
       }
 
-      // マイク録音サイクル開始
-      const micCycle = new RecordingCycle({
-        stream: micStream,
-        mimeType,
-        speaker: '自分',
-        onChunk: handleChunk,
-        onError: handleError,
-      });
-      micCycleRef.current = micCycle;
-      micCycle.start();
-
       // 2. システム音声取得（任意 - 失敗してもマイクだけで続行）
       try {
         const displayStream = await navigator.mediaDevices.getDisplayMedia({
@@ -376,6 +365,17 @@ export function useAudioCapture(sessionId: string): UseAudioCaptureReturn {
       } catch {
         console.log('画面共有なし → マイクのみで録音（対面モード）');
       }
+
+      // 3. 全許可完了後にマイク録音サイクル開始
+      const micCycle = new RecordingCycle({
+        stream: micStream,
+        mimeType,
+        speaker: '自分',
+        onChunk: handleChunk,
+        onError: handleError,
+      });
+      micCycleRef.current = micCycle;
+      micCycle.start();
 
       setIsRecording(true);
       setIsPaused(false);
