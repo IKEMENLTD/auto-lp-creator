@@ -340,7 +340,7 @@ export function buildLpHtml(c: LpContent, d: FlatData, images: import("./lp-imag
   const funcs = c.functions || [];
   const dm = c.dashboard_metrics || [{ label: "効率", pct: 85 }, { label: "削減", pct: 72 }, { label: "満足度", pct: 93 }];
   const f = c.flow || [];
-  const faq = c.faq || [];
+  const faq = (c.faq || []).filter(item => item.q && item.q.trim().length > 0);
   const hf = c.hero_features || [];
   const badges = c.trust_badges || [];
   const colors = getDecoColors(d.industry);
