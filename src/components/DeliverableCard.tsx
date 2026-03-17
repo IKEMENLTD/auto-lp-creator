@@ -31,7 +31,7 @@ interface DeliverableCardProps {
 // ============================================================
 
 const PDF_TYPES = new Set<DeliverableType>([
-  'minutes', 'proposal', 'system_proposal', 'profile',
+  'lp', 'ad_creative', 'flyer', 'hearing_form', 'line_design', 'minutes', 'profile', 'system_proposal', 'proposal',
 ]);
 
 /** 新しいウィンドウでページを開き、印刷ダイアログ(PDF保存)を表示 */
