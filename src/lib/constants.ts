@@ -18,6 +18,12 @@ export const FIELD_LABELS: Record<string, string> = {
   contact_info: '連絡先',
   tone_keywords: 'トーン・キーワード',
   upsell_signals: 'アップセル兆候',
+  specific_numbers: '具体的な数字',
+  case_studies: '事例・エピソード',
+  competitive_advantages: '競合優位性',
+  pricing_details: '料金詳細',
+  company_scale: '会社規模',
+  key_persons: '登場人物',
 } as const;
 
 /** confidence 閾値 */
