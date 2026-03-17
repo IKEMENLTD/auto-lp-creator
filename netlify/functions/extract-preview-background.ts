@@ -1,25 +1,25 @@
 /**
- * 抽出プレビューAPI - Netlify Function
+ * 抽出プレビューAPI - Netlify Background Function
  *
  * POST /api/extract-preview
  *
- * 長文対応: 5000字超のトランスクリプトはチャンク分割→各チャンクで抽出→マージ
+ * Background Function: 即座に202を返し、裏でHaikuによる抽出を実行。
+ * 結果はNetlify Blobsに保存。
  */
 
 import type { Config } from "@netlify/functions";
+import { getStore } from "@netlify/blobs";
 import Anthropic from "@anthropic-ai/sdk";
 
 // ============================================================
 // 定数
 // ============================================================
 
-// Haiku: 200-400 tok/s → 2000tok = 5-10秒 (26秒制限内に余裕)
-// Sonnet: 60-100 tok/s → 2500tok = 25-41秒 → タイムアウト頻発
 const CLAUDE_MODEL = "claude-haiku-4-5-20251001";
 const MAX_TOKENS = 2000;
-const CHUNK_SIZE = 4000; // 1チャンクの最大文字数
-const CHUNK_OVERLAP = 500; // チャンク間のオーバーラップ
-const MAX_CHUNKS = 5; // 最大チャンク数（コスト制限）
+const CHUNK_SIZE = 4000;
+const CHUNK_OVERLAP = 500;
+const MAX_CHUNKS = 5;
 
 // ============================================================
 // 型定義
@@ -33,14 +33,33 @@ interface ExtractedField {
 type ExtractedData = Record<string, ExtractedField>;
 
 // ============================================================
-// CORSヘッダー
+// ステータスBlob書き込み
 // ============================================================
 
-const CORS: Record<string, string> = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, Authorization",
-};
+async function writeStatus(sessionId: string, status: string, extra?: Record<string, string>): Promise<void> {
+  try {
+    const store = getStore("job-status");
+    const key = `status/${sessionId}/extract`;
+    const data = JSON.stringify({
+      status,
+      updatedAt: new Date().toISOString(),
+      ...extra,
+    });
+    await store.set(key, data);
+  } catch (err) {
+    console.warn("[extract-bg] status write failed:", err);
+  }
+}
+
+async function writeResult(sessionId: string, extractedData: ExtractedData): Promise<void> {
+  try {
+    const store = getStore("job-results");
+    const key = `result/${sessionId}/extract`;
+    await store.set(key, JSON.stringify({ extracted_data: extractedData }));
+  } catch (err) {
+    console.warn("[extract-bg] result write failed:", err);
+  }
+}
 
 // ============================================================
 // システムプロンプト
@@ -111,7 +130,7 @@ function splitTranscript(transcript: string): string[] {
 }
 
 // ============================================================
-// 抽出結果マージ（最高confidence優先）
+// 抽出結果マージ
 // ============================================================
 
 function mergeExtractions(results: ExtractedData[]): ExtractedData {
@@ -128,7 +147,6 @@ function mergeExtractions(results: ExtractedData[]): ExtractedData {
         continue;
       }
 
-      // 配列フィールド: マージして重複排除
       if (Array.isArray(field.value) && Array.isArray(existing.value)) {
         const combined = [...new Set([...existing.value, ...field.value])];
         merged[key] = {
@@ -138,11 +156,9 @@ function mergeExtractions(results: ExtractedData[]): ExtractedData {
         continue;
       }
 
-      // 文字列フィールド: より高いconfidenceを採用
       if (field.confidence > existing.confidence) {
         merged[key] = field;
       } else if (field.confidence === existing.confidence) {
-        // 同confidence: より長い値を採用（情報量が多い）
         const existStr = typeof existing.value === "string" ? existing.value : "";
         const newStr = typeof field.value === "string" ? field.value : "";
         if (newStr.length > existStr.length) {
@@ -156,71 +172,36 @@ function mergeExtractions(results: ExtractedData[]): ExtractedData {
 }
 
 // ============================================================
-// メインハンドラー
+// メインハンドラー（Background Function）
 // ============================================================
-
-// ============================================================
-// レート制限
-// ============================================================
-
-const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
-const RATE_LIMIT_WINDOW_MS = 60_000;
-const RATE_LIMIT_MAX = 30; // プレビュー抽出は頻度が高いので緩め
-
-function checkRateLimit(key: string): boolean {
-  const now = Date.now();
-  const entry = rateLimitMap.get(key);
-  if (!entry || now > entry.resetAt) {
-    rateLimitMap.set(key, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
-    return true;
-  }
-  entry.count++;
-  return entry.count <= RATE_LIMIT_MAX;
-}
 
 export default async function handler(request: Request): Promise<Response> {
   if (request.method === "OPTIONS") {
-    return new Response(null, { status: 204, headers: CORS });
-  }
-
-  if (request.method !== "POST") {
-    return new Response(
-      JSON.stringify({ error: "POST only" }),
-      { status: 405, headers: { "Content-Type": "application/json", ...CORS } },
-    );
+    return new Response(null, { status: 204 });
   }
 
   try {
     const body = (await request.json()) as Record<string, unknown>;
     const sessionId = (body["session_id"] as string) || "unknown";
-    if (!checkRateLimit(sessionId)) {
-      return new Response(
-        JSON.stringify({ error: "リクエスト頻度が高すぎます" }),
-        { status: 429, headers: { "Content-Type": "application/json", ...CORS } },
-      );
-    }
     const transcript = body["transcript"] as string | undefined;
 
     if (!transcript || typeof transcript !== "string" || transcript.trim().length === 0) {
-      return new Response(
-        JSON.stringify({ error: "transcript は必須です" }),
-        { status: 400, headers: { "Content-Type": "application/json", ...CORS } },
-      );
+      console.error("[extract-bg] no transcript");
+      return new Response(null, { status: 202 });
     }
 
     const targetCompany = (body["target_company"] as string | undefined) || null;
 
     const apiKey = process.env["ANTHROPIC_API_KEY"];
     if (!apiKey) {
-      return new Response(
-        JSON.stringify({ error: "ANTHROPIC_API_KEY 未設定" }),
-        { status: 500, headers: { "Content-Type": "application/json", ...CORS } },
-      );
+      await writeStatus(sessionId, "failed", { error: "ANTHROPIC_API_KEY未設定" });
+      return new Response(null, { status: 202 });
     }
 
-    // チャンク分割
+    await writeStatus(sessionId, "processing");
+
     const chunks = splitTranscript(transcript.trim());
-    console.log(`[extract] ${transcript.length}chars → ${chunks.length}chunks, target=${targetCompany || "auto"}`);
+    console.log(`[extract-bg] ${transcript.length}chars → ${chunks.length}chunks, target=${targetCompany || "auto"}`);
 
     const startTime = Date.now();
 
@@ -236,19 +217,24 @@ export default async function handler(request: Request): Promise<Response> {
     }
 
     const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
-    console.log(`[extract] done: ${elapsed}s, ${Object.keys(extractedData).length} fields`);
+    console.log(`[extract-bg] done: ${elapsed}s, ${Object.keys(extractedData).length} fields`);
 
-    return new Response(
-      JSON.stringify({ extracted_data: extractedData }),
-      { status: 200, headers: { "Content-Type": "application/json", ...CORS } },
-    );
+    await writeResult(sessionId, extractedData);
+    await writeStatus(sessionId, "completed");
+
   } catch (error) {
-    console.error("[extract] error:", error);
-    return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : "抽出エラー" }),
-      { status: 500, headers: { "Content-Type": "application/json", ...CORS } },
-    );
+    console.error("[extract-bg] error:", error);
+    try {
+      const body = await request.clone().json() as Record<string, unknown>;
+      const sessionId = (body["session_id"] as string) || "unknown";
+      const msg = error instanceof Error ? error.message : "抽出エラー";
+      await writeStatus(sessionId, "failed", { error: msg });
+    } catch {
+      // ignore
+    }
   }
+
+  return new Response(null, { status: 202 });
 }
 
 export const config: Config = {

@@ -21,7 +21,7 @@ import { CompanySelector, type DetectedCompany } from '../components/CompanySele
 import { useSession } from '../hooks/useSession';
 import { useAudioCapture, setOnTranscript } from '../hooks/useAudioCapture';
 import { api } from '../lib/api';
-import type { DeliverableType, ShareMethod } from '../types/dashboard';
+import type { DeliverableType, ShareMethod, PollStatusResponse } from '../types/dashboard';
 
 type RecordingState = 'idle' | 'recording' | 'paused' | 'ended' | 'pasting' | 'analyzing' | 'selecting';
 
@@ -67,42 +67,68 @@ export const Dashboard: React.FC = () => {
       setIsDetecting(true);
       setGlobalError(null);
 
-      const res = await fetch('/api/detect-companies', {
+      // Background Function起動（即座に202が返る）
+      await fetch('/api/detect-companies', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ transcript }),
+        body: JSON.stringify({ transcript, session_id: sessionId ?? 'detect' }),
       });
 
-      if (!res.ok) {
-        throw new Error('企業検出に失敗しました');
-      }
+      // ポーリングで結果を待つ
+      const detectSessionId = sessionId ?? 'detect';
+      const pollStartTime = Date.now();
+      const POLL_TIMEOUT_MS = 60_000;
 
-      const data = await res.json() as { companies?: DetectedCompany[] };
-      const companies = data.companies || [];
+      const poll = async (): Promise<void> => {
+        while (Date.now() - pollStartTime < POLL_TIMEOUT_MS) {
+          await new Promise(r => setTimeout(r, 2000));
 
-      if (companies.length === 0) {
-        // 企業が検出できなかった場合は選択ステップをスキップ
-        setRecordingState('ended');
-        return;
-      }
+          try {
+            const pollResult = await api.pollJobStatus(detectSessionId, 'detect') as PollStatusResponse;
 
-      if (companies.length === 1) {
-        // 1社のみの場合は自動選択（抽出完了まで待つ）
-        await handleCompanySelected(companies[0]!);
-        return;
-      }
+            if (pollResult.status === 'completed') {
+              const resultData = pollResult.data as { companies?: DetectedCompany[] } | undefined;
+              const companies = resultData?.companies || [];
 
-      setDetectedCompanies(companies);
-      setRecordingState('selecting');
+              if (companies.length === 0) {
+                setRecordingState('ended');
+                return;
+              }
+
+              if (companies.length === 1) {
+                await handleCompanySelected(companies[0]!);
+                return;
+              }
+
+              setDetectedCompanies(companies);
+              setRecordingState('selecting');
+              return;
+            }
+
+            if (pollResult.status === 'failed') {
+              throw new Error(pollResult.error ?? '企業検出に失敗しました');
+            }
+            // processing → 続行
+          } catch (err) {
+            if (err instanceof Error && err.message !== '企業検出に失敗しました') {
+              // ポーリングエラーは無視して続行
+              continue;
+            }
+            throw err;
+          }
+        }
+        throw new Error('企業検出がタイムアウトしました');
+      };
+
+      await poll();
     } catch (err) {
       const msg = err instanceof Error ? err.message : '企業検出に失敗しました';
       setGlobalError(msg);
-      // エラー時はスキップしてendedへ
       setRecordingState('ended');
     } finally {
       setIsDetecting(false);
     }
-  }, []);
+  }, [sessionId]);
 
   const handleCompanySelected = useCallback(async (company: DetectedCompany) => {
     session.setTargetCompany(company.name);

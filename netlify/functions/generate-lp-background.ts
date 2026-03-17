@@ -1,14 +1,13 @@
 /**
- * 制作物生成API - Netlify Function
+ * 制作物生成API - Netlify Background Function
  *
  * POST /api/generate-lp
  *
- * LP生成は3ステップパイプライン:
- *   step=draft    → セクション設計 + コピー生成 (JSON返却)
- *   step=evaluate → 品質評価 + 修正 (JSON返却)
- *   step=build    → HTML構築 + Blobs保存 (HTML返却)
+ * Background Function: 即座に202を返し、裏で最大15分実行。
+ * 結果はNetlify Blobsに保存し、フロントエンドはpoll-statusでポーリング。
  *
- * LP以外(ad_creative, minutes等)は従来通り1ステップ。
+ * LP: draft → evaluate → build を内部で一貫実行。
+ * LP以外: 1ステップで生成。
  */
 
 import type { Config } from "@netlify/functions";
@@ -23,20 +22,31 @@ import { buildLpHtml, buildAdHtml, buildMinutesHtml, buildGenericHtml, selectIma
 // 定数
 // ============================================================
 
-const CORS: Record<string, string> = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type",
-};
-
-// LP生成はHaiku（速度重視: 26秒制限内に確実に収める）
 const LP_MODEL = "claude-haiku-4-5-20251001";
-// LP以外（ad, minutes等）は出力が少ないのでSonnetでOK
 const CLAUDE_MODEL = "claude-sonnet-4-20250514";
 const VALID_TYPES = new Set<string>(["lp", "ad_creative", "flyer", "hearing_form", "line_design", "minutes", "profile", "system_proposal", "proposal"]);
 
 // ============================================================
-// Claude API呼び出し
+// ステータスBlob書き込み
+// ============================================================
+
+async function writeStatus(sessionId: string, type: string, status: string, extra?: Record<string, string>): Promise<void> {
+  try {
+    const store = getStore("job-status");
+    const key = `status/${sessionId}/${type}`;
+    const data = JSON.stringify({
+      status,
+      updatedAt: new Date().toISOString(),
+      ...extra,
+    });
+    await store.set(key, data);
+  } catch (err) {
+    console.warn("[generate-bg] status write failed:", err);
+  }
+}
+
+// ============================================================
+// Claude API呼び出し（既存ロジックそのまま）
 // ============================================================
 
 async function callClaudeJson<T>(system: string, user: string, apiKey: string, maxTokens = 4000, model = CLAUDE_MODEL): Promise<T> {
@@ -48,7 +58,7 @@ async function callClaudeJson<T>(system: string, user: string, apiKey: string, m
   for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
     if (attempt > 0) {
       const delay = Math.min(1000 * Math.pow(2, attempt - 1), 8000);
-      console.log(`[generate] Retry ${attempt}/${MAX_RETRIES} after ${delay}ms`);
+      console.log(`[generate-bg] Retry ${attempt}/${MAX_RETRIES} after ${delay}ms`);
       await new Promise(r => setTimeout(r, delay));
     }
 
@@ -62,7 +72,7 @@ async function callClaudeJson<T>(system: string, user: string, apiKey: string, m
         msg.includes('503') || msg.includes('timeout') || msg.includes('ECONNRESET') ||
         msg.includes('fetch failed');
       if (!isRetryable) throw lastError;
-      console.warn(`[generate] Retryable error (attempt ${attempt + 1}): ${msg}`);
+      console.warn(`[generate-bg] Retryable error (attempt ${attempt + 1}): ${msg}`);
     }
   }
   throw lastError ?? new Error('Claude API呼び出しに失敗しました');
@@ -76,18 +86,17 @@ async function callClaudeJsonOnce<T>(client: Anthropic, system: string, user: st
     messages: [{ role: "user", content: user }],
   });
 
-  console.log(`[generate] model=${model} stop=${res.stop_reason} usage=${JSON.stringify(res.usage)}`);
+  console.log(`[generate-bg] model=${model} stop=${res.stop_reason} usage=${JSON.stringify(res.usage)}`);
 
   const block = res.content[0];
   if (!block || block.type !== "text") throw new Error("Claude応答なし");
 
   if (res.stop_reason === "max_tokens") {
-    console.error("[generate] OUTPUT TRUNCATED - max_tokens reached. output_tokens:", res.usage?.output_tokens);
+    console.error("[generate-bg] OUTPUT TRUNCATED - max_tokens reached. output_tokens:", res.usage?.output_tokens);
   }
 
   let text = block.text.trim();
 
-  // JSON抽出: コードブロック → 最初の{...}最後の} を試す
   const codeBlock = text.match(/```(?:json)?\s*([\s\S]*?)```/);
   if (codeBlock?.[1]) {
     text = codeBlock[1].trim();
@@ -99,7 +108,6 @@ async function callClaudeJsonOnce<T>(client: Anthropic, system: string, user: st
     }
   }
 
-  // 切れたJSONの修復を試みる
   if (res.stop_reason === "max_tokens") {
     let repaired = text;
     const opens = (repaired.match(/{/g) || []).length;
@@ -115,17 +123,17 @@ async function callClaudeJsonOnce<T>(client: Anthropic, system: string, user: st
     for (let i = 0; i < opens - closes; i++) repaired += "}";
 
     try {
-      console.log("[generate] Repaired truncated JSON successfully");
+      console.log("[generate-bg] Repaired truncated JSON successfully");
       return JSON.parse(repaired) as T;
     } catch {
-      console.error("[generate] Repair failed, trying original");
+      console.error("[generate-bg] Repair failed, trying original");
     }
   }
 
   try {
     return JSON.parse(text) as T;
   } catch {
-    console.error("[generate] JSON parse failed, model:", model, "stop:", res.stop_reason, "first 500 chars:", text.slice(0, 500), "last 200 chars:", text.slice(-200));
+    console.error("[generate-bg] JSON parse failed, model:", model, "stop:", res.stop_reason, "first 500 chars:", text.slice(0, 500), "last 200 chars:", text.slice(-200));
     throw new Error("Claude応答のJSON解析に失敗しました");
   }
 }
@@ -134,7 +142,6 @@ async function callClaudeJsonOnce<T>(client: Anthropic, system: string, user: st
 // LP Draft / Evaluate
 // ============================================================
 
-// FAQ等のキー名揺れを正規化
 function normalizeLpContent(raw: LpContent): LpContent {
   if (raw.faq) {
     raw.faq = raw.faq.map((item: Record<string, unknown>) => ({
@@ -215,154 +222,109 @@ async function generateGeneric(type: string, d: ReturnType<typeof flatten>, tran
 }
 
 // ============================================================
-// レート制限 (インメモリ — Netlify Function単位)
-// ============================================================
-
-const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
-const RATE_LIMIT_WINDOW_MS = 60_000;
-const RATE_LIMIT_MAX = 20;
-
-function checkRateLimit(key: string): boolean {
-  const now = Date.now();
-  const entry = rateLimitMap.get(key);
-  if (!entry || now > entry.resetAt) {
-    rateLimitMap.set(key, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
-    return true;
-  }
-  entry.count++;
-  return entry.count <= RATE_LIMIT_MAX;
-}
-
-function cleanupRateLimitMap(): void {
-  const now = Date.now();
-  for (const [key, entry] of rateLimitMap) {
-    if (now > entry.resetAt) rateLimitMap.delete(key);
-  }
-}
-
-// ============================================================
-// メインハンドラー
+// メインハンドラー（Background Function）
 // ============================================================
 
 export default async function handler(request: Request): Promise<Response> {
+  // OPTIONS は同期的に処理（Background Functionでも必要）
   if (request.method === "OPTIONS") {
-    return new Response(null, { status: 204, headers: CORS });
+    return new Response(null, { status: 204 });
   }
-  if (request.method !== "POST") {
-    return new Response(JSON.stringify({ success: false, error: "POST only" }), { status: 405, headers: { "Content-Type": "application/json", ...CORS } });
-  }
-
-  if (rateLimitMap.size > 100) cleanupRateLimitMap();
 
   try {
     const body = (await request.json()) as Record<string, unknown>;
     const sessionId = body["session_id"] as string | undefined;
     const type = body["type"] as string | undefined;
-    const step = (body["step"] as string) || "";
     const transcript = (body["transcript"] as string) || "";
     const rawData = (body["extracted_data"] as Record<string, unknown>) || {};
-    const draftContent = body["draft_content"] as LpContent | undefined;
 
-    if (!sessionId) return new Response(JSON.stringify({ success: false, error: "session_id必須" }), { status: 400, headers: { "Content-Type": "application/json", ...CORS } });
-    if (!type || !VALID_TYPES.has(type)) return new Response(JSON.stringify({ success: false, error: "無効なtype" }), { status: 400, headers: { "Content-Type": "application/json", ...CORS } });
-
-    if (!checkRateLimit(sessionId)) {
-      return new Response(JSON.stringify({ success: false, error: "リクエスト頻度が高すぎます。しばらく待ってから再試行してください。" }), { status: 429, headers: { "Content-Type": "application/json", ...CORS } });
+    if (!sessionId || !type || !VALID_TYPES.has(type)) {
+      console.error("[generate-bg] invalid params:", { sessionId, type });
+      return new Response(null, { status: 202 });
     }
 
     const apiKey = process.env["ANTHROPIC_API_KEY"];
-    if (!apiKey) return new Response(JSON.stringify({ success: false, error: "ANTHROPIC_API_KEY未設定" }), { status: 500, headers: { "Content-Type": "application/json", ...CORS } });
+    if (!apiKey) {
+      await writeStatus(sessionId, type, "failed", { error: "ANTHROPIC_API_KEY未設定" });
+      return new Response(null, { status: 202 });
+    }
 
     const data = flatten(rawData);
+    const processedTranscript = truncateTranscript(transcript);
     const start = Date.now();
 
-    // ============================================================
-    // LP 3ステップパイプライン
-    // ============================================================
-    if (type === "lp" && step) {
-      if (step === "draft") {
-        console.log(`[generate] LP draft start, transcript=${transcript.length}chars`);
-        const processedTranscript = truncateTranscript(transcript);
-        const draft = await lpDraft(data, processedTranscript, apiKey, rawData);
-        console.log(`[generate] LP draft done: ${((Date.now() - start) / 1000).toFixed(1)}s`);
-        return new Response(
-          JSON.stringify({ success: true, step: "draft", content: draft }),
-          { status: 200, headers: { "Content-Type": "application/json", ...CORS } },
-        );
-      }
-
-      if (step === "evaluate") {
-        if (!draftContent) return new Response(JSON.stringify({ success: false, error: "draft_content必須" }), { status: 400, headers: { "Content-Type": "application/json", ...CORS } });
-        console.log(`[generate] LP evaluate start`);
-        const revised = await lpEvaluate(draftContent, data, transcript, apiKey);
-        console.log(`[generate] LP evaluate done: ${((Date.now() - start) / 1000).toFixed(1)}s`);
-        return new Response(
-          JSON.stringify({ success: true, step: "evaluate", content: revised }),
-          { status: 200, headers: { "Content-Type": "application/json", ...CORS } },
-        );
-      }
-
-      if (step === "build") {
-        if (!draftContent) return new Response(JSON.stringify({ success: false, error: "draft_content必須" }), { status: 400, headers: { "Content-Type": "application/json", ...CORS } });
-        console.log(`[generate] LP build start`);
-
-        const images = selectImages(data);
-        console.log(`[generate] images: ${images.length} selected for industry="${data.industry}"`);
-
-        const theme = selectTheme(data);
-        console.log(`[generate] theme: ${theme}`);
-        const html = buildLpHtml(draftContent as LpContent, data, images, theme);
-
-        const blobKey = `${sessionId}/${type}`;
-        try {
-          const store = getStore("deliverables");
-          await store.set(blobKey, html, { metadata: { type, sessionId, createdAt: new Date().toISOString() } });
-        } catch (blobErr) {
-          console.warn("[generate] blob save failed:", blobErr);
-        }
-
-        const viewUrl = `/view/${encodeURIComponent(sessionId)}/${encodeURIComponent(type)}`;
-        console.log(`[generate] LP build done: ${((Date.now() - start) / 1000).toFixed(1)}s, ${html.length}chars`);
-        return new Response(
-          JSON.stringify({ success: true, step: "build", html, type, view_url: viewUrl }),
-          { status: 200, headers: { "Content-Type": "application/json", ...CORS } },
-        );
-      }
-    }
-
-    // ============================================================
-    // LP以外 or LP旧互換（step未指定）
-    // ============================================================
-    console.log(`[generate] ${type} start, transcript=${transcript.length}chars`);
-    const processedTranscript = truncateTranscript(transcript);
+    // ステータス: processing
+    await writeStatus(sessionId, type, "processing", { step: "starting" });
 
     let html: string;
+
     if (type === "lp") {
+      // LP: 3ステップを内部で一貫実行
+      // Step 1: Draft
+      await writeStatus(sessionId, type, "processing", { step: "draft" });
+      console.log(`[generate-bg] LP draft start, transcript=${transcript.length}chars`);
       const draft = await lpDraft(data, processedTranscript, apiKey, rawData);
+      console.log(`[generate-bg] LP draft done: ${((Date.now() - start) / 1000).toFixed(1)}s`);
+
+      // Step 2: Evaluate
+      await writeStatus(sessionId, type, "processing", { step: "evaluate" });
+      console.log(`[generate-bg] LP evaluate start`);
+      let finalContent: LpContent;
+      try {
+        finalContent = await lpEvaluate(draft, data, processedTranscript, apiKey);
+        console.log(`[generate-bg] LP evaluate done: ${((Date.now() - start) / 1000).toFixed(1)}s`);
+      } catch (evalErr) {
+        console.warn("[generate-bg] LP evaluate failed, using draft:", evalErr);
+        finalContent = draft;
+      }
+
+      // Step 3: Build
+      await writeStatus(sessionId, type, "processing", { step: "build" });
+      console.log(`[generate-bg] LP build start`);
       const images = selectImages(data);
-      const lpTheme = selectTheme(data);
-      html = buildLpHtml(draft, data, images, lpTheme);
-    } else if (type === "ad_creative") html = await generateAd(data, processedTranscript, apiKey);
-    else if (type === "minutes") html = await generateMinutes(data, processedTranscript, apiKey);
-    else html = await generateGeneric(type, data, processedTranscript, apiKey);
+      const theme = selectTheme(data);
+      html = buildLpHtml(finalContent, data, images, theme);
+      console.log(`[generate-bg] LP build done: ${((Date.now() - start) / 1000).toFixed(1)}s, ${html.length}chars`);
 
-    console.log(`[generate] ${type} done: ${((Date.now() - start) / 1000).toFixed(1)}s, ${html.length}chars`);
-
-    const blobKey = `${sessionId}/${type}`;
-    try {
-      const store = getStore("deliverables");
-      await store.set(blobKey, html, { metadata: { type, sessionId, createdAt: new Date().toISOString() } });
-    } catch (blobErr) {
-      console.warn("[generate] blob save failed:", blobErr);
+    } else if (type === "ad_creative") {
+      await writeStatus(sessionId, type, "processing", { step: "generating" });
+      html = await generateAd(data, processedTranscript, apiKey);
+    } else if (type === "minutes") {
+      await writeStatus(sessionId, type, "processing", { step: "generating" });
+      html = await generateMinutes(data, processedTranscript, apiKey);
+    } else {
+      await writeStatus(sessionId, type, "processing", { step: "generating" });
+      html = await generateGeneric(type, data, processedTranscript, apiKey);
     }
 
-    const viewUrl = `/view/${encodeURIComponent(sessionId)}/${encodeURIComponent(type as string)}`;
-    return new Response(JSON.stringify({ success: true, html, type, view_url: viewUrl }), { status: 200, headers: { "Content-Type": "application/json", ...CORS } });
+    console.log(`[generate-bg] ${type} total: ${((Date.now() - start) / 1000).toFixed(1)}s, ${html.length}chars`);
+
+    // HTML を Blobs に保存
+    const blobKey = `${sessionId}/${type}`;
+    const store = getStore("deliverables");
+    await store.set(blobKey, html, { metadata: { type, sessionId, createdAt: new Date().toISOString() } });
+
+    // ステータス: completed
+    await writeStatus(sessionId, type, "completed");
+
   } catch (error) {
-    console.error("[generate] error:", error);
-    const msg = error instanceof Error ? error.message : "生成エラー";
-    return new Response(JSON.stringify({ success: false, error: `制作物の生成に失敗しました: ${msg}` }), { status: 500, headers: { "Content-Type": "application/json", ...CORS } });
+    console.error("[generate-bg] error:", error);
+    // エラー時もステータスを書き込む
+    try {
+      const body = await request.clone().json() as Record<string, unknown>;
+      const sessionId = body["session_id"] as string;
+      const type = body["type"] as string;
+      if (sessionId && type) {
+        const msg = error instanceof Error ? error.message : "生成エラー";
+        await writeStatus(sessionId, type, "failed", { error: `制作物の生成に失敗しました: ${msg}` });
+      }
+    } catch {
+      // ステータス書き込みも失敗した場合は諦める
+    }
   }
+
+  // Background Functionのレスポンスは無視されるが、形式上返す
+  return new Response(null, { status: 202 });
 }
 
 export const config: Config = {

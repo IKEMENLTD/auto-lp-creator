@@ -132,3 +132,12 @@ export interface ShareAllResponse {
   readonly share_url?: string;
   readonly error?: string;
 }
+
+/** ポーリングステータスレスポンス */
+export interface PollStatusResponse {
+  readonly status: "processing" | "completed" | "failed" | "unknown";
+  readonly step?: string;
+  readonly error?: string;
+  readonly data?: unknown;
+  readonly view_url?: string;
+}

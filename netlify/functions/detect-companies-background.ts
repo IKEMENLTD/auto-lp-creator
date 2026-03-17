@@ -1,13 +1,14 @@
 /**
- * 企業検出API - Netlify Function
+ * 企業検出API - Netlify Background Function
  *
  * POST /api/detect-companies
  *
- * トランスクリプトから登場企業を検出し、各社の基本情報を返す。
- * ユーザーが対象企業を選択するためのステップ。
+ * Background Function: 即座に202を返し、裏でSonnetによる企業検出を実行。
+ * 結果はNetlify Blobsに保存。
  */
 
 import type { Config } from "@netlify/functions";
+import { getStore } from "@netlify/blobs";
 import Anthropic from "@anthropic-ai/sdk";
 
 // ============================================================
@@ -27,12 +28,6 @@ interface DetectedCompany {
 // ============================================================
 
 const CLAUDE_MODEL = "claude-sonnet-4-20250514";
-
-const CORS: Record<string, string> = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type",
-};
 
 const SYSTEM_PROMPT = `商談トランスクリプトに登場する全ての企業・組織を検出し、JSON配列で出力してください。
 
@@ -55,43 +50,62 @@ const SYSTEM_PROMPT = `商談トランスクリプトに登場する全ての企
 JSONのみ出力。他のテキスト不要。`;
 
 // ============================================================
-// メインハンドラー
+// ステータスBlob書き込み
+// ============================================================
+
+async function writeStatus(sessionId: string, status: string, extra?: Record<string, string>): Promise<void> {
+  try {
+    const store = getStore("job-status");
+    const key = `status/${sessionId}/detect`;
+    const data = JSON.stringify({
+      status,
+      updatedAt: new Date().toISOString(),
+      ...extra,
+    });
+    await store.set(key, data);
+  } catch (err) {
+    console.warn("[detect-bg] status write failed:", err);
+  }
+}
+
+async function writeResult(sessionId: string, companies: DetectedCompany[]): Promise<void> {
+  try {
+    const store = getStore("job-results");
+    const key = `result/${sessionId}/detect`;
+    await store.set(key, JSON.stringify({ companies }));
+  } catch (err) {
+    console.warn("[detect-bg] result write failed:", err);
+  }
+}
+
+// ============================================================
+// メインハンドラー（Background Function）
 // ============================================================
 
 export default async function handler(request: Request): Promise<Response> {
   if (request.method === "OPTIONS") {
-    return new Response(null, { status: 204, headers: CORS });
-  }
-
-  if (request.method !== "POST") {
-    return new Response(
-      JSON.stringify({ error: "POST only" }),
-      { status: 405, headers: { "Content-Type": "application/json", ...CORS } },
-    );
+    return new Response(null, { status: 204 });
   }
 
   try {
     const body = (await request.json()) as Record<string, unknown>;
+    const sessionId = body["session_id"] as string | undefined;
     const transcript = body["transcript"] as string | undefined;
 
-    if (!transcript || typeof transcript !== "string" || transcript.trim().length === 0) {
-      return new Response(
-        JSON.stringify({ error: "transcript は必須です" }),
-        { status: 400, headers: { "Content-Type": "application/json", ...CORS } },
-      );
+    if (!sessionId || !transcript || transcript.trim().length === 0) {
+      console.error("[detect-bg] invalid params");
+      return new Response(null, { status: 202 });
     }
 
     const apiKey = process.env["ANTHROPIC_API_KEY"];
     if (!apiKey) {
-      return new Response(
-        JSON.stringify({ error: "ANTHROPIC_API_KEY 未設定" }),
-        { status: 500, headers: { "Content-Type": "application/json", ...CORS } },
-      );
+      await writeStatus(sessionId, "failed", { error: "ANTHROPIC_API_KEY未設定" });
+      return new Response(null, { status: 202 });
     }
 
-    const client = new Anthropic({ apiKey });
+    await writeStatus(sessionId, "processing");
 
-    // 長文は先頭15000字に制限
+    const client = new Anthropic({ apiKey });
     const input = transcript.trim().slice(0, 15000);
 
     const res = await client.messages.create({
@@ -103,7 +117,7 @@ export default async function handler(request: Request): Promise<Response> {
 
     const block = res.content[0];
     if (!block || block.type !== "text") {
-      throw new Error("Haiku応答なし");
+      throw new Error("Claude応答なし");
     }
 
     let text = block.text.trim();
@@ -113,19 +127,26 @@ export default async function handler(request: Request): Promise<Response> {
     const parsed = JSON.parse(text) as { companies: DetectedCompany[] };
     const companies = parsed.companies || [];
 
-    console.log(`[detect] found ${companies.length} companies`);
+    console.log(`[detect-bg] found ${companies.length} companies`);
 
-    return new Response(
-      JSON.stringify({ companies }),
-      { status: 200, headers: { "Content-Type": "application/json", ...CORS } },
-    );
+    await writeResult(sessionId, companies);
+    await writeStatus(sessionId, "completed");
+
   } catch (error) {
-    console.error("[detect] error:", error);
-    return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : "企業検出エラー" }),
-      { status: 500, headers: { "Content-Type": "application/json", ...CORS } },
-    );
+    console.error("[detect-bg] error:", error);
+    try {
+      const body = await request.clone().json() as Record<string, unknown>;
+      const sessionId = body["session_id"] as string;
+      if (sessionId) {
+        const msg = error instanceof Error ? error.message : "企業検出エラー";
+        await writeStatus(sessionId, "failed", { error: msg });
+      }
+    } catch {
+      // ignore
+    }
   }
+
+  return new Response(null, { status: 202 });
 }
 
 export const config: Config = {

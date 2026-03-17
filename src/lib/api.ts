@@ -12,6 +12,7 @@ import type {
   EndSessionResponse,
   ShareAllResponse,
   ShareMethod,
+  PollStatusResponse,
 } from '../types/dashboard';
 
 // ============================================================
@@ -203,6 +204,28 @@ export async function shareAll(
   }
 }
 
+/**
+ * Background Functionのジョブステータスをポーリングする
+ */
+export async function pollJobStatus(
+  sessionId: string,
+  type: string,
+): Promise<PollStatusResponse> {
+  try {
+    const response = await fetchWithTimeout(
+      `/api/poll-status?session_id=${encodeURIComponent(sessionId)}&type=${encodeURIComponent(type)}`,
+      { method: 'GET' },
+      10_000,
+    );
+    return parseResponse<PollStatusResponse>(response, 'ステータス確認');
+  } catch (error) {
+    if (error && typeof error === 'object' && 'message' in error) {
+      throw error;
+    }
+    throw { message: 'ステータス確認中に通信エラーが発生しました', status: 0 } satisfies ApiError;
+  }
+}
+
 export const api = {
   startSession,
   getSessionStatus,
@@ -210,4 +233,5 @@ export const api = {
   updateField,
   endSession,
   shareAll,
+  pollJobStatus,
 } as const;

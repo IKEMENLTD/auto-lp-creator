@@ -293,11 +293,13 @@ export function useSession(sessionId: string): UseSessionReturn {
     setTargetCompanyState(name);
   }, []);
 
-  // 特定企業にフォーカスして抽出
+  // 特定企業にフォーカスして抽出（Background Function + ポーリング）
   const extractForCompany = useCallback(async (companyName: string, transcript: string) => {
     try {
       setError(null);
-      const res = await fetch('/api/extract-preview', {
+
+      // Background Function起動（即座に202が返る）
+      await fetch('/api/extract-preview', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -306,10 +308,32 @@ export function useSession(sessionId: string): UseSessionReturn {
           target_company: companyName,
         }),
       });
-      if (res.ok) {
-        const data = await res.json() as { extracted_data?: ExtractedDataMap };
-        if (data.extracted_data) {
-          setExtractedData(data.extracted_data);
+
+      // ポーリングで結果を待つ（最大45秒）
+      const pollStartTime = Date.now();
+      const POLL_TIMEOUT_MS = 45_000;
+
+      while (Date.now() - pollStartTime < POLL_TIMEOUT_MS) {
+        await new Promise(r => setTimeout(r, 2000));
+
+        try {
+          const pollResult = await api.pollJobStatus(sessionId, 'extract');
+
+          if (pollResult.status === 'completed') {
+            const resultData = pollResult.data as { extracted_data?: ExtractedDataMap } | undefined;
+            if (resultData?.extracted_data) {
+              setExtractedData(resultData.extracted_data);
+            }
+            return;
+          }
+
+          if (pollResult.status === 'failed') {
+            console.warn('[useSession] extractForCompany failed:', pollResult.error);
+            return;
+          }
+          // processing → 続行
+        } catch {
+          // ポーリングエラーは無視
         }
       }
     } catch {
@@ -325,77 +349,71 @@ export function useSession(sessionId: string): UseSessionReturn {
   // sessionIdが仮IDの場合はスキップ
   const isSessionValid = sessionId !== '__none__';
 
-  // Fix 6: プレビュー抽出 - 録音中も企業未選択で動作（バックエンドが自動判定）
-  // 企業選択後はフォーカス抽出に切り替え
-  // ※ transcriptChunks を deps から外し ref 経由で参照することで、
-  //   チャンク追加のたびにインターバルがリセットされる問題を防止
+  // プレビュー抽出（Background Function版）
+  // 15秒おきにBackground Functionを起動し、その後のポーリングで結果を取得
   useEffect(() => {
     if (status !== 'active') return;
     if (!isSessionValid) return;
 
+    // 抽出中フラグ（重複実行防止）
+    let isExtracting = false;
+
     const interval = setInterval(async () => {
+      if (isExtracting) return;
+
       const chunks = transcriptChunksRef.current;
       const company = targetCompanyRef.current;
-      // 新しいチャンクがなければスキップ
       if (chunks.length <= lastExtractedChunkCount.current) return;
       if (chunks.length === 0) return;
-      // 最低2チャンク（約60秒分）蓄積してから抽出開始
       if (chunks.length < 2 && !company) return;
 
       lastExtractedChunkCount.current = chunks.length;
+      isExtracting = true;
 
       try {
         const body: Record<string, unknown> = {
           session_id: sessionId,
           transcript: chunks.map(c => c.text).join('\n'),
         };
-        // 企業が選択済みならフォーカス抽出
         if (company) {
           body['target_company'] = company;
         }
 
-        const res = await fetch('/api/extract-preview', {
+        // Background Function起動
+        await fetch('/api/extract-preview', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(body),
         });
-        if (res.ok) {
-          const data = await res.json() as { extracted_data?: ExtractedDataMap };
-          if (data.extracted_data) {
-            setExtractedData(data.extracted_data);
+
+        // 結果をポーリング（最大12秒、次のインターバルまでに完了させる）
+        for (let i = 0; i < 4; i++) {
+          await new Promise(r => setTimeout(r, 3000));
+          try {
+            const pollResult = await api.pollJobStatus(sessionId, 'extract');
+            if (pollResult.status === 'completed') {
+              const resultData = pollResult.data as { extracted_data?: ExtractedDataMap } | undefined;
+              if (resultData?.extracted_data) {
+                setExtractedData(resultData.extracted_data);
+              }
+              break;
+            }
+            if (pollResult.status === 'failed') break;
+          } catch {
+            // ポーリングエラーは無視
           }
         }
       } catch {
-        // プレビュー抽出のエラーは無視（重要ではない）
+        // プレビュー抽出のエラーは無視
+      } finally {
+        isExtracting = false;
       }
     }, PREVIEW_EXTRACT_INTERVAL_MS);
 
     return () => clearInterval(interval);
   }, [sessionId, status, isSessionValid]);
 
-  // ジョブ状態ポーリング
-  useEffect(() => {
-    if (jobs.length === 0) return;
-    const hasActive = jobs.some(j => j.status === 'processing' || j.status === 'queued');
-    if (!hasActive) return;
-
-    const interval = setInterval(async () => {
-      try {
-        const res = await api.getSessionStatus(sessionId);
-        const data = res as Record<string, unknown>;
-        if (data['jobs']) {
-          setJobs(data['jobs'] as GenerationJob[]);
-        }
-        if (data['extracted_data']) {
-          setExtractedData(data['extracted_data'] as ExtractedDataMap);
-        }
-      } catch {
-        // ポーリングエラーは無視
-      }
-    }, POLL_INTERVAL_MS);
-
-    return () => clearInterval(interval);
-  }, [sessionId, jobs]);
+  // 旧ジョブポーリングは削除（各生成が自前のポーリングを管理する）
 
   // フィールド手動更新
   const handleUpdateField = useCallback(async (field: string, value: string) => {
@@ -421,58 +439,21 @@ export function useSession(sessionId: string): UseSessionReturn {
     ));
   }, []);
 
-  // LP用3ステップパイプライン
-  const generateLpPipeline = useCallback(async (fullText: string) => {
-    const type: DeliverableType = 'lp';
-    const baseBody = { session_id: sessionId, type, extracted_data: extractedData };
+  // ポーリング用のインターバルrefを管理（クリーンアップ用）
+  const pollIntervalsRef = useRef<Map<string, ReturnType<typeof setInterval>>>(new Map());
 
-    // Step 1: Draft
-    updateJobStatus(type, 'processing', 'Step 1/3: コピー設計中...');
-    const draftRes = await fetch('/api/generate-lp', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...baseBody, step: 'draft', transcript: fullText }),
-    });
-    if (!draftRes.ok) {
-      const err = await draftRes.json().catch(() => ({})) as { error?: string };
-      throw new Error(err.error ?? 'コピー設計に失敗しました');
+  // ステップ名を日本語に変換
+  function stepToLabel(step?: string): string {
+    switch (step) {
+      case 'draft': return 'コピー設計中...';
+      case 'evaluate': return '品質チェック中...';
+      case 'build': return 'HTML構築中...';
+      case 'generating': return '生成中...';
+      default: return '生成中...';
     }
-    const draftResult = await draftRes.json() as { success: boolean; content?: Record<string, unknown>; error?: string };
-    if (!draftResult.success || !draftResult.content) throw new Error(draftResult.error ?? 'Draft失敗');
+  }
 
-    // Step 2: Evaluate & Revise
-    updateJobStatus(type, 'processing', 'Step 2/3: 品質チェック・修正中...');
-    const evalRes = await fetch('/api/generate-lp', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...baseBody, step: 'evaluate', draft_content: draftResult.content, transcript: fullText }),
-    });
-    let finalContent = draftResult.content;
-    if (evalRes.ok) {
-      const evalResult = await evalRes.json() as { success: boolean; content?: Record<string, unknown> };
-      if (evalResult.success && evalResult.content) {
-        finalContent = evalResult.content;
-      }
-    }
-
-    // Step 3: Build HTML
-    updateJobStatus(type, 'processing', 'Step 3/3: HTML構築中...');
-    const buildRes = await fetch('/api/generate-lp', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...baseBody, step: 'build', draft_content: finalContent }),
-    });
-    if (!buildRes.ok) {
-      const err = await buildRes.json().catch(() => ({})) as { error?: string };
-      throw new Error(err.error ?? 'HTML構築に失敗しました');
-    }
-    const buildResult = await buildRes.json() as { success: boolean; html?: string; view_url?: string; error?: string };
-    if (!buildResult.success || !buildResult.html) throw new Error(buildResult.error ?? 'Build失敗');
-
-    return buildResult;
-  }, [sessionId, extractedData, updateJobStatus]);
-
-  // 制作物生成
+  // 制作物生成（Background Function + ポーリング）
   const handleGenerateDeliverable = useCallback(async (type: DeliverableType) => {
     try {
       setError(null);
@@ -492,64 +473,82 @@ export function useSession(sessionId: string): UseSessionReturn {
       };
       setJobs(prev => [...prev.filter(j => j.type !== type), tempJob]);
 
-      let result: { html?: string; view_url?: string };
-
-      if (type === 'lp') {
-        // LP: 3ステップパイプライン
-        result = await generateLpPipeline(fullText);
-      } else {
-        // LP以外: 従来の1ステップ
-        const res = await fetch('/api/generate-lp', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            session_id: sessionId,
-            type,
-            transcript: fullText,
-            extracted_data: extractedData,
-          }),
-        });
-
-        if (!res.ok) {
-          const errBody = await res.json().catch(() => ({ error: '生成に失敗しました' })) as { error?: string };
-          throw new Error(errBody.error ?? '生成に失敗しました');
-        }
-
-        const resJson = await res.json() as { success: boolean; html?: string; view_url?: string; error?: string };
-        if (!resJson.success || !resJson.html) {
-          throw new Error(resJson.error ?? '生成結果が空です');
-        }
-        result = resJson;
-      }
-
-      // URL設定
-      let displayUrl: string;
-      if (result.view_url) {
-        displayUrl = result.view_url;
-      } else if (result.html) {
-        const blob = new Blob([result.html], { type: 'text/html; charset=utf-8' });
-        displayUrl = URL.createObjectURL(blob);
-      } else {
-        throw new Error('生成結果が空です');
-      }
-
-      // 旧blob URLがあれば解放
-      setJobs(prev => {
-        const oldJob = prev.find(j => j.type === type);
-        if (oldJob?.result_url?.startsWith('blob:')) {
-          URL.revokeObjectURL(oldJob.result_url);
-        }
-        return prev.map(j =>
-          j.type === type
-            ? { ...j, status: 'completed' as const, result_url: displayUrl, error: null, completed_at: new Date().toISOString() }
-            : j
-        );
+      // Background Functionを起動（即座に202が返る）
+      await fetch('/api/generate-lp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          session_id: sessionId,
+          type,
+          transcript: fullText,
+          extracted_data: extractedData,
+        }),
       });
 
-      // LP完了後にGemini画像生成を非同期起動（UIをブロックしない）
-      if (type === 'lp' && result.view_url) {
-        void triggerImageGeneration(sessionId, extractedData);
-      }
+      // 既存のポーリングがあればクリア
+      const existingInterval = pollIntervalsRef.current.get(type);
+      if (existingInterval) clearInterval(existingInterval);
+
+      // ポーリング開始（3秒間隔、最大90秒）
+      const pollStartTime = Date.now();
+      const POLL_TIMEOUT_MS = 90_000;
+
+      const intervalId = setInterval(async () => {
+        try {
+          // タイムアウトチェック
+          if (Date.now() - pollStartTime > POLL_TIMEOUT_MS) {
+            clearInterval(intervalId);
+            pollIntervalsRef.current.delete(type);
+            setError('生成がタイムアウトしました。もう一度お試しください。');
+            setJobs(prev => prev.map(j =>
+              j.type === type ? { ...j, status: 'failed' as const, error: 'タイムアウト' } : j
+            ));
+            return;
+          }
+
+          const pollResult = await api.pollJobStatus(sessionId, type);
+
+          if (pollResult.status === 'processing') {
+            updateJobStatus(type, 'processing', stepToLabel(pollResult.step));
+          } else if (pollResult.status === 'completed') {
+            clearInterval(intervalId);
+            pollIntervalsRef.current.delete(type);
+
+            const viewUrl = pollResult.view_url ?? `/view/${encodeURIComponent(sessionId)}/${encodeURIComponent(type)}`;
+
+            // 旧blob URLがあれば解放
+            setJobs(prev => {
+              const oldJob = prev.find(j => j.type === type);
+              if (oldJob?.result_url?.startsWith('blob:')) {
+                URL.revokeObjectURL(oldJob.result_url);
+              }
+              return prev.map(j =>
+                j.type === type
+                  ? { ...j, status: 'completed' as const, result_url: viewUrl, error: null, completed_at: new Date().toISOString() }
+                  : j
+              );
+            });
+
+            // LP完了後にGemini画像生成を非同期起動
+            if (type === 'lp') {
+              void triggerImageGeneration(sessionId, extractedData);
+            }
+          } else if (pollResult.status === 'failed') {
+            clearInterval(intervalId);
+            pollIntervalsRef.current.delete(type);
+            const errorMsg = pollResult.error ?? '生成に失敗しました';
+            setError(errorMsg);
+            setJobs(prev => prev.map(j =>
+              j.type === type ? { ...j, status: 'failed' as const, error: errorMsg } : j
+            ));
+          }
+        } catch {
+          // ポーリング中のエラーは無視（次回リトライ）
+        }
+      }, 3000);
+
+      pollIntervalsRef.current.set(type, intervalId);
+
     } catch (err) {
       const msg = err instanceof Error ? err.message : '制作物の生成に失敗しました';
       setError(msg);
@@ -557,7 +556,7 @@ export function useSession(sessionId: string): UseSessionReturn {
         j.type === type ? { ...j, status: 'failed' as const, error: msg } : j
       ));
     }
-  }, [sessionId, transcriptChunks, extractedData, generateLpPipeline]);
+  }, [sessionId, transcriptChunks, extractedData, updateJobStatus]);
 
   // セッション終了
   const handleEndSession = useCallback(async () => {

@@ -10,17 +10,7 @@
   node_bundler = "esbuild"
   external_node_modules = ["@netlify/blobs"]
 
-[functions."detect-companies"]
-  timeout = 26
-
-[functions."extract-preview"]
-  timeout = 26
-
-[functions."generate-lp"]
-  timeout = 26
-
-[functions."generate-images"]
-  timeout = 26
+# Background Functions（-background suffix）は15分タイムアウト。個別設定不要。
 
 # Netlify Functions v2 uses config.path for routing
 # No API redirects needed - functions handle their own paths
