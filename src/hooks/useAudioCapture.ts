@@ -45,7 +45,7 @@ export function setOnTranscript(cb: TranscriptCallback | null): void {
 // ============================================================
 
 /** 録音チャンク間隔 (ms) */
-const CHUNK_INTERVAL_MS = 7_000;
+const CHUNK_INTERVAL_MS = 30_000;
 
 /** 連続エラー回数の閾値（これを超えたらUIにエラーを出す） */
 const ERROR_THRESHOLD = 2;
