@@ -339,8 +339,8 @@ export function useSession(sessionId: string): UseSessionReturn {
       // 新しいチャンクがなければスキップ
       if (chunks.length <= lastExtractedChunkCount.current) return;
       if (chunks.length === 0) return;
-      // 最低3チャンク（約21秒分）蓄積してから抽出開始
-      if (chunks.length < 3 && !company) return;
+      // 最低2チャンク（約60秒分）蓄積してから抽出開始
+      if (chunks.length < 2 && !company) return;
 
       lastExtractedChunkCount.current = chunks.length;
 
