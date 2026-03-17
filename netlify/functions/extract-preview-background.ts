@@ -15,7 +15,7 @@ import Anthropic from "@anthropic-ai/sdk";
 // 定数
 // ============================================================
 
-const CLAUDE_MODEL = "claude-sonnet-4-20250514";
+const CLAUDE_MODEL = "claude-sonnet-4-6-20250514";
 const MAX_TOKENS = 3000;
 const CHUNK_SIZE = 8000;
 const CHUNK_OVERLAP = 500;

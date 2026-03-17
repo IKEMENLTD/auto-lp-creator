@@ -206,7 +206,7 @@ async function callClaudeApi(
 ): Promise<string> {
   const timeoutMs = model === "sonnet" ? SONNET_TIMEOUT_MS : HAIKU_TIMEOUT_MS;
   const modelId = model === "sonnet"
-    ? "claude-sonnet-4-20250514"
+    ? "claude-sonnet-4-6-20250514"
     : "claude-haiku-4-20250414";
 
   const controller = new AbortController();
