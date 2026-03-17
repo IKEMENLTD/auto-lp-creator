@@ -191,9 +191,12 @@ export default async function handler(request: Request): Promise<Response> {
     return new Response(null, { status: 204 });
   }
 
+  // sessionIdをtry外で保持（エラーハンドラーで使うため）
+  let sessionId = "unknown";
+
   try {
     const body = (await request.json()) as Record<string, unknown>;
-    const sessionId = (body["session_id"] as string) || "unknown";
+    sessionId = (body["session_id"] as string) || "unknown";
     const transcript = body["transcript"] as string | undefined;
 
     if (!transcript || typeof transcript !== "string" || transcript.trim().length === 0) {
@@ -237,14 +240,8 @@ export default async function handler(request: Request): Promise<Response> {
 
   } catch (error) {
     console.error("[extract-bg] error:", error);
-    try {
-      const body = await request.clone().json() as Record<string, unknown>;
-      const sessionId = (body["session_id"] as string) || "unknown";
-      const msg = error instanceof Error ? error.message : "抽出エラー";
-      await writeStatus(sessionId, "failed", { error: msg });
-    } catch {
-      // ignore
-    }
+    const msg = error instanceof Error ? error.message : "抽出エラー";
+    await writeStatus(sessionId, "failed", { error: msg });
   }
 
   return new Response(null, { status: 202 });

@@ -240,10 +240,13 @@ export default async function handler(request: Request): Promise<Response> {
     return new Response(null, { status: 204 });
   }
 
+  let sessionId = "";
+  let type = "";
+
   try {
     const body = (await request.json()) as Record<string, unknown>;
-    const sessionId = body["session_id"] as string | undefined;
-    const type = body["type"] as string | undefined;
+    sessionId = (body["session_id"] as string) || "";
+    type = (body["type"] as string) || "";
     const transcript = (body["transcript"] as string) || "";
     const rawData = (body["extracted_data"] as Record<string, unknown>) || {};
 
@@ -319,17 +322,9 @@ export default async function handler(request: Request): Promise<Response> {
 
   } catch (error) {
     console.error("[generate-bg] error:", error);
-    // エラー時もステータスを書き込む
-    try {
-      const body = await request.clone().json() as Record<string, unknown>;
-      const sessionId = body["session_id"] as string;
-      const type = body["type"] as string;
-      if (sessionId && type) {
-        const msg = error instanceof Error ? error.message : "生成エラー";
-        await writeStatus(sessionId, type, "failed", { error: `制作物の生成に失敗しました: ${msg}` });
-      }
-    } catch {
-      // ステータス書き込みも失敗した場合は諦める
+    if (sessionId && type) {
+      const msg = error instanceof Error ? error.message : "生成エラー";
+      await writeStatus(sessionId, type, "failed", { error: `制作物の生成に失敗しました: ${msg}` });
     }
   }
 

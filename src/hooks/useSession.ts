@@ -273,14 +273,18 @@ export function useSession(sessionId: string): UseSessionReturn {
     return () => clearInterval(timer);
   }, [status]);
 
-  // 文字起こしチャンク追加
+  // 文字起こしチャンク追加（refも即時更新してstale closure対策）
   const addTranscriptChunk = useCallback((text: string, speaker?: string) => {
     const chunk: TranscriptChunk = {
       text,
       timestamp: new Date().toISOString(),
       speaker,
     };
-    setTranscriptChunks(prev => [...prev, chunk]);
+    setTranscriptChunks(prev => {
+      const next = [...prev, chunk];
+      transcriptChunksRef.current = next;
+      return next;
+    });
   }, []);
 
   // 抽出データ直接設定（貼り付け即時抽出用）
@@ -346,10 +350,10 @@ export function useSession(sessionId: string): UseSessionReturn {
     }
   }, [sessionId]);
 
-  // 全文テキスト取得
+  // 全文テキスト取得（refから読むことでstale closure問題を回避）
   const getFullTranscript = useCallback((): string => {
-    return transcriptChunks.map(c => c.text).join('\n');
-  }, [transcriptChunks]);
+    return transcriptChunksRef.current.map(c => c.text).join('\n');
+  }, []);
 
   // sessionIdが仮IDの場合はスキップ
   const isSessionValid = sessionId !== '__none__';

@@ -98,12 +98,14 @@ export default async function handler(request: Request): Promise<Response> {
     return new Response(null, { status: 204 });
   }
 
+  let sessionId = "unknown";
+
   try {
     const body = (await request.json()) as Record<string, unknown>;
-    const sessionId = body["session_id"] as string | undefined;
+    sessionId = (body["session_id"] as string) || "unknown";
     const transcript = body["transcript"] as string | undefined;
 
-    if (!sessionId || !transcript || transcript.trim().length === 0) {
+    if (!sessionId || sessionId === "unknown" || !transcript || transcript.trim().length === 0) {
       console.error("[detect-bg] invalid params");
       return new Response(null, { status: 202 });
     }
@@ -146,16 +148,8 @@ export default async function handler(request: Request): Promise<Response> {
 
   } catch (error) {
     console.error("[detect-bg] error:", error);
-    try {
-      const body = await request.clone().json() as Record<string, unknown>;
-      const sessionId = body["session_id"] as string;
-      if (sessionId) {
-        const msg = error instanceof Error ? error.message : "企業検出エラー";
-        await writeStatus(sessionId, "failed", { error: msg });
-      }
-    } catch {
-      // ignore
-    }
+    const msg = error instanceof Error ? error.message : "企業検出エラー";
+    await writeStatus(sessionId, "failed", { error: msg });
   }
 
   return new Response(null, { status: 202 });
