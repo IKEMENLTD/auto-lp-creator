@@ -115,7 +115,15 @@ async function callHaiku(transcript: string, apiKey: string, targetCompany: stri
 
   let text = block.text.trim();
   const m = text.match(/```(?:json)?\s*([\s\S]*?)```/);
-  if (m?.[1]) text = m[1].trim();
+  if (m?.[1]) {
+    text = m[1].trim();
+  } else {
+    const start = text.indexOf("{");
+    const end = text.lastIndexOf("}");
+    if (start !== -1 && end > start) {
+      text = text.slice(start, end + 1);
+    }
+  }
 
   return JSON.parse(text) as ExtractedData;
 }
