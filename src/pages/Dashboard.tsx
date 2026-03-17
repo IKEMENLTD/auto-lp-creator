@@ -80,7 +80,7 @@ export const Dashboard: React.FC = () => {
 
       const detectSessionId = sessionId ?? 'detect';
       const startTime = Date.now();
-      const POLL_TIMEOUT_MS = 60_000;
+      const POLL_TIMEOUT_MS = 120_000;
 
       const poll = async (): Promise<void> => {
         while (Date.now() - startTime < POLL_TIMEOUT_MS) {
