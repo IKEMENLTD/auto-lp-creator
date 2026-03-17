@@ -10,7 +10,7 @@
  */
 
 import React, { useState, useCallback, useEffect } from 'react';
-import { AlertCircle, Mic, ClipboardPaste, ArrowLeft, Send } from 'lucide-react';
+import { AlertCircle, Mic, ClipboardPaste, ArrowLeft, Send, Monitor } from 'lucide-react';
 import { StatusBar } from '../components/StatusBar';
 import { TranscriptView } from '../components/TranscriptView';
 import { ExtractionCards } from '../components/ExtractionCards';
@@ -427,14 +427,14 @@ export const Dashboard: React.FC = () => {
               <h3 className="text-lg font-bold text-gray-100 mb-4">録音を開始します</h3>
               <div className="space-y-3 text-sm text-gray-300">
                 <div className="flex items-start gap-3">
-                  <span className="text-lg">🎤</span>
+                  <Mic className="w-5 h-5 text-red-400 mt-0.5 flex-shrink-0" />
                   <div>
                     <p className="font-medium text-gray-100">マイクの許可</p>
                     <p className="text-gray-400 text-xs mt-0.5">あなたの声を文字起こしするために使用します</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
-                  <span className="text-lg">🖥️</span>
+                  <Monitor className="w-5 h-5 text-blue-400 mt-0.5 flex-shrink-0" />
                   <div>
                     <p className="font-medium text-gray-100">画面共有の許可（任意）</p>
                     <p className="text-gray-400 text-xs mt-0.5">オンライン会議の相手の声を取得するために、会議中のタブの共有が必要です。「タブの音声も共有する」をONにしてください</p>
