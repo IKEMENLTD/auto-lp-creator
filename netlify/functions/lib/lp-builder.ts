@@ -345,8 +345,6 @@ export function buildLpHtml(c: LpContent, d: FlatData, images: import("./lp-imag
   const badges = c.trust_badges || [];
   const colors = getDecoColors(d.industry);
   const hasImg = images.length > 0;
-  const pName = sanitizePersonName(c.person_name, d.key_persons) || d.company_name;
-  const pTitle = c.person_title || d.industry;
   const rawBrand = d.service_name || d.company_name;
   const brandName = rawBrand.replace(/[（(].+?[）)]/g, "").trim();
   const brandSub = (rawBrand.match(/[（(](.+?)[）)]/) || [])[1] || "";
@@ -377,8 +375,8 @@ export function buildLpHtml(c: LpContent, d: FlatData, images: import("./lp-imag
   const cRgb = `${parseInt(colors.primary.slice(1,3),16)},${parseInt(colors.primary.slice(3,5),16)},${parseInt(colors.primary.slice(5,7),16)}`;
 
   return `<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>${esc(d.company_name)} - ${esc(d.service_name)} | ${esc(pName)}</title>
-<meta property="og:title" content="${esc(d.company_name)} - ${esc(pName)}">
+<title>${esc(d.service_name)} | ${esc(d.company_name)}</title>
+<meta property="og:title" content="${esc(d.service_name)} | ${esc(d.company_name)}">
 <meta property="og:description" content="${esc(c.hero_headline)}">
 <meta property="og:type" content="website">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
