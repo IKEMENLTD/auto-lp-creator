@@ -1,20 +1,21 @@
 /**
- * 抽出プレビューAPI - Netlify Function (同期)
+ * 抽出プレビューAPI - Netlify Background Function
  *
  * POST /api/extract-preview
  *
- * Haikuで高速抽出（26秒制限内に収まる）。
- * Background Functionではなく通常の同期関数として動作。
+ * Sonnetで高品質抽出（Background Functionで15分制限）。
+ * 結果はNetlify Blobsに保存し、フロントエンドはpoll-statusでポーリング。
  */
 
 import type { Config } from "@netlify/functions";
+import { getStore } from "@netlify/blobs";
 import Anthropic from "@anthropic-ai/sdk";
 
 // ============================================================
 // 定数
 // ============================================================
 
-const CLAUDE_MODEL = "claude-haiku-4-5-20251001";
+const CLAUDE_MODEL = "claude-sonnet-4-20250514";
 const MAX_TOKENS = 3000;
 const CHUNK_SIZE = 8000;
 const CHUNK_OVERLAP = 500;
@@ -32,14 +33,39 @@ interface ExtractedField {
 type ExtractedData = Record<string, ExtractedField>;
 
 // ============================================================
-// CORSヘッダー
+// ステータス・結果Blob書き込み
 // ============================================================
 
-const CORS: Record<string, string> = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, Authorization",
-};
+async function clearOldStatus(sessionId: string): Promise<void> {
+  try {
+    const statusStore = getStore("job-status");
+    await statusStore.delete(`status/${sessionId}/extract`);
+    const resultStore = getStore("job-results");
+    await resultStore.delete(`result/${sessionId}/extract`);
+  } catch {
+    // 削除失敗は無視
+  }
+}
+
+async function writeStatus(sessionId: string, status: string, extra?: Record<string, string>): Promise<void> {
+  try {
+    const store = getStore("job-status");
+    const key = `status/${sessionId}/extract`;
+    await store.set(key, JSON.stringify({ status, updatedAt: new Date().toISOString(), ...extra }));
+  } catch (err) {
+    console.warn("[extract-bg] status write failed:", err);
+  }
+}
+
+async function writeResult(sessionId: string, extractedData: ExtractedData): Promise<void> {
+  try {
+    const store = getStore("job-results");
+    const key = `result/${sessionId}/extract`;
+    await store.set(key, JSON.stringify({ extracted_data: extractedData }));
+  } catch (err) {
+    console.warn("[extract-bg] result write failed:", err);
+  }
+}
 
 // ============================================================
 // システムプロンプト
@@ -61,10 +87,10 @@ ${focusRule}
 }
 
 // ============================================================
-// Haiku API呼び出し
+// Claude API呼び出し
 // ============================================================
 
-async function callHaiku(transcript: string, apiKey: string, targetCompany: string | null = null): Promise<ExtractedData> {
+async function callClaude(transcript: string, apiKey: string, targetCompany: string | null = null): Promise<ExtractedData> {
   const client = new Anthropic({ apiKey });
 
   const response = await client.messages.create({
@@ -77,11 +103,11 @@ async function callHaiku(transcript: string, apiKey: string, targetCompany: stri
     }],
   });
 
-  console.log(`[extract] haiku stop=${response.stop_reason} usage=${JSON.stringify(response.usage)}`);
+  console.log(`[extract-bg] stop=${response.stop_reason} usage=${JSON.stringify(response.usage)}`);
 
   const block = response.content[0];
   if (!block || block.type !== "text") {
-    throw new Error("Haiku応答なし");
+    throw new Error("Claude応答なし");
   }
 
   let text = block.text.trim();
@@ -96,9 +122,9 @@ async function callHaiku(transcript: string, apiKey: string, targetCompany: stri
     }
   }
 
-  // 切れたJSONの修復（max_tokensで出力が途中で切れた場合）
+  // 切れたJSONの修復
   if (response.stop_reason === "max_tokens") {
-    console.warn("[extract] OUTPUT TRUNCATED - attempting repair");
+    console.warn("[extract-bg] OUTPUT TRUNCATED - attempting repair");
     let repaired = text;
     repaired = repaired.replace(/,\s*"[^"]*"?\s*$/, "");
     repaired = repaired.replace(/,\s*\{[^}]*$/, "");
@@ -116,14 +142,14 @@ async function callHaiku(transcript: string, apiKey: string, targetCompany: stri
     try {
       return JSON.parse(repaired) as ExtractedData;
     } catch {
-      console.error("[extract] repair failed, trying original");
+      console.error("[extract-bg] repair failed, trying original");
     }
   }
 
   try {
     return JSON.parse(text) as ExtractedData;
   } catch (e) {
-    console.error("[extract] JSON parse failed. first 300 chars:", text.slice(0, 300), "last 100 chars:", text.slice(-100));
+    console.error("[extract-bg] JSON parse failed. first 300 chars:", text.slice(0, 300), "last 100 chars:", text.slice(-100));
     throw e;
   }
 }
@@ -149,7 +175,7 @@ function splitTranscript(transcript: string): string[] {
 }
 
 // ============================================================
-// 抽出結果マージ（最高confidence優先）
+// 抽出結果マージ
 // ============================================================
 
 function mergeExtractions(results: ExtractedData[]): ExtractedData {
@@ -168,10 +194,7 @@ function mergeExtractions(results: ExtractedData[]): ExtractedData {
 
       if (Array.isArray(field.value) && Array.isArray(existing.value)) {
         const combined = [...new Set([...existing.value, ...field.value])];
-        merged[key] = {
-          value: combined,
-          confidence: Math.max(existing.confidence, field.confidence),
-        };
+        merged[key] = { value: combined, confidence: Math.max(existing.confidence, field.confidence) };
         continue;
       }
 
@@ -191,74 +214,66 @@ function mergeExtractions(results: ExtractedData[]): ExtractedData {
 }
 
 // ============================================================
-// メインハンドラー（同期）
+// メインハンドラー（Background Function）
 // ============================================================
 
 export default async function handler(request: Request): Promise<Response> {
   if (request.method === "OPTIONS") {
-    return new Response(null, { status: 204, headers: CORS });
+    return new Response(null, { status: 204 });
   }
 
-  if (request.method !== "POST") {
-    return new Response(
-      JSON.stringify({ error: "POST only" }),
-      { status: 405, headers: { "Content-Type": "application/json", ...CORS } },
-    );
-  }
+  let sessionId = "unknown";
 
   try {
     const body = (await request.json()) as Record<string, unknown>;
-    const sessionId = (body["session_id"] as string) || "unknown";
+    sessionId = (body["session_id"] as string) || "unknown";
     const transcript = body["transcript"] as string | undefined;
 
     if (!transcript || typeof transcript !== "string" || transcript.trim().length === 0) {
-      return new Response(
-        JSON.stringify({ error: "transcript は必須です" }),
-        { status: 400, headers: { "Content-Type": "application/json", ...CORS } },
-      );
+      console.error("[extract-bg] no transcript");
+      return new Response(null, { status: 202 });
     }
 
     const targetCompany = (body["target_company"] as string | undefined) || null;
 
     const apiKey = process.env["ANTHROPIC_API_KEY"];
     if (!apiKey) {
-      return new Response(
-        JSON.stringify({ error: "ANTHROPIC_API_KEY 未設定" }),
-        { status: 500, headers: { "Content-Type": "application/json", ...CORS } },
-      );
+      await writeStatus(sessionId, "failed", { error: "ANTHROPIC_API_KEY未設定" });
+      return new Response(null, { status: 202 });
     }
 
+    await clearOldStatus(sessionId);
+    await writeStatus(sessionId, "processing");
+
     const chunks = splitTranscript(transcript.trim());
-    console.log(`[extract] ${transcript.length}chars → ${chunks.length}chunks, target=${targetCompany || "auto"}`);
+    console.log(`[extract-bg] ${transcript.length}chars → ${chunks.length}chunks, target=${targetCompany || "auto"}`);
 
     const startTime = Date.now();
 
     let extractedData: ExtractedData;
 
     if (chunks.length === 1) {
-      extractedData = await callHaiku(chunks[0]!, apiKey, targetCompany);
+      extractedData = await callClaude(chunks[0]!, apiKey, targetCompany);
     } else {
-      // 複数チャンク: 並列実行（26秒以内に収めるため）
       const results = await Promise.all(
-        chunks.map(chunk => callHaiku(chunk, apiKey, targetCompany))
+        chunks.map(chunk => callClaude(chunk, apiKey, targetCompany))
       );
       extractedData = mergeExtractions(results);
     }
 
     const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
-    console.log(`[extract] done: ${elapsed}s, ${Object.keys(extractedData).length} fields`);
+    console.log(`[extract-bg] done: ${elapsed}s, ${Object.keys(extractedData).length} fields`);
 
-    return new Response(
-      JSON.stringify({ extracted_data: extractedData }),
-      { status: 200, headers: { "Content-Type": "application/json", ...CORS } },
-    );
+    await writeResult(sessionId, extractedData);
+    await writeStatus(sessionId, "completed");
+
   } catch (error) {
-    console.error("[extract] error:", error);
-    return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : "抽出エラー" }),
-      { status: 500, headers: { "Content-Type": "application/json", ...CORS } },
-    );
+    console.error("[extract-bg] error:", error);
+    const msg = error instanceof Error ? error.message : "抽出エラー";
+    await writeStatus(sessionId, "failed", { error: msg });
   }
+
+  return new Response(null, { status: 202 });
 }
 
 export const config: Config = {

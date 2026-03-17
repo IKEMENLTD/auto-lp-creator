@@ -297,11 +297,13 @@ export function useSession(sessionId: string): UseSessionReturn {
     setTargetCompanyState(name);
   }, []);
 
-  // 特定企業にフォーカスして抽出（同期API — レスポンスで直接結果を受け取る）
+  // 特定企業にフォーカスして抽出（Background Function + ポーリング）
   const extractForCompany = useCallback(async (companyName: string, transcript: string) => {
     try {
       setError(null);
-      const res = await fetch('/api/extract-preview', {
+
+      // Background Function起動（即座に202が返る）
+      await fetch('/api/extract-preview', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -310,10 +312,35 @@ export function useSession(sessionId: string): UseSessionReturn {
           target_company: companyName,
         }),
       });
-      if (res.ok) {
-        const data = await res.json() as { extracted_data?: ExtractedDataMap };
-        if (data.extracted_data) {
-          setExtractedData(data.extracted_data);
+
+      // ポーリングで結果を待つ（最大120秒）
+      const POLL_TIMEOUT_MS = 120_000;
+      const startTime = Date.now();
+
+      // Background Functionがステータスを書き込む時間を確保
+      await new Promise(r => setTimeout(r, 3000));
+
+      while (Date.now() - startTime < POLL_TIMEOUT_MS) {
+        try {
+          const pollResult = await api.pollJobStatus(sessionId, 'extract');
+
+          if (pollResult.status === 'completed') {
+            const resultData = pollResult.data as { extracted_data?: ExtractedDataMap } | undefined;
+            if (resultData?.extracted_data) {
+              setExtractedData(resultData.extracted_data);
+            }
+            return;
+          }
+
+          if (pollResult.status === 'failed') {
+            console.warn('[useSession] extractForCompany failed:', pollResult.error);
+            return;
+          }
+
+          // processing / unknown → 待つ
+          await new Promise(r => setTimeout(r, 3000));
+        } catch {
+          await new Promise(r => setTimeout(r, 3000));
         }
       }
     } catch {
@@ -329,12 +356,16 @@ export function useSession(sessionId: string): UseSessionReturn {
   // sessionIdが仮IDの場合はスキップ
   const isSessionValid = sessionId !== '__none__';
 
-  // プレビュー抽出（同期API — 直接レスポンスで結果取得）
+  // プレビュー抽出（Background Function + ポーリング）
   useEffect(() => {
     if (status !== 'active') return;
     if (!isSessionValid) return;
 
+    let isExtracting = false;
+
     const interval = setInterval(async () => {
+      if (isExtracting) return;
+
       const chunks = transcriptChunksRef.current;
       const company = targetCompanyRef.current;
       if (chunks.length <= lastExtractedChunkCount.current) return;
@@ -342,6 +373,7 @@ export function useSession(sessionId: string): UseSessionReturn {
       if (chunks.length < 2 && !company) return;
 
       lastExtractedChunkCount.current = chunks.length;
+      isExtracting = true;
 
       try {
         const body: Record<string, unknown> = {
@@ -352,19 +384,35 @@ export function useSession(sessionId: string): UseSessionReturn {
           body['target_company'] = company;
         }
 
-        const res = await fetch('/api/extract-preview', {
+        // Background Function起動
+        await fetch('/api/extract-preview', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(body),
         });
-        if (res.ok) {
-          const data = await res.json() as { extracted_data?: ExtractedDataMap };
-          if (data.extracted_data) {
-            setExtractedData(data.extracted_data);
+
+        // ポーリングで結果を待つ（最大30秒、次のインターバルまでに完了させる）
+        await new Promise(r => setTimeout(r, 3000));
+        for (let i = 0; i < 9; i++) {
+          try {
+            const pollResult = await api.pollJobStatus(sessionId, 'extract');
+            if (pollResult.status === 'completed') {
+              const resultData = pollResult.data as { extracted_data?: ExtractedDataMap } | undefined;
+              if (resultData?.extracted_data) {
+                setExtractedData(resultData.extracted_data);
+              }
+              break;
+            }
+            if (pollResult.status === 'failed') break;
+          } catch {
+            // ポーリングエラーは無視
           }
+          await new Promise(r => setTimeout(r, 3000));
         }
       } catch {
         // プレビュー抽出のエラーは無視
+      } finally {
+        isExtracting = false;
       }
     }, PREVIEW_EXTRACT_INTERVAL_MS);
 
