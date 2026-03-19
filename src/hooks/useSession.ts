@@ -314,7 +314,7 @@ export function useSession(sessionId: string): UseSessionReturn {
       });
 
       // ポーリングで結果を待つ（最大120秒）
-      const POLL_TIMEOUT_MS = 120_000;
+      const POLL_TIMEOUT_MS = 180_000;
       const startTime = Date.now();
 
       // Background Functionがステータスを書き込む時間を確保
@@ -497,7 +497,7 @@ export function useSession(sessionId: string): UseSessionReturn {
 
       // ポーリング開始（3秒間隔、最大90秒）
       const pollStartTime = Date.now();
-      const POLL_TIMEOUT_MS = 90_000;
+      const POLL_TIMEOUT_MS = 180_000;
 
       const intervalId = setInterval(async () => {
         try {
