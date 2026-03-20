@@ -325,26 +325,37 @@ export function useSession(sessionId: string): UseSessionReturn {
           const pollResult = await api.pollJobStatus(sessionId, 'extract');
 
           if (pollResult.status === 'completed') {
-            const resultData = pollResult.data as { extracted_data?: ExtractedDataMap } | undefined;
-            if (resultData?.extracted_data) {
-              setExtractedData(resultData.extracted_data);
+            const resultData = pollResult.data as Record<string, unknown> | undefined;
+            const extracted = resultData?.extracted_data;
+            if (extracted && typeof extracted === 'object' && !Array.isArray(extracted)) {
+              setExtractedData(extracted as ExtractedDataMap);
+            } else {
+              console.warn('[useSession] extractForCompany: unexpected data format:', resultData);
+              setError('企業情報の形式が不正です。もう一度お試しください。');
             }
             return;
           }
 
           if (pollResult.status === 'failed') {
-            console.warn('[useSession] extractForCompany failed:', pollResult.error);
+            const errorMsg = pollResult.error ?? '企業情報の抽出に失敗しました';
+            console.warn('[useSession] extractForCompany failed:', errorMsg);
+            setError(errorMsg);
             return;
           }
 
           // processing / unknown → 待つ
           await new Promise(r => setTimeout(r, 3000));
-        } catch {
+        } catch (pollErr) {
+          console.warn('[useSession] extractForCompany poll error:', pollErr);
           await new Promise(r => setTimeout(r, 3000));
         }
       }
-    } catch {
-      // 抽出失敗は無視
+      // ループを抜けた = タイムアウト
+      setError('企業情報の抽出がタイムアウトしました。もう一度お試しください。');
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : '企業情報の抽出中にエラーが発生しました';
+      console.error('[useSession] extractForCompany error:', msg);
+      setError(msg);
     }
   }, [sessionId]);
 
@@ -397,20 +408,26 @@ export function useSession(sessionId: string): UseSessionReturn {
           try {
             const pollResult = await api.pollJobStatus(sessionId, 'extract');
             if (pollResult.status === 'completed') {
-              const resultData = pollResult.data as { extracted_data?: ExtractedDataMap } | undefined;
-              if (resultData?.extracted_data) {
-                setExtractedData(resultData.extracted_data);
+              const resultData = pollResult.data as Record<string, unknown> | undefined;
+              const extracted = resultData?.extracted_data;
+              if (extracted && typeof extracted === 'object' && !Array.isArray(extracted)) {
+                setExtractedData(extracted as ExtractedDataMap);
+              } else {
+                console.warn('[useSession] preview: unexpected data format:', resultData);
               }
               break;
             }
-            if (pollResult.status === 'failed') break;
-          } catch {
-            // ポーリングエラーは無視
+            if (pollResult.status === 'failed') {
+              console.warn('[useSession] preview extraction failed:', pollResult.error);
+              break;
+            }
+          } catch (pollErr) {
+            console.warn('[useSession] preview poll error:', pollErr);
           }
           await new Promise(r => setTimeout(r, 3000));
         }
-      } catch {
-        // プレビュー抽出のエラーは無視
+      } catch (extractErr) {
+        console.warn('[useSession] preview extraction error:', extractErr);
       } finally {
         isExtracting = false;
       }

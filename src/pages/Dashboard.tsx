@@ -83,6 +83,7 @@ export const Dashboard: React.FC = () => {
       const POLL_TIMEOUT_MS = 180_000;
 
       const poll = async (): Promise<void> => {
+        let pollRetries = 0;
         while (Date.now() - startTime < POLL_TIMEOUT_MS) {
           try {
             const pollResult = await api.pollJobStatus(detectSessionId, 'detect') as PollStatusResponse;
@@ -92,6 +93,7 @@ export const Dashboard: React.FC = () => {
               const companies = resultData?.companies || [];
 
               if (companies.length === 0) {
+                setGlobalError('商談内容から企業を検出できませんでした。テキスト量が少ないか、企業名が含まれていない可能性があります。');
                 setRecordingState('ended');
                 return;
               }
@@ -112,12 +114,17 @@ export const Dashboard: React.FC = () => {
             // unknown → 待って続行
             await new Promise(r => setTimeout(r, 2000));
           } catch (err) {
-            if (err instanceof Error && err.message !== '企業検出に失敗しました') {
-              // ポーリングエラーは無視して続行
-              await new Promise(r => setTimeout(r, 2000));
-              continue;
+            // ポーリングエラーは最大5回までリトライ、超えたらエラー表示
+            const isKnownError = err instanceof Error && err.message === '企業検出に失敗しました';
+            if (isKnownError) throw err;
+
+            pollRetries += 1;
+            console.warn(`[detectCompanies] ポーリングエラー (${pollRetries}回目):`, err);
+            if (pollRetries >= 5) {
+              throw new Error('企業検出中に通信エラーが繰り返し発生しました。ネットワーク接続を確認してください。');
             }
-            throw err;
+            await new Promise(r => setTimeout(r, 2000));
+            continue;
           }
         }
         throw new Error('企業検出がタイムアウトしました');

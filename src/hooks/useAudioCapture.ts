@@ -232,8 +232,8 @@ export function useAudioCapture(sessionId: string): UseAudioCaptureReturn {
     }
   }
 
-  // Whisper APIに音声チャンクを送信
-  async function sendChunkToWhisper(blob: Blob, index: number, speaker: string): Promise<void> {
+  // Whisper APIに音声チャンクを送信（1回リトライ付き）
+  async function sendChunkToWhisper(blob: Blob, index: number, speaker: string, isRetry = false): Promise<void> {
     if (blob.size < 1000) return;
     if (stoppedRef.current) return;
 
@@ -255,7 +255,14 @@ export function useAudioCapture(sessionId: string): UseAudioCaptureReturn {
       if (!res.ok) {
         const errBody = await res.text().catch(() => '');
         console.error('Whisper API エラー:', res.status, errBody);
-        // Fix 2: 連続エラー時のみUIに通知
+
+        // 初回失敗 → 2秒後にリトライ
+        if (!isRetry) {
+          console.log(`[audio] チャンク${index} リトライ中...`);
+          await new Promise(r => setTimeout(r, 2000));
+          return sendChunkToWhisper(blob, index, speaker, true);
+        }
+
         consecutiveErrorsRef.current += 1;
         if (consecutiveErrorsRef.current >= ERROR_THRESHOLD) {
           setError(`文字起こしに失敗しています (${res.status})`);
@@ -281,6 +288,14 @@ export function useAudioCapture(sessionId: string): UseAudioCaptureReturn {
       // AbortErrorは停止時の正常動作なので無視
       if (err instanceof DOMException && err.name === 'AbortError') return;
       console.error('チャンク送信エラー:', err);
+
+      // 初回失敗 → 2秒後にリトライ
+      if (!isRetry) {
+        console.log(`[audio] チャンク${index} リトライ中... (通信エラー)`);
+        await new Promise(r => setTimeout(r, 2000));
+        return sendChunkToWhisper(blob, index, speaker, true);
+      }
+
       consecutiveErrorsRef.current += 1;
       if (consecutiveErrorsRef.current >= ERROR_THRESHOLD) {
         setError('文字起こしサーバーに接続できません');
