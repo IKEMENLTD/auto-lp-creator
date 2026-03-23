@@ -75,15 +75,15 @@ export const Dashboard: React.FC = () => {
       });
 
       // ポーリングで結果を待つ
-      // Background Function側で古いステータスを削除済みなので、シンプルに待つ
-      await new Promise(r => setTimeout(r, 2000));
-
+      // Background Function側で古いステータスを削除済みなので、即ポーリング開始
       const detectSessionId = sessionId ?? 'detect';
       const startTime = Date.now();
       const POLL_TIMEOUT_MS = 180_000;
 
       const poll = async (): Promise<void> => {
         let pollRetries = 0;
+        // 最初の1回だけ短い待機（BG Functionがステータスを書く時間を最低限確保）
+        await new Promise(r => setTimeout(r, 1000));
         while (Date.now() - startTime < POLL_TIMEOUT_MS) {
           try {
             const pollResult = await api.pollJobStatus(detectSessionId, 'detect') as PollStatusResponse;

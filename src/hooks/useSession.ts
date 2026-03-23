@@ -173,7 +173,7 @@ async function triggerImageGeneration(
       { section: 'reason1', context: getExtractedValue(data, 'strengths') },
     ];
 
-    await fetch('/api/generate-images', {
+    const res = await fetch('/api/generate-images', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -186,9 +186,34 @@ async function triggerImageGeneration(
         company_name: getExtractedValue(data, 'company_name'),
       }),
     });
-    console.log('[useSession] Image generation triggered');
-  } catch {
-    console.log('[useSession] Image generation skipped (non-critical)');
+
+    if (!res.ok && res.status !== 202) {
+      console.warn(`[useSession] Image generation request failed: ${res.status}`);
+      return;
+    }
+    console.log('[useSession] Image generation triggered, polling for result...');
+
+    // 軽いポーリング（最大30秒）で結果確認
+    await new Promise(r => setTimeout(r, 5000));
+    for (let i = 0; i < 5; i++) {
+      try {
+        const pollRes = await api.pollJobStatus(sessionId, 'images');
+        if (pollRes.status === 'completed') {
+          console.log('[useSession] Image generation completed');
+          return;
+        }
+        if (pollRes.status === 'failed') {
+          console.warn('[useSession] Image generation failed:', pollRes.error);
+          return;
+        }
+      } catch (pollErr) {
+        console.warn('[useSession] Image poll error:', pollErr);
+      }
+      await new Promise(r => setTimeout(r, 5000));
+    }
+    console.warn('[useSession] Image generation: poll timeout (30s), continuing without confirmation');
+  } catch (err) {
+    console.warn('[useSession] Image generation skipped (non-critical):', err);
   }
 }
 
@@ -313,12 +338,12 @@ export function useSession(sessionId: string): UseSessionReturn {
         }),
       });
 
-      // ポーリングで結果を待つ（最大120秒）
+      // ポーリングで結果を待つ（最大180秒）
       const POLL_TIMEOUT_MS = 180_000;
       const startTime = Date.now();
 
-      // Background Functionがステータスを書き込む時間を確保
-      await new Promise(r => setTimeout(r, 3000));
+      // BG Functionがステータスを書く時間を最低限確保
+      await new Promise(r => setTimeout(r, 1000));
 
       while (Date.now() - startTime < POLL_TIMEOUT_MS) {
         try {
@@ -403,7 +428,7 @@ export function useSession(sessionId: string): UseSessionReturn {
         });
 
         // ポーリングで結果を待つ（最大30秒、次のインターバルまでに完了させる）
-        await new Promise(r => setTimeout(r, 3000));
+        await new Promise(r => setTimeout(r, 1000));
         for (let i = 0; i < 9; i++) {
           try {
             const pollResult = await api.pollJobStatus(sessionId, 'extract');
