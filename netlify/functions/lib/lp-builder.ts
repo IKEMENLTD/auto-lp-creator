@@ -496,9 +496,10 @@ ${hasImg && images[0] ? `<img src="${esc(images[0].url.replace(/w=\d+/, "w=800")
 <div class="sec-hd"><p class="sec-bg-txt">Features</p><p class="sec-eng">Features</p><h2 class="sec-tit fi">${esc(d.service_name)}でできること</h2></div>
 <div class="feat-grid${svc.length < 3 ? ` items-${svc.length}` : ''}">
 ${svc.map((item, i) => {
-  const hasRealImg = images[i + 1] && images[i + 1].url;
+  const img = images[i + 1];
+  const hasRealImg = img && img.url;
   return `<div class="feat-card fi">
-${hasRealImg ? `<img class="feat-card-img" src="${esc(images[i + 1].url.replace(/w=\d+/, "w=600").replace(/h=\d+/, "h=400"))}" alt="${esc(item.title)}" loading="lazy">` : `<div class="feat-card-mockup">${productMockupSvg(i, 600, 220)}</div>`}
+${hasRealImg ? `<img class="feat-card-img" src="${esc(img.url.replace(/w=\d+/, "w=600").replace(/h=\d+/, "h=400"))}" alt="${esc(item.title)}" loading="lazy">` : `<div class="feat-card-mockup">${productMockupSvg(i, 600, 220)}</div>`}
 <div class="feat-body">
 <h4>${esc(item.title)}</h4>
 <p>${esc(item.desc)}</p>
@@ -521,7 +522,8 @@ ${reasons.length > 0 ? `<section class="sec" id="reasons">
 <div class="sec-hd"><p class="sec-bg-txt">Reason</p><p class="sec-eng">Why Choose Us</p><h2 class="sec-tit fi">${esc(d.company_name)}が選ばれる理由</h2></div>
 <div class="reason-list">
 ${reasons.map((item, i) => {
-  const reasonImg = images[i + 4] ? images[i + 4].url.replace(/w=\d+/, "w=600").replace(/h=\d+/, "h=400") : unsplashUrl(PHOTO_LIBRARY["business"][(i + 4) % 15]!, 600, 400);
+  const reasonImgEntry = images[i + 4];
+  const reasonImg = reasonImgEntry ? reasonImgEntry.url.replace(/w=\d+/, "w=600").replace(/h=\d+/, "h=400") : unsplashUrl((PHOTO_LIBRARY["business"] ?? [])[(i + 4) % 15] ?? "", 600, 400);
   return `<div class="reason-card fi">
 <img class="reason-img" src="${esc(reasonImg)}" alt="${esc(item.title)}" loading="lazy">
 <div class="reason-body">
@@ -556,7 +558,8 @@ ${useCases.map((item, i) => {
     target: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>',
   };
   const ucIcon = ucIcoMap[item.icon_keyword] || ucIcoMap["zap"];
-  const ucImg = images[i + 7] ? images[i + 7].url.replace(/w=\d+/, "w=600").replace(/h=\d+/, "h=400") : unsplashUrl(PHOTO_LIBRARY["business"][(i + 7) % 15], 600, 400);
+  const ucImgEntry = images[i + 7];
+  const ucImg = ucImgEntry ? ucImgEntry.url.replace(/w=\d+/, "w=600").replace(/h=\d+/, "h=400") : unsplashUrl((PHOTO_LIBRARY["business"] ?? [])[(i + 7) % 15] ?? "", 600, 400);
   return `<div class="uc-card fi">
 <img class="uc-card-img" src="${esc(ucImg)}" alt="${esc(item.title)}" loading="lazy">
 <div class="uc-card-body">
@@ -583,8 +586,9 @@ ${cas.length > 0 ? (() => {
 <div class="sec-hd"><p class="sec-bg-txt">Results</p><p class="sec-eng">Case Results</p><h2 class="sec-tit fi">実績事例</h2></div>
 <div class="tm-grid${cas.length < 3 ? ` items-${cas.length}` : ''}">
 ${cas.map((item, i) => {
-  const caseImg = images[i + 13] ? images[i + 13].url.replace(/w=\d+/, "w=600").replace(/h=\d+/, "h=400") : unsplashUrl(PHOTO_LIBRARY["business"][(i + 13) % 15]!, 600, 400);
-  const companyName = logoCompanies[i % logoCompanies.length];
+  const caseImgEntry = images[i + 13];
+  const caseImg = caseImgEntry ? caseImgEntry.url.replace(/w=\d+/, "w=600").replace(/h=\d+/, "h=400") : unsplashUrl((PHOTO_LIBRARY["business"] ?? [])[(i + 13) % 15] ?? "", 600, 400);
+  const companyName = logoCompanies[i % logoCompanies.length] ?? "企業";
   return `<div class="tm-card fi">
 <img class="tm-card-img" src="${esc(caseImg)}" alt="${esc(item.category)}" loading="lazy">
 <div class="tm-card-body">
@@ -614,10 +618,11 @@ ${funcs.length > 0 ? `<section class="sec" id="functions">
 <div class="sec-hd"><p class="sec-bg-txt">Functions</p><p class="sec-eng">Main Features</p><h2 class="sec-tit fi">${esc(d.service_name)}の主な機能</h2></div>
 <div class="func-rows">
 ${funcs.map((item, i) => {
-  const hasRealImg = images[i + 10] && images[i + 10].url;
+  const funcImg = images[i + 10];
+  const hasRealImg = funcImg && funcImg.url;
   return `<div class="func-row${i % 2 === 1 ? ' func-row-rev' : ''} fi">
 <div class="func-row-img">
-${hasRealImg ? `<img src="${esc(images[i + 10].url.replace(/w=\d+/, "w=600").replace(/h=\d+/, "h=400"))}" alt="${esc(item.title)}" loading="lazy">` : `<div class="func-row-mockup">${productMockupSvg(i + 2, 520, 280)}</div>`}
+${hasRealImg ? `<img src="${esc(funcImg.url.replace(/w=\d+/, "w=600").replace(/h=\d+/, "h=400"))}" alt="${esc(item.title)}" loading="lazy">` : `<div class="func-row-mockup">${productMockupSvg(i + 2, 520, 280)}</div>`}
 </div>
 <div class="func-row-text">
 <h4>${esc(item.title)}</h4>
@@ -641,7 +646,8 @@ ${columns.length > 0 ? `<section class="sec">
 <div class="sec-hd"><p class="sec-bg-txt">Column</p><p class="sec-eng">Column</p><h2 class="sec-tit fi">お役立ち情報</h2></div>
 <div class="col-grid">
 ${columns.map((col, i) => {
-  const colImg = images[i + 16] ? images[i + 16].url.replace(/w=\d+/, "w=200").replace(/h=\d+/, "h=200") : unsplashUrl(PHOTO_LIBRARY["business"][(i + 11) % 15]!, 200, 200);
+  const colImgEntry = images[i + 16];
+  const colImg = colImgEntry ? colImgEntry.url.replace(/w=\d+/, "w=200").replace(/h=\d+/, "h=200") : unsplashUrl((PHOTO_LIBRARY["business"] ?? [])[(i + 11) % 15] ?? "", 200, 200);
   return `<div class="col-card fi">
 <img class="col-thumb" src="${esc(colImg)}" alt="${esc(col.title)}" loading="lazy">
 <div class="col-body">
@@ -940,9 +946,9 @@ body{font-family:'Noto Sans JP',sans-serif;background:#fafafa;color:#1a1a1a;min-
 ${type === 'hearing_form'
   ? `<form class="hearing-form" method="POST" action="/api/form-submit">\n<input type="hidden" name="session_id" value="${esc(sessionId ?? '')}">\n<input type="hidden" name="company_name" value="${esc(d.company_name)}">\n${(content.sections || []).map((s, i) => {
     const fieldName = `q${i}`;
-    const inputType = (s as Record<string,unknown>).type as string || 'text';
-    const options = ((s as Record<string,unknown>).options as string[] | undefined) || [];
-    const placeholder = ((s as Record<string,unknown>).placeholder as string | undefined) || '';
+    const inputType = s.type ?? 'text';
+    const options = s.options ?? [];
+    const placeholder = s.placeholder ?? '';
     let inputHtml = '';
     if (inputType === 'textarea') {
       inputHtml = `<textarea name="${fieldName}" class="form-input form-textarea" placeholder="${esc(placeholder)}" rows="3"></textarea>`;
