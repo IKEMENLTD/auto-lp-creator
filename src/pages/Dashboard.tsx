@@ -672,6 +672,7 @@ export const Dashboard: React.FC = () => {
         <ExtractionCards
           extractedData={session.extractedData}
           onEditField={handleOpenEdit}
+          onConfirmAll={session.confirmAllFields}
         />
 
         {/* 制作物グリッド */}

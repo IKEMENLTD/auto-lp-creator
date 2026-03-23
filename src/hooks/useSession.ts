@@ -48,6 +48,7 @@ export interface UseSessionReturn {
   readonly getMissingFields: (type: DeliverableType) => readonly string[];
   readonly getJobForType: (type: DeliverableType) => GenerationJob | undefined;
   readonly getFullTranscript: () => string;
+  readonly confirmAllFields: () => void;
 }
 
 // ============================================================
@@ -672,6 +673,21 @@ export function useSession(sessionId: string): UseSessionReturn {
     return jobs.find((j) => j.type === type);
   }, [jobs]);
 
+  // 全未確定フィールドのconfidenceを1.0に引き上げて確定
+  const confirmAllFields = useCallback(() => {
+    setExtractedData(prev => {
+      const updated = { ...prev };
+      for (const [key, raw] of Object.entries(updated)) {
+        const field = raw as ConfidenceFieldValue | undefined;
+        if (!field) continue;
+        if (field.confidence < CONFIDENCE_THRESHOLD) {
+          updated[key] = { ...field, confidence: 1.0 };
+        }
+      }
+      return updated;
+    });
+  }, []);
+
   return {
     extractedData,
     jobs,
@@ -693,5 +709,6 @@ export function useSession(sessionId: string): UseSessionReturn {
     getMissingFields,
     getJobForType,
     getFullTranscript,
+    confirmAllFields,
   };
 }

@@ -10,7 +10,7 @@
  */
 
 import React, { useMemo } from 'react';
-import { AlertTriangle, CheckCircle, Pencil, XCircle } from 'lucide-react';
+import { AlertTriangle, CheckCircle, CheckCircle2, Pencil, XCircle } from 'lucide-react';
 import type { ExtractedDataMap, ConfidenceFieldValue } from '../types/dashboard';
 import { FIELD_LABELS, CONFIDENCE_THRESHOLD } from '../lib/constants';
 
@@ -21,6 +21,7 @@ import { FIELD_LABELS, CONFIDENCE_THRESHOLD } from '../lib/constants';
 interface ExtractionCardsProps {
   readonly extractedData: ExtractedDataMap;
   readonly onEditField: (field: string, currentValue: string) => void;
+  readonly onConfirmAll?: () => void;
 }
 
 // ============================================================
@@ -167,12 +168,17 @@ const STATUS_CONFIG: Record<FieldStatus, {
 export const ExtractionCards: React.FC<ExtractionCardsProps> = ({
   extractedData,
   onEditField,
+  onConfirmAll,
 }) => {
   const requiredFields = useMemo(() => buildFieldDisplayList(extractedData), [extractedData]);
   const extraFields = useMemo(() => buildExtraFields(extractedData), [extractedData]);
 
   const filledCount = requiredFields.filter((f) => f.status === 'filled').length;
   const totalCount = requiredFields.length;
+
+  // 未確定フィールドがあるか（必須+追加の両方）
+  const hasLowConfidence = requiredFields.some(f => f.status === 'low_confidence')
+    || extraFields.some(f => f.isLowConfidence);
 
   return (
     <section className="px-4 pt-4 pb-2">
@@ -194,6 +200,18 @@ export const ExtractionCards: React.FC<ExtractionCardsProps> = ({
           style={{ width: `${(filledCount / totalCount) * 100}%` }}
         />
       </div>
+
+      {/* 未確定を一括確定ボタン */}
+      {hasLowConfidence && onConfirmAll && (
+        <button
+          type="button"
+          className="w-full flex items-center justify-center gap-2 mb-3 py-2.5 px-4 rounded-lg bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 text-sm font-medium hover:bg-yellow-500/20 active:scale-[0.98] transition-all"
+          onClick={onConfirmAll}
+        >
+          <CheckCircle2 className="w-4 h-4" />
+          未確定の情報をすべて確定する
+        </button>
+      )}
 
       {/* 必須フィールド一覧 */}
       <div className="space-y-2">
