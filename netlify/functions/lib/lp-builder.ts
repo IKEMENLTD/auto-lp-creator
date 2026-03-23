@@ -861,7 +861,7 @@ ${content.upsell_notes ? `<div class="p-4 bg-gradient-to-r from-purple-50 to-pin
 // 汎用HTML生成 (flyer, hearing_form, line_design, profile等)
 // ============================================================
 
-export function buildGenericHtml(content: GenericContent, d: FlatData, type: string): string {
+export function buildGenericHtml(content: GenericContent, d: FlatData, type: string, sessionId?: string): string {
   const accentColors: Record<string, string> = {
     flyer: '#e74c3c',
     hearing_form: '#27ae60',
@@ -938,7 +938,7 @@ body{font-family:'Noto Sans JP',sans-serif;background:#fafafa;color:#1a1a1a;min-
 </header>
 <main class="doc-body">
 ${type === 'hearing_form'
-  ? `<form class="hearing-form" onsubmit="event.preventDefault();alert('送信しました（デモ）')">\n${(content.sections || []).map((s, i) => {
+  ? `<form class="hearing-form" method="POST" action="/api/form-submit">\n<input type="hidden" name="session_id" value="${esc(sessionId ?? '')}">\n<input type="hidden" name="company_name" value="${esc(d.company_name)}">\n${(content.sections || []).map((s, i) => {
     const fieldName = `q${i}`;
     const inputType = (s as Record<string,unknown>).type as string || 'text';
     const options = ((s as Record<string,unknown>).options as string[] | undefined) || [];

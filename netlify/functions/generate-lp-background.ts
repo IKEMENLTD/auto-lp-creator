@@ -221,13 +221,13 @@ JSONのみ出力。`,
   return buildMinutesHtml(content, d);
 }
 
-async function generateGeneric(type: string, d: ReturnType<typeof flatten>, transcript: string, apiKey: string): Promise<string> {
+async function generateGeneric(type: string, d: ReturnType<typeof flatten>, transcript: string, apiKey: string, sessionId?: string): Promise<string> {
   const content = await callClaudeJson<GenericContent>(
     GENERIC_PROMPTS[type] || GENERIC_PROMPTS["profile"]!,
     bizContext(d, transcript),
     apiKey,
   );
-  return buildGenericHtml(content, d, type);
+  return buildGenericHtml(content, d, type, sessionId);
 }
 
 // ============================================================
@@ -307,7 +307,7 @@ export default async function handler(request: Request): Promise<Response> {
       html = await generateMinutes(data, processedTranscript, apiKey);
     } else {
       await writeStatus(sessionId, type, "processing", { step: "generating" });
-      html = await generateGeneric(type, data, processedTranscript, apiKey);
+      html = await generateGeneric(type, data, processedTranscript, apiKey, sessionId);
     }
 
     console.log(`[generate-bg] ${type} total: ${((Date.now() - start) / 1000).toFixed(1)}s, ${html.length}chars`);
