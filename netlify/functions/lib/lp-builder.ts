@@ -395,7 +395,7 @@ ${reasons.length > 0 ? '<a href="#reasons">選ばれる理由</a>' : ''}
 ${useCases.length > 0 ? '<a href="#usecases">活用シーン</a>' : ''}
 ${cas.length > 0 ? '<a href="#cases">導入事例</a>' : ''}
 ${funcs.length > 0 ? '<a href="#functions">主な機能</a>' : ''}
-<a href="#contact" class="btn btn-md btn-accent">${esc(c.cta_text)}</a>
+<a href="#contact" class="btn btn-md btn-accent">${esc(c.cta_text)} →</a>
 </nav>
 </div></header>
 
@@ -409,7 +409,7 @@ ${hasImg && images[0] ? `<div class="fv-bg" style="background-image:url('${esc(i
 <h1 class="fv-service-name">${esc(brandName)}${brandSub ? `<span class="fv-service-sub">${esc(brandSub)}</span>` : ""}</h1>
 ${badges.length > 0 ? `<div class="fv-awards"><div class="fv-award-row">${badges.slice(0, 2).map((b, i) => `<div class="fv-badge"><p class="fv-badge-cat">${esc(b)}</p><div class="fv-badge-img-wrap"><img class="fv-badge-img" src="${awardImg}" alt="No.1"><span class="fv-badge-note">※${i + 1}</span></div></div>`).join("")}</div><p class="fv-award-notes">※1※2 自社調べ</p></div>` : ""}
 <div class="fv-btns">
-<a href="#contact" class="btn btn-lg btn-accent">${esc(c.cta_text)}</a>
+<a href="#contact" class="btn btn-lg btn-accent">${esc(c.cta_text)} →</a>
 <a href="#features" class="btn btn-lg btn-outline-accent">詳しく見る</a>
 </div>
 </div>
@@ -486,7 +486,7 @@ ${hasImg && images[0] ? `<img src="${esc(images[0].url.replace(/w=\d+/, "w=800")
 
 <!-- MID-CTA: About後 -->
 <div class="mid-cta">
-<a href="#contact" class="trial">${esc(c.cta_text)}</a>
+<a href="#contact" class="trial">${esc(c.cta_text)} →</a>
 <a href="#contact" class="doc">資料ダウンロード</a>
 </div>
 
@@ -512,7 +512,7 @@ ${hasRealImg ? `<img class="feat-card-img" src="${esc(img.url.replace(/w=\d+/, "
 
 <!-- MID-CTA: Features後 -->
 <div class="mid-cta">
-<a href="#contact" class="trial">${esc(c.cta_text)}</a>
+<a href="#contact" class="trial">${esc(c.cta_text)} →</a>
 <a href="#contact" class="doc">資料ダウンロード</a>
 </div>
 
@@ -539,7 +539,7 @@ ${reasons.map((item, i) => {
 
 ${reasons.length > 0 ? `<!-- MID-CTA: Reasons後 -->
 <div class="mid-cta">
-<a href="#contact" class="trial">${esc(c.cta_text)}</a>
+<a href="#contact" class="trial">${esc(c.cta_text)} →</a>
 <a href="#contact" class="doc">資料ダウンロード</a>
 </div>` : ""}
 
@@ -574,7 +574,7 @@ ${useCases.map((item, i) => {
 
 ${useCases.length > 0 ? `<!-- MID-CTA: UseCases後 -->
 <div class="mid-cta">
-<a href="#contact" class="trial">${esc(c.cta_text)}</a>
+<a href="#contact" class="trial">${esc(c.cta_text)} →</a>
 <a href="#contact" class="doc">資料ダウンロード</a>
 </div>` : ""}
 
@@ -608,7 +608,7 @@ ${cas.map((item, i) => {
 
 ${cas.length > 0 ? `<!-- MID-CTA: Cases後 -->
 <div class="mid-cta">
-<a href="#contact" class="trial">${esc(c.cta_text)}</a>
+<a href="#contact" class="trial">${esc(c.cta_text)} →</a>
 <a href="#contact" class="doc">資料ダウンロード</a>
 </div>` : ""}
 
@@ -636,7 +636,7 @@ ${hasRealImg ? `<img src="${esc(funcImg.url.replace(/w=\d+/, "w=600").replace(/h
 
 ${funcs.length > 0 ? `<!-- MID-CTA: Functions後 -->
 <div class="mid-cta">
-<a href="#contact" class="trial">${esc(c.cta_text)}</a>
+<a href="#contact" class="trial">${esc(c.cta_text)} →</a>
 <a href="#contact" class="doc">資料ダウンロード</a>
 </div>` : ""}
 
@@ -669,7 +669,7 @@ ${columns.map((col, i) => {
 <div class="inner" style="position:relative;z-index:1">
 <p class="offer-tit">${esc(c.cta_sub || "まずはお気軽にご相談ください")}</p>
 <p class="offer-sub" style="color:rgba(255,255,255,.7)">${esc(d.company_name)}が直接対応します</p>
-<a href="#contact" class="btn btn-lg btn-white">${esc(c.cta_text)} ${arrowSvg}</a>
+<a href="#contact" class="btn btn-lg btn-white">${esc(c.cta_text)} →</a>
 ${microHtml}
 </div>
 </section>
