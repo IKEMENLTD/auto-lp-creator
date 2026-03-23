@@ -3,8 +3,8 @@
  *
  * POST /api/session/start
  *
- * UUIDを生成してセッションIDを返す。
- * セッション状態はクライアント側で管理。
+ * Supabaseにセッションレコードを作成し、生成されたIDを返す。
+ * Supabase未設定・障害時はローカルUUIDで続行（フォールバック）。
  */
 
 import type { Config } from "@netlify/functions";
@@ -27,38 +27,37 @@ const corsHeaders: Record<string, string> = {
 export default async function handler(
   request: Request,
 ): Promise<Response> {
-  // CORS preflight
   if (request.method === "OPTIONS") {
-    return new Response(null, {
-      status: 204,
-      headers: corsHeaders,
-    });
+    return new Response(null, { status: 204, headers: corsHeaders });
   }
 
-  // POST以外は拒否
   if (request.method !== "POST") {
     return new Response(
       JSON.stringify({ error: "Method Not Allowed. Use POST." }),
-      {
-        status: 405,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      },
+      { status: 405, headers: { "Content-Type": "application/json", ...corsHeaders } },
     );
   }
 
   try {
-    const sessionId = randomUUID();
+    let sessionId: string;
 
-    // TODO: 将来的にSupabaseへセッションレコードを作成する
+    // Supabaseにセッション作成を試みる
+    try {
+      const { createSession, ANONYMOUS_USER_ID } = await import("./lib/supabase.js");
+      const session = await createSession(ANONYMOUS_USER_ID);
+      sessionId = session.id;
+      console.log(`[session-start] Supabase session created: ${sessionId}`);
+    } catch (err) {
+      // Supabase障害時はローカルUUIDで続行
+      sessionId = randomUUID();
+      console.warn(`[session-start] Supabase unavailable, using local UUID: ${sessionId}`, err);
+    }
 
     return new Response(
       JSON.stringify({ session_id: sessionId }),
       {
         status: 200,
-        headers: {
-          "Content-Type": "application/json",
-          ...corsHeaders,
-        },
+        headers: { "Content-Type": "application/json", ...corsHeaders },
       },
     );
   } catch (error) {
@@ -66,18 +65,13 @@ export default async function handler(
     return new Response(
       JSON.stringify({
         error: "セッションの開始に失敗しました",
-        details:
-          error instanceof Error ? error.message : "不明なエラー",
+        details: error instanceof Error ? error.message : "不明なエラー",
       }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      },
+      { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } },
     );
   }
 }
 
-// Netlify Functions v2 config
 export const config: Config = {
   path: "/api/session/start",
   method: ["POST", "OPTIONS"],

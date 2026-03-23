@@ -3,8 +3,8 @@
  *
  * PATCH /api/session/:session_id/data
  *
- * セッションのフィールドを部分更新する。現在はスタブ実装。
- * 将来的にSupabaseでセッションデータを更新する。
+ * 手動編集されたフィールドをSupabaseのextracted_dataにマージ保存する。
+ * Supabase障害時は成功応答で続行（フロント側localStorageが主）。
  */
 
 import type { Config } from "@netlify/functions";
@@ -40,22 +40,14 @@ function extractSessionId(url: string): string | null {
 export default async function handler(
   request: Request,
 ): Promise<Response> {
-  // CORS preflight
   if (request.method === "OPTIONS") {
-    return new Response(null, {
-      status: 204,
-      headers: corsHeaders,
-    });
+    return new Response(null, { status: 204, headers: corsHeaders });
   }
 
-  // PATCH以外は拒否
   if (request.method !== "PATCH") {
     return new Response(
       JSON.stringify({ error: "Method Not Allowed. Use PATCH." }),
-      {
-        status: 405,
-        headers: { "Content-Type": "application/json" },
-      },
+      { status: 405, headers: { "Content-Type": "application/json", ...corsHeaders } },
     );
   }
 
@@ -65,36 +57,53 @@ export default async function handler(
     if (!sessionId) {
       return new Response(
         JSON.stringify({ error: "session_id パスパラメータは必須です" }),
-        {
-          status: 400,
-          headers: { "Content-Type": "application/json" },
-        },
+        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } },
       );
     }
 
-    // ボディのパース（フィールド更新内容）
     const body = (await request.json()) as Record<string, unknown>;
 
     if (!body || typeof body !== "object" || Object.keys(body).length === 0) {
       return new Response(
         JSON.stringify({ error: "更新フィールドを含むJSONボディは必須です" }),
-        {
-          status: 400,
-          headers: { "Content-Type": "application/json" },
-        },
+        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } },
       );
     }
 
-    // TODO: 将来的にSupabaseでセッションデータを部分更新する
+    // Supabaseのextracted_dataを更新
+    try {
+      const { getLatestExtraction, updateExtraction } = await import("./lib/supabase.js");
+      const existing = await getLatestExtraction(sessionId);
+
+      if (existing) {
+        // 既存データとマージ（手動編集フィールドをconfidence: 1.0で上書き）
+        const currentData = (existing.data_json ?? {}) as Record<string, unknown>;
+        const mergedData = { ...currentData };
+
+        for (const [key, value] of Object.entries(body)) {
+          mergedData[key] = { value, confidence: 1.0 };
+        }
+
+        await updateExtraction(sessionId, mergedData as never, existing.version + 1);
+        console.log(`[session-data] Updated ${Object.keys(body).length} fields for session ${sessionId}`);
+      } else {
+        // extracted_dataが存在しない場合は新規作成
+        const newData: Record<string, unknown> = {};
+        for (const [key, value] of Object.entries(body)) {
+          newData[key] = { value, confidence: 1.0 };
+        }
+        await updateExtraction(sessionId, newData as never, 1);
+        console.log(`[session-data] Created extracted_data for session ${sessionId}`);
+      }
+    } catch (err) {
+      console.warn("[session-data] Supabase update failed (continuing):", err);
+    }
 
     return new Response(
       JSON.stringify({ success: true }),
       {
         status: 200,
-        headers: {
-          "Content-Type": "application/json",
-          ...corsHeaders,
-        },
+        headers: { "Content-Type": "application/json", ...corsHeaders },
       },
     );
   } catch (error) {
@@ -102,18 +111,13 @@ export default async function handler(
     return new Response(
       JSON.stringify({
         error: "セッションデータの更新に失敗しました",
-        details:
-          error instanceof Error ? error.message : "不明なエラー",
+        details: error instanceof Error ? error.message : "不明なエラー",
       }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      },
+      { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } },
     );
   }
 }
 
-// Netlify Functions v2 config
 export const config: Config = {
   path: "/api/session/:session_id/data",
   method: ["PATCH", "OPTIONS"],

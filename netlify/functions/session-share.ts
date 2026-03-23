@@ -3,8 +3,8 @@
  *
  * POST /api/session/:session_id/share
  *
- * セッションを共有する。現在はスタブ実装。
- * 将来的にSupabaseで共有リンクを生成する。
+ * 共有イベントをSupabase analyticsに記録する。
+ * Supabase障害時は成功応答で続行。
  */
 
 import type { Config } from "@netlify/functions";
@@ -48,22 +48,14 @@ interface ShareRequest {
 export default async function handler(
   request: Request,
 ): Promise<Response> {
-  // CORS preflight
   if (request.method === "OPTIONS") {
-    return new Response(null, {
-      status: 204,
-      headers: corsHeaders,
-    });
+    return new Response(null, { status: 204, headers: corsHeaders });
   }
 
-  // POST以外は拒否
   if (request.method !== "POST") {
     return new Response(
       JSON.stringify({ error: "Method Not Allowed. Use POST." }),
-      {
-        status: 405,
-        headers: { "Content-Type": "application/json" },
-      },
+      { status: 405, headers: { "Content-Type": "application/json", ...corsHeaders } },
     );
   }
 
@@ -73,14 +65,10 @@ export default async function handler(
     if (!sessionId) {
       return new Response(
         JSON.stringify({ error: "session_id パスパラメータは必須です" }),
-        {
-          status: 400,
-          headers: { "Content-Type": "application/json" },
-        },
+        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } },
       );
     }
 
-    // ボディから共有方法を取得（任意）
     let shareMethod = "link";
     try {
       const body = (await request.json()) as ShareRequest;
@@ -91,20 +79,39 @@ export default async function handler(
       // ボディなしでもOK
     }
 
-    // TODO: 将来的にSupabaseで共有リンクを生成・保存する
+    // Supabaseに共有イベントを記録
+    let sharedCount = 0;
+    try {
+      const { logAnalytics, getSupabaseClient } = await import("./lib/supabase.js");
+
+      await logAnalytics(sessionId, 'share', {
+        method: shareMethod,
+        shared_at: new Date().toISOString(),
+      });
+
+      // 同セッションの共有回数を取得
+      const client = getSupabaseClient();
+      const { count } = await client
+        .from('analytics')
+        .select('*', { count: 'exact', head: true })
+        .eq('session_id', sessionId)
+        .eq('event', 'share');
+
+      sharedCount = count ?? 1;
+      console.log(`[session-share] Shared session ${sessionId} via ${shareMethod} (total: ${sharedCount})`);
+    } catch (err) {
+      console.warn("[session-share] Supabase unavailable (continuing):", err);
+    }
 
     return new Response(
       JSON.stringify({
         success: true,
-        shared_count: 0,
+        shared_count: sharedCount,
         method: shareMethod,
       }),
       {
         status: 200,
-        headers: {
-          "Content-Type": "application/json",
-          ...corsHeaders,
-        },
+        headers: { "Content-Type": "application/json", ...corsHeaders },
       },
     );
   } catch (error) {
@@ -112,18 +119,13 @@ export default async function handler(
     return new Response(
       JSON.stringify({
         error: "セッションの共有に失敗しました",
-        details:
-          error instanceof Error ? error.message : "不明なエラー",
+        details: error instanceof Error ? error.message : "不明なエラー",
       }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      },
+      { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } },
     );
   }
 }
 
-// Netlify Functions v2 config
 export const config: Config = {
   path: "/api/session/:session_id/share",
   method: ["POST", "OPTIONS"],
