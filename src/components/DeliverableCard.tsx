@@ -37,11 +37,32 @@ const PDF_TYPES = new Set<DeliverableType>([
 /** 新しいウィンドウでページを開き、印刷ダイアログ(PDF保存)を表示 */
 function printToPdf(url: string): void {
   const w = window.open(url, '_blank');
-  if (w) {
-    w.addEventListener('load', () => {
-      setTimeout(() => w.print(), 500);
-    });
+  if (!w) {
+    // ポップアップブロック時: 直接リンクとして案内
+    alert('ポップアップがブロックされました。表示ページからブラウザの印刷機能(Ctrl+P)でPDF保存してください。');
+    return;
   }
+
+  // loadイベント + フォールバックタイマーの併用
+  let printed = false;
+  const doPrint = () => {
+    if (printed) return;
+    printed = true;
+    try {
+      w.print();
+    } catch {
+      // クロスオリジンなど: ユーザーに手動操作を案内
+      console.warn('[printToPdf] print() failed, user needs manual Ctrl+P');
+    }
+  };
+
+  w.addEventListener('load', () => {
+    // 画像・フォント読み込みを待つため少し遅延
+    setTimeout(doPrint, 800);
+  });
+
+  // loadが発火しないケースのフォールバック（3秒）
+  setTimeout(doPrint, 3000);
 }
 
 // ============================================================
