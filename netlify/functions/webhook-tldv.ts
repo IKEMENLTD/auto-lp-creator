@@ -10,6 +10,7 @@
 
 import type { Config } from "@netlify/functions";
 import { createClient } from "@supabase/supabase-js";
+import { createHmac, timingSafeEqual } from "node:crypto";
 import type { TldvWebhookEvent } from "./lib/types.js";
 import {
   processTranscriptChunk,
@@ -18,34 +19,51 @@ import {
 } from "./lib/audio-pipeline.js";
 
 // ============================================================
-// Webhook署名検証（スタブ - 本番で有効化）
+// Webhook署名検証
 // ============================================================
 
 /**
  * tl;dv Webhookリクエストの署名を検証する。
- * TODO: 本番環境では tl;dv の署名検証ドキュメントに従い実装する。
  *
- * @returns true if valid, false if invalid
+ * TLDV_WEBHOOK_SECRET が未設定の場合は検証をスキップ（開発環境用）。
+ * 設定済みの場合は HMAC-SHA256 で署名を検証する。
  */
 function verifyWebhookSignature(
-  _request: Request,
-  _body: string,
+  request: Request,
+  body: string,
 ): boolean {
-  // スタブ実装: 本番では以下を実装する
-  // 1. X-Tldv-Signature ヘッダーを取得
-  // 2. HMAC-SHA256 で署名を検証
-  // 3. TLDV_WEBHOOK_SECRET 環境変数と照合
-  //
-  // const signature = request.headers.get("x-tldv-signature");
-  // if (!signature) return false;
-  // const secret = process.env["TLDV_WEBHOOK_SECRET"];
-  // if (!secret) return false;
-  // const hmac = crypto.createHmac("sha256", secret);
-  // hmac.update(body);
-  // const expected = hmac.digest("hex");
-  // return crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expected));
+  const secret = process.env["TLDV_WEBHOOK_SECRET"];
 
-  return true;
+  // シークレット未設定 → 検証スキップ（開発環境）
+  if (!secret) {
+    console.warn("[tldv-webhook] TLDV_WEBHOOK_SECRET未設定: 署名検証をスキップ");
+    return true;
+  }
+
+  const signature = request.headers.get("x-tldv-signature");
+  if (!signature) {
+    console.warn("[tldv-webhook] X-Tldv-Signature ヘッダーなし");
+    return false;
+  }
+
+  try {
+    const hmac = createHmac("sha256", secret);
+    hmac.update(body);
+    const expected = hmac.digest("hex");
+
+    // タイミング攻撃防止のためtimingSafeEqualを使用
+    const sigBuf = Buffer.from(signature, "utf-8");
+    const expBuf = Buffer.from(expected, "utf-8");
+
+    if (sigBuf.length !== expBuf.length) {
+      return false;
+    }
+
+    return timingSafeEqual(sigBuf, expBuf);
+  } catch (err) {
+    console.error("[tldv-webhook] 署名検証エラー:", err);
+    return false;
+  }
 }
 
 // ============================================================
