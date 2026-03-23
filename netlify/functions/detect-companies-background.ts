@@ -27,7 +27,7 @@ interface DetectedCompany {
 // 定数
 // ============================================================
 
-const CLAUDE_MODEL = "claude-sonnet-4-6-20260217";
+const CLAUDE_MODEL = "claude-sonnet-4-6";
 
 const SYSTEM_PROMPT = `商談トランスクリプトに登場する全ての企業・組織を検出し、JSON配列で出力してください。
 
