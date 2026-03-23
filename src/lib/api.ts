@@ -66,8 +66,8 @@ async function parseResponse<T>(response: Response, operation: string): Promise<
       if (errorBody.error) {
         errorMessage = errorBody.error;
       }
-    } catch {
-      // JSON パース失敗は無視
+    } catch (parseErr) {
+      console.warn('[api] Error response body parse failed:', parseErr);
     }
     const apiError: ApiError = { message: errorMessage, status: response.status };
     throw apiError;

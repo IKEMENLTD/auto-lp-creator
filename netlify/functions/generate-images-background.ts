@@ -294,8 +294,8 @@ export default async function handler(request: Request): Promise<Response> {
       if (body.session_id) {
         await writeStatus(body.session_id, "failed", { error: msg });
       }
-    } catch {
-      // ignore
+    } catch (statusErr) {
+      console.warn("[images-bg] Failed to write error status:", statusErr);
     }
   }
 

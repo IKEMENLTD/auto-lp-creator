@@ -104,8 +104,8 @@ function saveSessionState(sessionId: string, state: PersistedSessionState): void
     }));
     const toSave: PersistedSessionState = { ...state, jobs: cleanJobs, savedAt: Date.now() };
     localStorage.setItem(getStorageKey(sessionId), JSON.stringify(toSave));
-  } catch {
-    // localStorage容量超過などは無視
+  } catch (err) {
+    console.warn('[useSession] localStorage save failed (capacity exceeded?):', err);
   }
 }
 
@@ -120,7 +120,8 @@ function loadSessionState(sessionId: string): PersistedSessionState | null {
       return null;
     }
     return parsed;
-  } catch {
+  } catch (err) {
+    console.warn('[useSession] localStorage load failed:', err);
     return null;
   }
 }
@@ -138,15 +139,15 @@ function clearOldSessions(): void {
         try {
           const d = JSON.parse(localStorage.getItem(k) ?? '{}') as { savedAt?: number };
           return { key: k, savedAt: d.savedAt ?? 0 };
-        } catch { return { key: k, savedAt: 0 }; }
+        } catch (parseErr) { console.warn('[useSession] session parse error:', parseErr); return { key: k, savedAt: 0 }; }
       });
       entries.sort((a, b) => a.savedAt - b.savedAt);
       for (let i = 0; i < entries.length - 10; i++) {
         localStorage.removeItem(entries[i]!.key);
       }
     }
-  } catch {
-    // 無視
+  } catch (err) {
+    console.warn('[useSession] clearOldSessions failed:', err);
   }
 }
 
@@ -237,12 +238,19 @@ export function useSession(sessionId: string): UseSessionReturn {
   const lastExtractedChunkCount = useRef<number>(restored?.transcriptChunks?.length ?? 0);
   const transcriptChunksRef = useRef<TranscriptChunk[]>(transcriptChunks);
   const targetCompanyRef = useRef<string | null>(targetCompany);
+  const pollIntervalsRef = useRef<Map<string, ReturnType<typeof setInterval>>>(new Map());
 
   // sessionId変更時にリセット（初回マウントではなく、実際にIDが変わった時のみ）
   const prevSessionIdRef = useRef<string>(sessionId);
   useEffect(() => {
     if (prevSessionIdRef.current === sessionId) return;
     prevSessionIdRef.current = sessionId;
+
+    // 前セッションのポーリングintervalをクリア
+    for (const [, intervalId] of pollIntervalsRef.current) {
+      clearInterval(intervalId);
+    }
+    pollIntervalsRef.current.clear();
 
     const saved = sessionId !== '__none__' ? loadSessionState(sessionId) : null;
     if (saved) {
@@ -487,8 +495,7 @@ export function useSession(sessionId: string): UseSessionReturn {
     ));
   }, []);
 
-  // ポーリング用のインターバルrefを管理（クリーンアップ用）
-  const pollIntervalsRef = useRef<Map<string, ReturnType<typeof setInterval>>>(new Map());
+  // pollIntervalsRef は上部で宣言済み
 
   // ステップ名を日本語に変換
   function stepToLabel(step?: string): string {
@@ -590,8 +597,8 @@ export function useSession(sessionId: string): UseSessionReturn {
               j.type === type ? { ...j, status: 'failed' as const, error: errorMsg } : j
             ));
           }
-        } catch {
-          // ポーリング中のエラーは無視（次回リトライ）
+        } catch (pollErr) {
+          console.warn('[useSession] deliverable poll error (will retry):', pollErr);
         }
       }, 3000);
 

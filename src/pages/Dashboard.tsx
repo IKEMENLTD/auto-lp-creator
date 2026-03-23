@@ -318,8 +318,8 @@ export const Dashboard: React.FC = () => {
   const handleGenerate = useCallback(async (type: DeliverableType) => {
     try {
       await session.generateDeliverable(type);
-    } catch {
-      // エラーは useSession 内で管理
+    } catch (err) {
+      console.warn('[Dashboard] generateDeliverable error (handled in useSession):', err);
     }
   }, [session]);
 

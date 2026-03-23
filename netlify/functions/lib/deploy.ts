@@ -92,7 +92,7 @@ async function netlifyApiRequest<T>(
       try {
         const parsed = JSON.parse(errorBody) as NetlifyApiError;
         errorMessage = parsed.message || errorBody;
-      } catch {
+      } catch (_parseErr) {
         errorMessage = errorBody;
       }
       throw new Error(
@@ -124,7 +124,8 @@ async function findSiteByName(
       token,
     );
     return sites.find((s) => s.name === siteName) ?? null;
-  } catch {
+  } catch (err) {
+    console.warn("[deploy] findSiteByName failed:", err);
     return null;
   }
 }

@@ -57,6 +57,25 @@ export default async function handler(
       );
     }
 
+    // バリデーション: フィールド数上限・値の長さ上限
+    const MAX_FIELDS = 50;
+    const MAX_VALUE_LENGTH = 10000;
+    const fieldEntries = Object.entries(formData);
+    if (fieldEntries.length > MAX_FIELDS) {
+      return new Response(
+        JSON.stringify({ error: `フィールド数が上限(${MAX_FIELDS})を超えています` }),
+        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } },
+      );
+    }
+    for (const [key, value] of fieldEntries) {
+      if (typeof value === "string" && value.length > MAX_VALUE_LENGTH) {
+        return new Response(
+          JSON.stringify({ error: `フィールド "${key}" の値が長すぎます (上限${MAX_VALUE_LENGTH}文字)` }),
+          { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } },
+        );
+      }
+    }
+
     const sessionId = (formData["session_id"] as string) || "unknown";
 
     // Supabaseに保存

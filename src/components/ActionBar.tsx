@@ -38,8 +38,8 @@ export const ActionBar: React.FC<ActionBarProps> = ({
     setIsEnding(true);
     try {
       await onEndSession();
-    } catch {
-      // エラーは useSession で管理
+    } catch (err) {
+      console.warn('[ActionBar] endSession error:', err);
     } finally {
       setIsEnding(false);
     }
@@ -51,8 +51,8 @@ export const ActionBar: React.FC<ActionBarProps> = ({
     setShowShareMenu(false);
     try {
       await onShareAll(method);
-    } catch {
-      // エラーは上位で管理
+    } catch (err) {
+      console.warn('[ActionBar] share error:', err);
     } finally {
       setIsSharing(false);
     }

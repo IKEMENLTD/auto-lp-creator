@@ -83,8 +83,8 @@ export default async function handler(request: Request): Promise<Response> {
       if (resultRaw) {
         try {
           data = JSON.parse(resultRaw);
-        } catch {
-          // パース失敗は無視
+        } catch (parseErr) {
+          console.warn("[poll-status] result JSON parse failed:", parseErr);
         }
       }
 
