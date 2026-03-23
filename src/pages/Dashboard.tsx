@@ -18,6 +18,7 @@ import { DeliverableGrid } from '../components/DeliverableGrid';
 import { RecordingControls } from '../components/RecordingControls';
 import { EditFieldModal } from '../components/EditFieldModal';
 import { CompanySelector, type DetectedCompany } from '../components/CompanySelector';
+import { QrModal } from '../components/QrModal';
 import { useSession } from '../hooks/useSession';
 import { useAudioCapture, setOnTranscript } from '../hooks/useAudioCapture';
 import { api } from '../lib/api';
@@ -57,6 +58,7 @@ export const Dashboard: React.FC = () => {
   const session = useSession(activeSessionId);
   const audio = useAudioCapture(activeSessionId);
   const [editModal, setEditModal] = useState<EditModalState>(INITIAL_EDIT_STATE);
+  const [qrUrls, setQrUrls] = useState<string[] | null>(null);
 
   // ================================================================
   // 企業検出
@@ -369,12 +371,8 @@ export const Dashboard: React.FC = () => {
       const body = encodeURIComponent(text);
       window.location.href = `mailto:?subject=${subject}&body=${body}`;
     } else {
-      // QR — クリップボードコピーにフォールバック
-      void navigator.clipboard.writeText(completedUrls.join('\n')).then(() => {
-        alert('全URLをコピーしました');
-      }).catch(() => {
-        window.prompt('URLをコピーしてください:', completedUrls.join('\n'));
-      });
+      // QRコードモーダル表示
+      setQrUrls([...completedUrls]);
     }
   }, [sessionId, session]);
 
@@ -706,6 +704,14 @@ export const Dashboard: React.FC = () => {
           currentValue={editModal.currentValue}
           onSave={handleSaveField}
           onClose={handleCloseEdit}
+        />
+      )}
+
+      {qrUrls && (
+        <QrModal
+          urls={qrUrls}
+          title={session.targetCompany ?? '制作物'}
+          onClose={() => setQrUrls(null)}
         />
       )}
     </div>
