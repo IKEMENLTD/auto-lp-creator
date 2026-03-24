@@ -474,7 +474,7 @@ ${prob.map(item => `<span class="about-pain-item"><svg viewBox="0 0 24 24" fill=
 </div>` : ""}
 <div class="about-grid fi">
 <div class="about-img">
-${hasImg && images[0] ? `<img src="${esc(images[0].url.replace(/w=\d+/, "w=800").replace(/h=\d+/, "h=600"))}" alt="${esc(d.service_name)}" loading="lazy">` : ""}
+${hasImg && images[0] ? `<img data-img="about" src="${esc(images[0].url.replace(/w=\d+/, "w=800").replace(/h=\d+/, "h=600"))}" alt="${esc(d.service_name)}" loading="lazy">` : ""}
 </div>
 <div class="about-text">
 <h3>${esc(c.solution_title || `${d.company_name}が解決します`)}</h3>
@@ -499,7 +499,7 @@ ${svc.map((item, i) => {
   const img = images[i + 1];
   const hasRealImg = img && img.url;
   return `<div class="feat-card fi">
-${hasRealImg ? `<img class="feat-card-img" src="${esc(img.url.replace(/w=\d+/, "w=600").replace(/h=\d+/, "h=400"))}" alt="${esc(item.title)}" loading="lazy">` : `<div class="feat-card-mockup">${productMockupSvg(i, 600, 220)}</div>`}
+${hasRealImg ? `<img class="feat-card-img" data-img="feature${i + 1}" src="${esc(img.url.replace(/w=\d+/, "w=600").replace(/h=\d+/, "h=400"))}" alt="${esc(item.title)}" loading="lazy">` : `<img class="feat-card-img" data-img="feature${i + 1}" src="" alt="${esc(item.title)}" style="display:none"><div class="feat-card-mockup">${productMockupSvg(i, 600, 220)}</div>`}
 <div class="feat-body">
 <h4>${esc(item.title)}</h4>
 <p>${esc(item.desc)}</p>
@@ -525,7 +525,7 @@ ${reasons.map((item, i) => {
   const reasonImgEntry = images[i + 4];
   const reasonImg = reasonImgEntry ? reasonImgEntry.url.replace(/w=\d+/, "w=600").replace(/h=\d+/, "h=400") : unsplashUrl((PHOTO_LIBRARY["business"] ?? [])[(i + 4) % 15] ?? "", 600, 400);
   return `<div class="reason-card fi">
-<img class="reason-img" src="${esc(reasonImg)}" alt="${esc(item.title)}" loading="lazy">
+<img class="reason-img" data-img="reason${i + 1}" src="${esc(reasonImg)}" alt="${esc(item.title)}" loading="lazy">
 <div class="reason-body">
 <div class="reason-num">REASON ${i + 1}</div>
 <h4>${esc(item.title)}</h4>
@@ -561,7 +561,7 @@ ${useCases.map((item, i) => {
   const ucImgEntry = images[i + 7];
   const ucImg = ucImgEntry ? ucImgEntry.url.replace(/w=\d+/, "w=600").replace(/h=\d+/, "h=400") : unsplashUrl((PHOTO_LIBRARY["business"] ?? [])[(i + 7) % 15] ?? "", 600, 400);
   return `<div class="uc-card fi">
-<img class="uc-card-img" src="${esc(ucImg)}" alt="${esc(item.title)}" loading="lazy">
+<img class="uc-card-img" data-img="usecase${i + 1}" src="${esc(ucImg)}" alt="${esc(item.title)}" loading="lazy">
 <div class="uc-card-body">
 <h4>${esc(item.title)}</h4>
 <p>${esc(item.desc)}</p>
@@ -590,7 +590,7 @@ ${cas.map((item, i) => {
   const caseImg = caseImgEntry ? caseImgEntry.url.replace(/w=\d+/, "w=600").replace(/h=\d+/, "h=400") : unsplashUrl((PHOTO_LIBRARY["business"] ?? [])[(i + 13) % 15] ?? "", 600, 400);
   const companyName = logoCompanies[i % logoCompanies.length] ?? "企業";
   return `<div class="tm-card fi">
-<img class="tm-card-img" src="${esc(caseImg)}" alt="${esc(item.category)}" loading="lazy">
+<img class="tm-card-img" data-img="case${i + 1}" src="${esc(caseImg)}" alt="${esc(item.category)}" loading="lazy">
 <div class="tm-card-body">
 <div class="tm-result">${esc(item.result)}</div>
 <p class="tm-text">${esc(item.detail)}</p>

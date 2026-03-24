@@ -139,6 +139,7 @@ async function saveImageToBlob(sessionId: string, sectionName: string, base64Dat
 function updateHtmlWithImages(html: string, imageResults: Readonly<Record<string, string>>): string {
   let updatedHtml = html;
 
+  // heroはfvセクションのbackground-imageを差し替え
   if (imageResults["hero"]) {
     const heroUrl = imageResults["hero"];
     const stylePattern = /(<section\s+class="fv"[^>]*?)style="([^"]*background-image:[^"]*)"([^>]*>)/;
@@ -152,15 +153,17 @@ function updateHtmlWithImages(html: string, imageResults: Readonly<Record<string
     }
   }
 
+  // その他セクション: data-img属性を持つimgタグのsrcを差し替え
   for (const [section, url] of Object.entries(imageResults)) {
     if (section === "hero") continue;
-    const imgPattern = new RegExp(`(data-img="${section}"[^>]*?)style="([^"]*)"`, "g");
-    if (imgPattern.test(updatedHtml)) {
-      imgPattern.lastIndex = 0;
-      updatedHtml = updatedHtml.replace(imgPattern, `$1style="$2;background-image:url('${url}')"`);
-    } else {
-      const noStylePattern = new RegExp(`(data-img="${section}")`, "g");
-      updatedHtml = updatedHtml.replace(noStylePattern, `$1 style="background-image:url('${url}')"`);
+    // data-img="section名" を含むimgタグのsrc属性を置換
+    const srcPattern = new RegExp(`(<img[^>]*data-img="${section}"[^>]*?)src="[^"]*"`, "g");
+    if (srcPattern.test(updatedHtml)) {
+      srcPattern.lastIndex = 0;
+      updatedHtml = updatedHtml.replace(srcPattern, `$1src="${url}"`);
+      // display:noneが付いていたら除去（mockupフォールバック時の非表示imgを表示に）
+      const displayPattern = new RegExp(`(<img[^>]*data-img="${section}"[^>]*?)style="display:none"`, "g");
+      updatedHtml = updatedHtml.replace(displayPattern, `$1style=""`);
     }
   }
 
