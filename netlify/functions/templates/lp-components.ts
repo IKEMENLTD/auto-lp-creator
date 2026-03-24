@@ -275,8 +275,7 @@ section.sec:nth-of-type(odd) { background:var(--bg); }
 .feat-body p { color:var(--muted); }
 /* ボタン: ピル型 */
 .btn { border-radius:34px; }
-.btn-lg, .btn-md { border-radius:34px; position:relative; padding-right:40px; }
-.btn-lg::after, .btn-md::after { content:">"; position:absolute; right:20px; top:50%; transform:translateY(-50%); font-weight:400; }
+.btn-lg, .btn-md { border-radius:34px; }
 .btn-white { background:var(--card-bg); color:var(--c); border:2px solid var(--c); }
 .btn-white:hover { box-shadow:0 4px 16px rgba(26,179,148,.2); }
 .btn-dark { background:var(--c); color:#fff; border:2px solid var(--c); }
