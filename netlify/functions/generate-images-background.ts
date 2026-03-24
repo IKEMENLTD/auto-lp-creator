@@ -115,40 +115,22 @@ async function generateImageWithFlash(prompt: string, geminiKey: string, aspectR
 }
 
 // ============================================================
-// 画像をBlobに保存
-// ============================================================
-
-async function saveImageToBlob(sessionId: string, sectionName: string, base64Data: string): Promise<string> {
-  const store = getStore("images");
-  const key = `${sessionId}/${sectionName}.webp`;
-
-  const bytes = Uint8Array.from(atob(base64Data), (c) => c.charCodeAt(0));
-  const buffer: ArrayBuffer = bytes.buffer as ArrayBuffer;
-
-  await store.set(key, buffer, {
-    metadata: { contentType: "image/webp", sessionId, section: sectionName, createdAt: new Date().toISOString() },
-  });
-
-  return `/.netlify/blobs/images/${key}`;
-}
-
-// ============================================================
 // HTMLの画像URL更新
 // ============================================================
 
 function updateHtmlWithImages(html: string, imageResults: Readonly<Record<string, string>>): string {
   let updatedHtml = html;
 
-  // heroはfvセクションのbackground-imageを差し替え
+  // heroはfv-bg divのbackground-imageを差し替え
   if (imageResults["hero"]) {
     const heroUrl = imageResults["hero"];
-    const stylePattern = /(<section\s+class="fv"[^>]*?)style="([^"]*background-image:[^"]*)"([^>]*>)/;
-    const styleMatch = stylePattern.exec(updatedHtml);
-    if (styleMatch) {
-      const prefix = styleMatch[1] ?? "";
-      const suffix = styleMatch[3] ?? "";
-      updatedHtml = updatedHtml.replace(stylePattern, `${prefix}style="background-image:url('${heroUrl}')"${suffix}`);
+    // fv-bg div の background-image を差し替え
+    const fvBgPattern = /(<div\s+class="fv-bg"\s+style="background-image:url\()[^)]*(\)")/g;
+    if (fvBgPattern.test(updatedHtml)) {
+      fvBgPattern.lastIndex = 0;
+      updatedHtml = updatedHtml.replace(fvBgPattern, `$1'${heroUrl}'$2`);
     } else {
+      // fv-bgがない場合はsectionに追加（フォールバック）
       updatedHtml = updatedHtml.replace(/(<section\s+class="fv")([^>]*>)/, `$1 style="background-image:url('${heroUrl}')"$2`);
     }
   }
@@ -240,8 +222,12 @@ export default async function handler(request: Request): Promise<Response> {
         try {
           const aspectRatio = sec.section === "hero" ? "16:9" : "3:4";
           const base64 = await generateImageWithFlash(prompt, geminiKey, aspectRatio);
-          // base64データURIとしてHTMLに直接埋め込む（Blobsは公開URLがないため）
-          imageResults[sec.section] = `data:image/png;base64,${base64}`;
+          // Blobsに画像を保存し、serve-image APIのURLを返す
+          const imgStore = getStore("ai-images");
+          const imgKey = `${body.session_id}/${sec.section}`;
+          const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
+          await imgStore.set(imgKey, bytes.buffer as ArrayBuffer);
+          imageResults[sec.section] = `/api/images/${encodeURIComponent(body.session_id)}/${encodeURIComponent(sec.section)}`;
           console.log(`[images-bg] Generated: ${sec.section}`);
         } catch (err) {
           console.warn(`[images-bg] Failed: ${sec.section}`, err);
@@ -258,41 +244,24 @@ export default async function handler(request: Request): Promise<Response> {
 
     console.log(`[images-bg] Generated ${Object.keys(imageResults).length}/${targetSections.length} images`);
 
-    // 既存HTMLを更新
+    // 既存HTMLの画像URLを差し替え
     if (Object.keys(imageResults).length > 0) {
       try {
         const store = getStore("deliverables");
         const blobKey = `${body.session_id}/${body.type || "lp"}`;
-        console.log(`[images-bg] Reading HTML from Blobs: key=${blobKey}`);
         const existingHtml = await store.get(blobKey, { type: "text" });
 
         if (!existingHtml) {
-          console.error(`[images-bg] HTML not found in Blobs for key=${blobKey}`);
+          console.error(`[images-bg] HTML not found in Blobs: key=${blobKey}`);
         } else {
-          console.log(`[images-bg] HTML found: ${existingHtml.length} chars`);
-
-          // data-img属性の存在確認
-          const dataImgCount = (existingHtml.match(/data-img="/g) || []).length;
-          console.log(`[images-bg] data-img attributes found in HTML: ${dataImgCount}`);
-
-          // 各セクションのマッチ確認
-          for (const section of Object.keys(imageResults)) {
-            if (section === "hero") continue;
-            const hasAttr = existingHtml.includes(`data-img="${section}"`);
-            console.log(`[images-bg] data-img="${section}" in HTML: ${hasAttr}`);
-          }
-
           const updatedHtml = updateHtmlWithImages(existingHtml, imageResults);
-          const changed = updatedHtml !== existingHtml;
-          console.log(`[images-bg] HTML changed after update: ${changed}, new size: ${updatedHtml.length} chars`);
-
-          if (changed) {
+          if (updatedHtml !== existingHtml) {
             await store.set(blobKey, updatedHtml, {
               metadata: { type: body.type || "lp", sessionId: body.session_id, updatedAt: new Date().toISOString(), hasImages: "true" },
             });
-            console.log(`[images-bg] Updated HTML saved to Blobs`);
+            console.log(`[images-bg] HTML updated: ${existingHtml.length} → ${updatedHtml.length} chars`);
           } else {
-            console.warn(`[images-bg] HTML was NOT changed - regex matching may have failed`);
+            console.warn(`[images-bg] HTML unchanged - image URL replacement failed`);
           }
         }
       } catch (err) {

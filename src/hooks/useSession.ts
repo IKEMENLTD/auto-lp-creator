@@ -208,13 +208,19 @@ async function triggerImageGeneration(
     }
     console.log('[useSession] Image generation triggered, polling for result...');
 
-    // 軽いポーリング（最大30秒）で結果確認
+    // ポーリング（最大60秒）で結果確認 — 画像生成は実測40秒程度
     await new Promise(r => setTimeout(r, 5000));
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < 11; i++) {
       try {
         const pollRes = await api.pollJobStatus(sessionId, 'images');
         if (pollRes.status === 'completed') {
-          console.log('[useSession] Image generation completed');
+          console.log('[useSession] Image generation completed - LP images updated');
+          // LPジョブのresult_urlにタイムスタンプを付けてブラウザキャッシュ回避
+          setJobs(prev => prev.map(j =>
+            j.type === 'lp' && j.result_url
+              ? { ...j, result_url: j.result_url.split('?')[0] + `?t=${Date.now()}` }
+              : j
+          ));
           return;
         }
         if (pollRes.status === 'failed') {
@@ -226,7 +232,7 @@ async function triggerImageGeneration(
       }
       await new Promise(r => setTimeout(r, 5000));
     }
-    console.warn('[useSession] Image generation: poll timeout (30s), continuing without confirmation');
+    console.warn('[useSession] Image generation: poll timeout (60s), continuing without confirmation');
   } catch (err) {
     console.warn('[useSession] Image generation skipped (non-critical):', err);
   }
