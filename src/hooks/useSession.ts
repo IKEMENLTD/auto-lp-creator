@@ -169,10 +169,23 @@ async function triggerImageGeneration(
   data: ExtractedDataMap,
 ): Promise<void> {
   try {
+    const strengths = getExtractedValue(data, 'strengths');
+    const service = getExtractedValue(data, 'service_name');
+    const industry = getExtractedValue(data, 'industry');
+    const target = getExtractedValue(data, 'target_customer');
+    const painPoints = getExtractedValue(data, 'pain_points');
+
     const sections = [
-      { section: 'hero', context: `${getExtractedValue(data, 'service_name')} - ${getExtractedValue(data, 'industry')}` },
-      { section: 'about', context: getExtractedValue(data, 'strengths') },
-      { section: 'reason1', context: getExtractedValue(data, 'strengths') },
+      { section: 'hero', context: `${service} - ${industry}` },
+      { section: 'about', context: `${painPoints} を解決する ${service}` },
+      { section: 'reason1', context: strengths },
+      { section: 'reason2', context: `${industry}の専門性` },
+      { section: 'feature1', context: `${service}の主要機能` },
+      { section: 'feature2', context: `${target}向けの自動化・効率化` },
+      { section: 'feature3', context: `データ分析・レポート機能` },
+      { section: 'case1', context: `${industry}の顧客が成果に満足している様子` },
+      { section: 'case2', context: `${target}がサービス導入後に成功を実感` },
+      { section: 'usecase1', context: `${target}が${service}を実際に利用している場面` },
     ];
 
     const res = await fetch('/api/generate-images', {

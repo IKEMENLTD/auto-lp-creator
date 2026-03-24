@@ -3,21 +3,21 @@
  *
  * POST /api/generate-images
  *
- * Background Function: 即座に202を返し、裏でHaiku+Gemini Imagenで画像生成。
+ * Background Function: 即座に202を返し、Gemini Flashで画像生成。
+ * 各セクションに個別プロンプトでコンテキストに合った画像を生成。
  */
 
 import type { Config } from "@netlify/functions";
 import { getStore } from "@netlify/blobs";
-import Anthropic from "@anthropic-ai/sdk";
 
 // ============================================================
 // 定数
 // ============================================================
 
 const GEMINI_API_BASE = "https://generativelanguage.googleapis.com/v1beta";
-const MAX_IMAGES_PER_REQUEST = 3;
-const GEMINI_TIMEOUT_MS = 20_000;
-const HAIKU_TIMEOUT_MS = 15_000;
+const GEMINI_MODEL = "gemini-2.5-flash-preview-05-20";
+const MAX_IMAGES_PER_REQUEST = 10;
+const GEMINI_TIMEOUT_MS = 30_000;
 
 // ============================================================
 // 型定義
@@ -36,15 +36,21 @@ interface ImageRequest {
 interface SectionImageRequest {
   readonly section: string;
   readonly context: string;
+  readonly prompt_hint?: string;
 }
 
-interface GeminiPrediction {
-  readonly bytesBase64Encoded: string;
-  readonly mimeType: string;
-}
-
-interface GeminiResponse {
-  readonly predictions?: readonly GeminiPrediction[];
+interface GeminiFlashResponse {
+  readonly candidates?: readonly {
+    readonly content?: {
+      readonly parts?: readonly {
+        readonly text?: string;
+        readonly inlineData?: {
+          readonly mimeType: string;
+          readonly data: string;
+        };
+      }[];
+    };
+  }[];
 }
 
 // ============================================================
@@ -62,68 +68,11 @@ async function writeStatus(sessionId: string, status: string, extra?: Record<str
 }
 
 // ============================================================
-// Haikuで画像プロンプト生成
+// Gemini Flash 画像生成
 // ============================================================
 
-async function generateImagePrompts(
-  sections: readonly SectionImageRequest[],
-  industry: string,
-  serviceName: string,
-  colorPrimary: string,
-  apiKey: string,
-): Promise<Record<string, string>> {
-  const client = new Anthropic({ apiKey });
-
-  const sectionList = sections
-    .map((s) => `- ${s.section}: ${s.context.slice(0, 200)}`)
-    .join("\n");
-
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), HAIKU_TIMEOUT_MS);
-
-  try {
-    const res = await client.messages.create(
-      {
-        model: "claude-haiku-4-5-20251001",
-        max_tokens: 1500,
-        system: `You generate optimized image prompts for Gemini Imagen API.
-Rules:
-- Output in English only
-- Each prompt: 60-100 words
-- NEVER include text/letters/words/numbers in images
-- Style: clean, modern, professional, Japanese business context
-- Color harmony with ${colorPrimary}
-- Industry: ${industry}, Service: ${serviceName}
-- For "hero": wide landscape 16:9, abstract/conceptual
-- For "about": service concept visualization
-- For "reason*": specific benefit illustration
-- For "badge": abstract trust/achievement symbol (circular, medal-like)
-
-Output JSON only: {"section_name": "prompt", ...}`,
-        messages: [{ role: "user", content: `Generate image prompts for these LP sections:\n${sectionList}` }],
-      },
-      { signal: controller.signal },
-    );
-
-    const block = res.content[0];
-    if (!block || block.type !== "text") throw new Error("Haiku応答なし");
-
-    let text = block.text.trim();
-    const codeBlock = text.match(/```(?:json)?\s*([\s\S]*?)```/);
-    if (codeBlock?.[1]) text = codeBlock[1].trim();
-
-    return JSON.parse(text) as Record<string, string>;
-  } finally {
-    clearTimeout(timeoutId);
-  }
-}
-
-// ============================================================
-// Gemini Imagenで画像生成
-// ============================================================
-
-async function generateImage(prompt: string, geminiKey: string, aspectRatio: string = "16:9"): Promise<string> {
-  const url = `${GEMINI_API_BASE}/models/imagen-3.0-generate-002:predict?key=${geminiKey}`;
+async function generateImageWithFlash(prompt: string, geminiKey: string, aspectRatio: string = "16:9"): Promise<string> {
+  const url = `${GEMINI_API_BASE}/models/${GEMINI_MODEL}:generateContent?key=${geminiKey}`;
 
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), GEMINI_TIMEOUT_MS);
@@ -133,22 +82,33 @@ async function generateImage(prompt: string, geminiKey: string, aspectRatio: str
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        instances: [{ prompt }],
-        parameters: { sampleCount: 1, aspectRatio, safetyFilterLevel: "block_few", personGeneration: "dont_allow" },
+        contents: [{
+          parts: [{ text: prompt }],
+        }],
+        generationConfig: {
+          responseModalities: ["IMAGE"],
+          imageConfig: {
+            aspectRatio,
+          },
+        },
       }),
       signal: controller.signal,
     });
 
     if (!res.ok) {
       const err = await res.text();
-      console.error("[images-bg] Gemini error:", res.status, err);
-      throw new Error(`Gemini API error: ${res.status}`);
+      console.error("[images-bg] Gemini Flash error:", res.status, err);
+      throw new Error(`Gemini Flash API error: ${res.status}`);
     }
 
-    const data = (await res.json()) as GeminiResponse;
-    if (!data.predictions?.[0]?.bytesBase64Encoded) throw new Error("Gemini画像生成結果なし");
+    const data = (await res.json()) as GeminiFlashResponse;
+    const parts = data.candidates?.[0]?.content?.parts;
+    if (!parts) throw new Error("Gemini Flash: レスポンスにpartsなし");
 
-    return data.predictions[0].bytesBase64Encoded;
+    const imagePart = parts.find(p => p.inlineData?.data);
+    if (!imagePart?.inlineData?.data) throw new Error("Gemini Flash: 画像データなし");
+
+    return imagePart.inlineData.data;
   } finally {
     clearTimeout(timeoutId);
   }
@@ -208,6 +168,32 @@ function updateHtmlWithImages(html: string, imageResults: Readonly<Record<string
 }
 
 // ============================================================
+// セクション別プロンプト生成
+// ============================================================
+
+function buildImagePrompt(section: string, context: string, industry: string, serviceName: string, hint?: string): string {
+  const base = `Professional photograph, high quality, clean composition, no text or letters in image, Japanese business context, ${industry} industry.`;
+
+  const sectionPrompts: Record<string, string> = {
+    hero: `Wide landscape hero image. Abstract, modern, professional. Represents "${serviceName}" - ${context}. Bright, aspirational, corporate feel. ${base}`,
+    about: `Service concept visualization. Shows the value proposition of "${serviceName}". ${context}. Clean, modern design. ${base}`,
+    reason1: `Business success and trust. Professional team collaboration, reliability. ${context}. ${base}`,
+    reason2: `Innovation and expertise. Modern technology, specialized knowledge. ${context}. ${base}`,
+    reason3: `Customer support and partnership. Friendly professional interaction. ${context}. ${base}`,
+    feature1: `Product feature visualization. Dashboard or interface mockup style. ${context}. Modern, clean UI aesthetic. ${base}`,
+    feature2: `Technology and automation. Streamlined workflow, efficiency. ${context}. ${base}`,
+    feature3: `Data analytics and insights. Charts, growth metrics, business intelligence. ${context}. ${base}`,
+    case1: `Happy satisfied business professional. Success story, positive outcome. Client meeting with smiles. ${context}. ${base}`,
+    case2: `Business achievement celebration. Team success, goal reached. Professional satisfaction. ${context}. ${base}`,
+    usecase1: `Real-world business scenario. ${context}. Professional office environment. ${base}`,
+    usecase2: `Practical application scene. ${context}. Modern workplace. ${base}`,
+  };
+
+  const prompt = sectionPrompts[section] || `Professional business image for ${section}. ${context}. ${base}`;
+  return hint ? `${prompt} Additional context: ${hint}` : prompt;
+}
+
+// ============================================================
 // メインハンドラー（Background Function）
 // ============================================================
 
@@ -224,13 +210,7 @@ export default async function handler(request: Request): Promise<Response> {
       return new Response(null, { status: 202 });
     }
 
-    const anthropicKey = process.env["ANTHROPIC_API_KEY"];
     const geminiKey = process.env["GOOGLE_API_KEY"];
-
-    if (!anthropicKey) {
-      await writeStatus(body.session_id, "failed", { error: "ANTHROPIC_API_KEY未設定" });
-      return new Response(null, { status: 202 });
-    }
 
     if (!geminiKey) {
       console.log("[images-bg] GOOGLE_API_KEY未設定 → スキップ");
@@ -242,31 +222,40 @@ export default async function handler(request: Request): Promise<Response> {
 
     const targetSections = body.sections.slice(0, MAX_IMAGES_PER_REQUEST);
 
-    console.log(`[images-bg] Generating ${targetSections.length} images for session ${body.session_id}`);
+    console.log(`[images-bg] Generating ${targetSections.length} images with Gemini Flash for session ${body.session_id}`);
 
-    // Step 1: Haikuでプロンプト生成
-    const prompts = await generateImagePrompts(targetSections, body.industry, body.service_name, body.color_primary, anthropicKey);
-
-    // Step 2: Geminiで画像生成（並列）
+    // 画像生成（並列、最大3つずつバッチ処理でレート制限対策）
     const imageResults: Record<string, string> = {};
-    const generatePromises = targetSections.map(async (sec) => {
-      const prompt = prompts[sec.section];
-      if (!prompt) return;
+    const BATCH_SIZE = 3;
 
-      try {
-        const aspectRatio = sec.section === "hero" ? "16:9" : "1:1";
-        const base64 = await generateImage(prompt, geminiKey, aspectRatio);
-        const url = await saveImageToBlob(body.session_id, sec.section, base64);
-        imageResults[sec.section] = url;
-        console.log(`[images-bg] Generated: ${sec.section}`);
-      } catch (err) {
-        console.error(`[images-bg] Failed: ${sec.section}`, err);
+    for (let batchStart = 0; batchStart < targetSections.length; batchStart += BATCH_SIZE) {
+      const batch = targetSections.slice(batchStart, batchStart + BATCH_SIZE);
+
+      const batchPromises = batch.map(async (sec) => {
+        const prompt = buildImagePrompt(sec.section, sec.context, body.industry, body.service_name, sec.prompt_hint);
+
+        try {
+          const aspectRatio = sec.section === "hero" ? "16:9" : "3:4";
+          const base64 = await generateImageWithFlash(prompt, geminiKey, aspectRatio);
+          const url = await saveImageToBlob(body.session_id, sec.section, base64);
+          imageResults[sec.section] = url;
+          console.log(`[images-bg] Generated: ${sec.section}`);
+        } catch (err) {
+          console.warn(`[images-bg] Failed: ${sec.section}`, err);
+        }
+      });
+
+      await Promise.all(batchPromises);
+
+      // バッチ間に1秒待機（レート制限対策）
+      if (batchStart + BATCH_SIZE < targetSections.length) {
+        await new Promise(r => setTimeout(r, 1000));
       }
-    });
+    }
 
-    await Promise.all(generatePromises);
+    console.log(`[images-bg] Generated ${Object.keys(imageResults).length}/${targetSections.length} images`);
 
-    // Step 3: 既存HTMLを更新
+    // 既存HTMLを更新
     if (Object.keys(imageResults).length > 0) {
       try {
         const store = getStore("deliverables");
