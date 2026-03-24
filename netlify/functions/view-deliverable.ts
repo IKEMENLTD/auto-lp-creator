@@ -25,6 +25,7 @@ export default async function handler(request: Request): Promise<Response> {
 
     const store = getStore("deliverables");
     const html = await store.get(blobKey, { type: "text" });
+    console.log(`[view] key=${blobKey}, html=${html ? html.length + ' chars' : 'null'}, hasDataUri=${html ? html.includes('data:image/png;base64') : false}`);
 
     if (!html) {
       return new Response(
