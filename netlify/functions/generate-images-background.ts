@@ -240,8 +240,8 @@ export default async function handler(request: Request): Promise<Response> {
         try {
           const aspectRatio = sec.section === "hero" ? "16:9" : "3:4";
           const base64 = await generateImageWithFlash(prompt, geminiKey, aspectRatio);
-          const url = await saveImageToBlob(body.session_id, sec.section, base64);
-          imageResults[sec.section] = url;
+          // base64データURIとしてHTMLに直接埋め込む（Blobsは公開URLがないため）
+          imageResults[sec.section] = `data:image/png;base64,${base64}`;
           console.log(`[images-bg] Generated: ${sec.section}`);
         } catch (err) {
           console.warn(`[images-bg] Failed: ${sec.section}`, err);
