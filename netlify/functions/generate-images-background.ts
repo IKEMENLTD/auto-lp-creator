@@ -263,13 +263,37 @@ export default async function handler(request: Request): Promise<Response> {
       try {
         const store = getStore("deliverables");
         const blobKey = `${body.session_id}/${body.type || "lp"}`;
+        console.log(`[images-bg] Reading HTML from Blobs: key=${blobKey}`);
         const existingHtml = await store.get(blobKey, { type: "text" });
 
-        if (existingHtml) {
+        if (!existingHtml) {
+          console.error(`[images-bg] HTML not found in Blobs for key=${blobKey}`);
+        } else {
+          console.log(`[images-bg] HTML found: ${existingHtml.length} chars`);
+
+          // data-img属性の存在確認
+          const dataImgCount = (existingHtml.match(/data-img="/g) || []).length;
+          console.log(`[images-bg] data-img attributes found in HTML: ${dataImgCount}`);
+
+          // 各セクションのマッチ確認
+          for (const section of Object.keys(imageResults)) {
+            if (section === "hero") continue;
+            const hasAttr = existingHtml.includes(`data-img="${section}"`);
+            console.log(`[images-bg] data-img="${section}" in HTML: ${hasAttr}`);
+          }
+
           const updatedHtml = updateHtmlWithImages(existingHtml, imageResults);
-          await store.set(blobKey, updatedHtml, {
-            metadata: { type: body.type || "lp", sessionId: body.session_id, updatedAt: new Date().toISOString(), hasImages: "true" },
-          });
+          const changed = updatedHtml !== existingHtml;
+          console.log(`[images-bg] HTML changed after update: ${changed}, new size: ${updatedHtml.length} chars`);
+
+          if (changed) {
+            await store.set(blobKey, updatedHtml, {
+              metadata: { type: body.type || "lp", sessionId: body.session_id, updatedAt: new Date().toISOString(), hasImages: "true" },
+            });
+            console.log(`[images-bg] Updated HTML saved to Blobs`);
+          } else {
+            console.warn(`[images-bg] HTML was NOT changed - regex matching may have failed`);
+          }
         }
       } catch (err) {
         console.error("[images-bg] HTML update failed:", err);
