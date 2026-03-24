@@ -350,7 +350,7 @@ export function buildLpHtml(c: LpContent, d: FlatData, images: import("./lp-imag
   const brandSub = (rawBrand.match(/[（(](.+?)[）)]/) || [])[1] || "";
 
   // CTAテキストから矢印記号を除去（arrowSvgとの二重表示防止）+ フォールバック
-  if (c.cta_text) c.cta_text = c.cta_text.replace(/[→>＞►▶➤➜➡⇒\s]+$/g, "").trim();
+  if (c.cta_text) c.cta_text = c.cta_text.replace(/[→>＞►▶➤➜➡⇒]/g, "").trim();
   if (!c.cta_text) c.cta_text = "無料相談はこちら";
 
   // Award badge image (laurel wreath + No.1) - served as static asset
