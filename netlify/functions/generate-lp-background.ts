@@ -192,7 +192,7 @@ async function generateOneImage(prompt: string, geminiKey: string, aspectRatio: 
 
 function buildImagePrompt(section: string, context: string, industry: string): string {
   const noText = `The image must contain ZERO text, ZERO letters, ZERO words, ZERO numbers, ZERO symbols, ZERO watermarks. Pure photograph only.`;
-  const base = `Professional photograph, high quality, clean composition. ${noText} ${industry} industry, Japanese business context.`;
+  const base = `Professional photograph, high quality, clean composition. Positive, bright, optimistic mood. ${noText} ${industry} industry, Japanese business context.`;
   const prompts: Record<string, string> = {
     hero: `Wide landscape photograph of abstract modern architecture or nature scenery. Bright, aspirational. ${context}. ${base}`,
     about: `Photograph of a professional workspace or modern office interior. ${context}. ${base}`,
@@ -215,25 +215,32 @@ function buildImagePrompt(section: string, context: string, industry: string): s
   return prompts[section] || `Professional business photograph. ${context}. ${base}`;
 }
 
-async function generateAiImageUrls(sessionId: string, data: ReturnType<typeof flatten>, geminiKey: string): Promise<Record<string, string>> {
+async function generateAiImageUrls(sessionId: string, data: ReturnType<typeof flatten>, draft: LpContent, geminiKey: string): Promise<Record<string, string>> {
+  // draftの見出しを使って各セクションに合った画像を生成
+  const svc = draft.services || [];
+  const reasons = draft.reasons || [];
+  const useCases = draft.use_cases || [];
+  const funcs = draft.functions || [];
+  const cases = draft.cases || [];
+
   const sections = [
-    { section: "hero", context: `${data.service_name} - ${data.industry}`, ratio: "16:9" },
-    { section: "about", context: data.pain_points.join(", "), ratio: "3:4" },
-    { section: "reason1", context: data.strengths.join(", "), ratio: "3:4" },
-    { section: "reason2", context: `${data.industry}の専門性`, ratio: "3:4" },
-    { section: "reason3", context: `${data.service_name}のサポート体制`, ratio: "3:4" },
-    { section: "feature1", context: `${data.service_name}の主要機能`, ratio: "3:4" },
-    { section: "feature2", context: `${data.target_customer}向け効率化`, ratio: "3:4" },
-    { section: "feature3", context: "データ分析・レポート", ratio: "3:4" },
-    { section: "case1", context: `${data.industry}の顧客満足`, ratio: "3:4" },
-    { section: "case2", context: "サービス導入後の成功", ratio: "3:4" },
-    { section: "case3", context: `${data.target_customer}の導入効果`, ratio: "3:4" },
-    { section: "usecase1", context: `${data.target_customer}の利用場面`, ratio: "3:4" },
-    { section: "usecase2", context: `${data.industry}での活用シーン`, ratio: "3:4" },
-    { section: "usecase3", context: `${data.service_name}の日常的な使い方`, ratio: "3:4" },
-    { section: "function1", context: `${data.service_name}の中核機能`, ratio: "3:4" },
-    { section: "function2", context: "業務プロセスの自動化", ratio: "3:4" },
-    { section: "function3", context: "レポート・分析機能", ratio: "3:4" },
+    { section: "hero", context: `${draft.hero_headline}. ${data.service_name}`, ratio: "16:9" },
+    { section: "about", context: draft.solution_title || data.pain_points.join(", "), ratio: "3:4" },
+    { section: "reason1", context: reasons[0]?.title || data.strengths[0] || "信頼性", ratio: "3:4" },
+    { section: "reason2", context: reasons[1]?.title || data.strengths[1] || "専門性", ratio: "3:4" },
+    { section: "reason3", context: reasons[2]?.title || "サポート体制", ratio: "3:4" },
+    { section: "feature1", context: svc[0]?.title || `${data.service_name}の機能`, ratio: "3:4" },
+    { section: "feature2", context: svc[1]?.title || "効率化", ratio: "3:4" },
+    { section: "feature3", context: svc[2]?.title || "分析", ratio: "3:4" },
+    { section: "case1", context: cases[0]?.detail || `${data.industry}の成功事例`, ratio: "3:4" },
+    { section: "case2", context: cases[1]?.detail || "導入効果", ratio: "3:4" },
+    { section: "case3", context: cases[2]?.detail || "顧客満足", ratio: "3:4" },
+    { section: "usecase1", context: useCases[0]?.title || `${data.target_customer}の利用`, ratio: "3:4" },
+    { section: "usecase2", context: useCases[1]?.title || "活用シーン", ratio: "3:4" },
+    { section: "usecase3", context: useCases[2]?.title || "日常利用", ratio: "3:4" },
+    { section: "function1", context: funcs[0]?.title || "中核機能", ratio: "3:4" },
+    { section: "function2", context: funcs[1]?.title || "自動化", ratio: "3:4" },
+    { section: "function3", context: funcs[2]?.title || "レポート", ratio: "3:4" },
   ];
 
   const imageUrls: Record<string, string> = {};
@@ -409,17 +416,19 @@ export default async function handler(request: Request): Promise<Response> {
     let html: string;
 
     if (type === "lp") {
-      // LP: テキスト生成と画像生成を並列実行
       const geminiKey = process.env["GOOGLE_API_KEY"];
 
-      // 並列開始: テキスト(draft→evaluate)と画像を同時に走らせる
+      // Step 1: Draft（カード見出しを取得するため先に実行）
       await writeStatus(sessionId, type, "processing", { step: "draft" });
-      console.log(`[generate-bg] LP draft + images start (parallel), transcript=${transcript.length}chars`);
+      console.log(`[generate-bg] LP draft start, transcript=${transcript.length}chars`);
+      const draft = await lpDraft(data, processedTranscript, apiKey, rawData);
+      console.log(`[generate-bg] LP draft done: ${((Date.now() - start) / 1000).toFixed(1)}s`);
 
-      const textPromise = (async () => {
-        const draft = await lpDraft(data, processedTranscript, apiKey, rawData);
-        console.log(`[generate-bg] LP draft done: ${((Date.now() - start) / 1000).toFixed(1)}s`);
-        await writeStatus(sessionId, type, "processing", { step: "evaluate" });
+      // Step 2: Evaluate + 画像生成を並列（画像はdraftの見出しを使用）
+      await writeStatus(sessionId, type, "processing", { step: "evaluate" });
+      console.log(`[generate-bg] LP evaluate + images start (parallel)`);
+
+      const evaluatePromise = (async () => {
         try {
           const evaluated = await lpEvaluate(draft, data, processedTranscript, apiKey);
           console.log(`[generate-bg] LP evaluate done: ${((Date.now() - start) / 1000).toFixed(1)}s`);
@@ -433,7 +442,7 @@ export default async function handler(request: Request): Promise<Response> {
       const imagePromise = geminiKey
         ? (async () => {
             try {
-              const urls = await generateAiImageUrls(sessionId, data, geminiKey);
+              const urls = await generateAiImageUrls(sessionId, data, draft, geminiKey);
               console.log(`[generate-bg] AI images done: ${((Date.now() - start) / 1000).toFixed(1)}s`);
               return urls;
             } catch (imgErr) {
@@ -443,16 +452,14 @@ export default async function handler(request: Request): Promise<Response> {
           })()
         : Promise.resolve({} as Record<string, string>);
 
-      // 両方完了を待つ
-      const [finalContent, imageUrls] = await Promise.all([textPromise, imagePromise]);
+      const [finalContent, imageUrls] = await Promise.all([evaluatePromise, imagePromise]);
 
-      // Build: テキスト+画像を統合してHTML生成
+      // Build: テキスト+画像を統合
       await writeStatus(sessionId, type, "processing", { step: "build" });
       const images = selectImages(data);
       const theme = selectTheme(data);
       html = buildLpHtml(finalContent, data, images, theme);
 
-      // AI画像URLをHTMLに埋め込み
       if (Object.keys(imageUrls).length > 0) {
         html = embedImageUrls(html, imageUrls);
       }
