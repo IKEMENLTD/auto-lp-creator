@@ -215,12 +215,6 @@ async function triggerImageGeneration(
         const pollRes = await api.pollJobStatus(sessionId, 'images');
         if (pollRes.status === 'completed') {
           console.log('[useSession] Image generation completed - LP images updated');
-          // LPジョブのresult_urlにタイムスタンプを付けてブラウザキャッシュ回避
-          setJobs(prev => prev.map(j =>
-            j.type === 'lp' && j.result_url
-              ? { ...j, result_url: j.result_url.split('?')[0] + `?t=${Date.now()}` }
-              : j
-          ));
           return;
         }
         if (pollRes.status === 'failed') {
