@@ -208,7 +208,7 @@ function buildImagePrompt(section: string, context: string, industry: string): s
   return prompts[section] || `Professional business photograph. ${context}. ${base}`;
 }
 
-async function generateAndEmbedImages(html: string, sessionId: string, data: ReturnType<typeof flatten>, geminiKey: string): Promise<string> {
+async function generateAiImageUrls(sessionId: string, data: ReturnType<typeof flatten>, geminiKey: string): Promise<Record<string, string>> {
   const sections = [
     { section: "hero", context: `${data.service_name} - ${data.industry}`, ratio: "16:9" },
     { section: "about", context: data.pain_points.join(", "), ratio: "3:4" },
@@ -227,7 +227,7 @@ async function generateAndEmbedImages(html: string, sessionId: string, data: Ret
 
   for (let i = 0; i < sections.length; i += BATCH) {
     const batch = sections.slice(i, i + BATCH);
-    const results = await Promise.all(batch.map(async (sec) => {
+    await Promise.all(batch.map(async (sec) => {
       try {
         const prompt = buildImagePrompt(sec.section, sec.context, data.industry);
         const base64 = await generateOneImage(prompt, geminiKey, sec.ratio);
@@ -245,8 +245,10 @@ async function generateAndEmbedImages(html: string, sessionId: string, data: Ret
   }
 
   console.log(`[generate-bg] Images: ${Object.keys(imageUrls).length}/${sections.length}`);
+  return imageUrls;
+}
 
-  // HTML内の画像URLを差し替え
+function embedImageUrls(html: string, imageUrls: Record<string, string>): string {
   let updated = html;
   if (imageUrls["hero"]) {
     const pattern = /(<div\s+class="fv-bg"\s+style="background-image:url\()[^)]*(\)")/g;
@@ -393,45 +395,55 @@ export default async function handler(request: Request): Promise<Response> {
     let html: string;
 
     if (type === "lp") {
-      // LP: 3ステップを内部で一貫実行
-      // Step 1: Draft
+      // LP: テキスト生成と画像生成を並列実行
+      const geminiKey = process.env["GOOGLE_API_KEY"];
+
+      // 並列開始: テキスト(draft→evaluate)と画像を同時に走らせる
       await writeStatus(sessionId, type, "processing", { step: "draft" });
-      console.log(`[generate-bg] LP draft start, transcript=${transcript.length}chars`);
-      const draft = await lpDraft(data, processedTranscript, apiKey, rawData);
-      console.log(`[generate-bg] LP draft done: ${((Date.now() - start) / 1000).toFixed(1)}s`);
+      console.log(`[generate-bg] LP draft + images start (parallel), transcript=${transcript.length}chars`);
 
-      // Step 2: Evaluate
-      await writeStatus(sessionId, type, "processing", { step: "evaluate" });
-      console.log(`[generate-bg] LP evaluate start`);
-      let finalContent: LpContent;
-      try {
-        finalContent = await lpEvaluate(draft, data, processedTranscript, apiKey);
-        console.log(`[generate-bg] LP evaluate done: ${((Date.now() - start) / 1000).toFixed(1)}s`);
-      } catch (evalErr) {
-        console.warn("[generate-bg] LP evaluate failed, using draft:", evalErr);
-        finalContent = draft;
-      }
+      const textPromise = (async () => {
+        const draft = await lpDraft(data, processedTranscript, apiKey, rawData);
+        console.log(`[generate-bg] LP draft done: ${((Date.now() - start) / 1000).toFixed(1)}s`);
+        await writeStatus(sessionId, type, "processing", { step: "evaluate" });
+        try {
+          const evaluated = await lpEvaluate(draft, data, processedTranscript, apiKey);
+          console.log(`[generate-bg] LP evaluate done: ${((Date.now() - start) / 1000).toFixed(1)}s`);
+          return evaluated;
+        } catch (evalErr) {
+          console.warn("[generate-bg] LP evaluate failed, using draft:", evalErr);
+          return draft;
+        }
+      })();
 
-      // Step 3: Build
+      const imagePromise = geminiKey
+        ? (async () => {
+            try {
+              const urls = await generateAiImageUrls(sessionId, data, geminiKey);
+              console.log(`[generate-bg] AI images done: ${((Date.now() - start) / 1000).toFixed(1)}s`);
+              return urls;
+            } catch (imgErr) {
+              console.warn("[generate-bg] AI images failed:", imgErr);
+              return {} as Record<string, string>;
+            }
+          })()
+        : Promise.resolve({} as Record<string, string>);
+
+      // 両方完了を待つ
+      const [finalContent, imageUrls] = await Promise.all([textPromise, imagePromise]);
+
+      // Build: テキスト+画像を統合してHTML生成
       await writeStatus(sessionId, type, "processing", { step: "build" });
-      console.log(`[generate-bg] LP build start`);
       const images = selectImages(data);
       const theme = selectTheme(data);
       html = buildLpHtml(finalContent, data, images, theme);
-      console.log(`[generate-bg] LP build done: ${((Date.now() - start) / 1000).toFixed(1)}s, ${html.length}chars`);
 
-      // Step 4: AI画像生成（GOOGLE_API_KEY設定時のみ）
-      const geminiKey = process.env["GOOGLE_API_KEY"];
-      if (geminiKey) {
-        await writeStatus(sessionId, type, "processing", { step: "images" });
-        console.log(`[generate-bg] AI image generation start`);
-        try {
-          html = await generateAndEmbedImages(html, sessionId, data, geminiKey);
-          console.log(`[generate-bg] AI images done: ${((Date.now() - start) / 1000).toFixed(1)}s, ${html.length}chars`);
-        } catch (imgErr) {
-          console.warn("[generate-bg] AI image generation failed, using Unsplash fallback:", imgErr);
-        }
+      // AI画像URLをHTMLに埋め込み
+      if (Object.keys(imageUrls).length > 0) {
+        html = embedImageUrls(html, imageUrls);
       }
+
+      console.log(`[generate-bg] LP complete: ${((Date.now() - start) / 1000).toFixed(1)}s, ${html.length}chars, ${Object.keys(imageUrls).length} AI images`);
 
     } else if (type === "ad_creative") {
       await writeStatus(sessionId, type, "processing", { step: "generating" });
