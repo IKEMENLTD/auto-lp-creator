@@ -198,12 +198,19 @@ function buildImagePrompt(section: string, context: string, industry: string): s
     about: `Photograph of a professional workspace or modern office interior. ${context}. ${base}`,
     reason1: `Photograph of professionals collaborating in a meeting room. ${context}. ${base}`,
     reason2: `Photograph of modern technology equipment or clean workspace. ${context}. ${base}`,
+    reason3: `Photograph of a friendly customer support or consultation scene. ${context}. ${base}`,
     feature1: `Photograph of a person using a laptop in a bright modern office. ${context}. ${base}`,
     feature2: `Photograph of an efficient streamlined workflow environment. ${context}. ${base}`,
     feature3: `Photograph of a team reviewing documents at a conference table. ${context}. ${base}`,
     case1: `Photograph of a satisfied business professional smiling in an office. ${context}. ${base}`,
     case2: `Photograph of a team celebrating success with handshakes. ${context}. ${base}`,
+    case3: `Photograph of a confident professional presenting results. ${context}. ${base}`,
     usecase1: `Photograph of professionals working together in a modern office. ${context}. ${base}`,
+    usecase2: `Photograph of a productive workplace with natural light. ${context}. ${base}`,
+    usecase3: `Photograph of a person working efficiently at a clean desk. ${context}. ${base}`,
+    function1: `Photograph of a modern office with multiple screens and devices. ${context}. ${base}`,
+    function2: `Photograph of automated systems or organized workflow tools. ${context}. ${base}`,
+    function3: `Photograph of printed reports and charts on a desk. ${context}. ${base}`,
   };
   return prompts[section] || `Professional business photograph. ${context}. ${base}`;
 }
@@ -214,12 +221,19 @@ async function generateAiImageUrls(sessionId: string, data: ReturnType<typeof fl
     { section: "about", context: data.pain_points.join(", "), ratio: "3:4" },
     { section: "reason1", context: data.strengths.join(", "), ratio: "3:4" },
     { section: "reason2", context: `${data.industry}の専門性`, ratio: "3:4" },
+    { section: "reason3", context: `${data.service_name}のサポート体制`, ratio: "3:4" },
     { section: "feature1", context: `${data.service_name}の主要機能`, ratio: "3:4" },
     { section: "feature2", context: `${data.target_customer}向け効率化`, ratio: "3:4" },
     { section: "feature3", context: "データ分析・レポート", ratio: "3:4" },
     { section: "case1", context: `${data.industry}の顧客満足`, ratio: "3:4" },
     { section: "case2", context: "サービス導入後の成功", ratio: "3:4" },
+    { section: "case3", context: `${data.target_customer}の導入効果`, ratio: "3:4" },
     { section: "usecase1", context: `${data.target_customer}の利用場面`, ratio: "3:4" },
+    { section: "usecase2", context: `${data.industry}での活用シーン`, ratio: "3:4" },
+    { section: "usecase3", context: `${data.service_name}の日常的な使い方`, ratio: "3:4" },
+    { section: "function1", context: `${data.service_name}の中核機能`, ratio: "3:4" },
+    { section: "function2", context: "業務プロセスの自動化", ratio: "3:4" },
+    { section: "function3", context: "レポート・分析機能", ratio: "3:4" },
   ];
 
   const imageUrls: Record<string, string> = {};

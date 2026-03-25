@@ -622,7 +622,7 @@ ${funcs.map((item, i) => {
   const hasRealImg = funcImg && funcImg.url;
   return `<div class="func-row${i % 2 === 1 ? ' func-row-rev' : ''} fi">
 <div class="func-row-img">
-${hasRealImg ? `<img src="${esc(funcImg.url.replace(/w=\d+/, "w=600").replace(/h=\d+/, "h=400"))}" alt="${esc(item.title)}" loading="lazy">` : `<div class="func-row-mockup">${productMockupSvg(i + 2, 520, 280)}</div>`}
+${hasRealImg ? `<img data-img="function${i + 1}" src="${esc(funcImg.url.replace(/w=\d+/, "w=600").replace(/h=\d+/, "h=400"))}" alt="${esc(item.title)}" loading="lazy">` : `<img data-img="function${i + 1}" src="" alt="${esc(item.title)}" style="display:none"><div class="func-row-mockup">${productMockupSvg(i + 2, 520, 280)}</div>`}
 </div>
 <div class="func-row-text">
 <h4>${esc(item.title)}</h4>
