@@ -208,25 +208,32 @@ async function triggerImageGeneration(
     }
     console.log('[useSession] Image generation triggered, polling for result...');
 
-    // ポーリング（最大60秒）で結果確認 — 画像生成は実測40秒程度
-    await new Promise(r => setTimeout(r, 5000));
-    for (let i = 0; i < 11; i++) {
+    // ポーリング（最大90秒）— まず「processing」を待ち、その後「completed」を待つ
+    // Background Functionの起動前に前回の「completed」を拾わないようにする
+    let sawProcessing = false;
+    await new Promise(r => setTimeout(r, 3000));
+    for (let i = 0; i < 18; i++) {
       try {
         const pollRes = await api.pollJobStatus(sessionId, 'images');
-        if (pollRes.status === 'completed') {
+        if (pollRes.status === 'processing') {
+          if (!sawProcessing) console.log('[useSession] Image generation started (processing)');
+          sawProcessing = true;
+        }
+        if (pollRes.status === 'completed' && sawProcessing) {
           console.log('[useSession] Image generation completed - LP images updated');
           return;
         }
-        if (pollRes.status === 'failed') {
+        if (pollRes.status === 'failed' && sawProcessing) {
           console.warn('[useSession] Image generation failed:', pollRes.error);
           return;
         }
+        // completed but !sawProcessing → stale status from previous run, keep waiting
       } catch (pollErr) {
         console.warn('[useSession] Image poll error:', pollErr);
       }
       await new Promise(r => setTimeout(r, 5000));
     }
-    console.warn('[useSession] Image generation: poll timeout (60s), continuing without confirmation');
+    console.warn('[useSession] Image generation: poll timeout (90s)');
   } catch (err) {
     console.warn('[useSession] Image generation skipped (non-critical):', err);
   }

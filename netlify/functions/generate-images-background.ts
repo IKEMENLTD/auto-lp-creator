@@ -157,21 +157,22 @@ function updateHtmlWithImages(html: string, imageResults: Readonly<Record<string
 // ============================================================
 
 function buildImagePrompt(section: string, context: string, industry: string, serviceName: string, hint?: string): string {
-  const base = `Professional photograph, high quality, clean composition. IMPORTANT: do not include any text, letters, words, numbers, watermarks or logos in the image. Pure visual content only. ${industry} industry, Japanese business context.`;
+  const noText = `The image must contain ZERO text, ZERO letters, ZERO words, ZERO numbers, ZERO symbols, ZERO watermarks, ZERO labels, ZERO captions, ZERO UI elements with text. This is strictly a photograph with no written content whatsoever.`;
+  const base = `Professional photograph, high quality, clean composition. ${noText} ${industry} industry, Japanese business context.`;
 
   const sectionPrompts: Record<string, string> = {
-    hero: `Wide landscape hero image. Abstract, modern, professional. Represents "${serviceName}" - ${context}. Bright, aspirational, corporate feel. ${base}`,
-    about: `Service concept visualization. Shows the value proposition of "${serviceName}". ${context}. Clean, modern design. ${base}`,
-    reason1: `Business success and trust. Professional team collaboration, reliability. ${context}. ${base}`,
-    reason2: `Innovation and expertise. Modern technology, specialized knowledge. ${context}. ${base}`,
-    reason3: `Customer support and partnership. Friendly professional interaction. ${context}. ${base}`,
-    feature1: `Product feature visualization. Dashboard or interface mockup style. ${context}. Modern, clean UI aesthetic. ${base}`,
-    feature2: `Technology and automation. Streamlined workflow, efficiency. ${context}. ${base}`,
-    feature3: `Data analytics and insights. Charts, growth metrics, business intelligence. ${context}. ${base}`,
-    case1: `Happy satisfied business professional. Success story, positive outcome. Client meeting with smiles. ${context}. ${base}`,
-    case2: `Business achievement celebration. Team success, goal reached. Professional satisfaction. ${context}. ${base}`,
-    usecase1: `Real-world business scenario. ${context}. Professional office environment. ${base}`,
-    usecase2: `Practical application scene. ${context}. Modern workplace. ${base}`,
+    hero: `Wide landscape photograph of abstract modern architecture or nature scenery. Bright, aspirational, corporate feel. ${context}. ${base}`,
+    about: `Photograph of a professional workspace or modern office interior. ${context}. ${base}`,
+    reason1: `Photograph of professionals shaking hands or collaborating in a meeting room. ${context}. ${base}`,
+    reason2: `Photograph of modern technology equipment or clean server room. ${context}. ${base}`,
+    reason3: `Photograph of a friendly business consultation scene. ${context}. ${base}`,
+    feature1: `Photograph of a person using a laptop in a bright modern office. ${context}. ${base}`,
+    feature2: `Photograph of automated manufacturing line or streamlined workflow. ${context}. ${base}`,
+    feature3: `Photograph of a team analyzing printed reports on a conference table. ${context}. ${base}`,
+    case1: `Photograph of a satisfied business professional smiling in an office. ${context}. ${base}`,
+    case2: `Photograph of a team celebrating success with handshakes. ${context}. ${base}`,
+    usecase1: `Photograph of professionals working together in a modern office. ${context}. ${base}`,
+    usecase2: `Photograph of a productive workplace environment. ${context}. ${base}`,
   };
 
   const prompt = sectionPrompts[section] || `Professional business image for ${section}. ${context}. ${base}`;
