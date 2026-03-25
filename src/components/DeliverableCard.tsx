@@ -200,16 +200,6 @@ export const DeliverableCard: React.FC<DeliverableCardProps> = ({
               表示
             </a>
           )}
-          {resultUrl && (
-            <a
-              href={resultUrl}
-              download={`${type}.html`}
-              className="flex items-center gap-1 px-2 py-1 text-[10px] text-blue-400 bg-blue-500/10 border border-blue-500/30 rounded active:scale-95 transition-transform min-h-[28px]"
-            >
-              <Download className="w-3 h-3" />
-              DL
-            </a>
-          )}
           {resultUrl && PDF_TYPES.has(type) && (
             <button
               type="button"
