@@ -524,6 +524,7 @@ export function useSession(sessionId: string): UseSessionReturn {
       case 'draft': return 'コピー設計中...';
       case 'evaluate': return '品質チェック中...';
       case 'build': return 'HTML構築中...';
+      case 'images': return 'AI画像生成中...';
       case 'generating': return '生成中...';
       default: return '生成中...';
     }
@@ -605,10 +606,7 @@ export function useSession(sessionId: string): UseSessionReturn {
               );
             });
 
-            // LP完了後にGemini画像生成を非同期起動
-            if (type === 'lp') {
-              void triggerImageGeneration(sessionId, extractedData);
-            }
+            // AI画像はLP生成Background Function内で同時生成済み
           } else if (pollResult.status === 'failed') {
             clearInterval(intervalId);
             pollIntervalsRef.current.delete(type);

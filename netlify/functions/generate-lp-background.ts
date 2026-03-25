@@ -148,6 +148,127 @@ async function callClaudeJsonOnce<T>(client: Anthropic, system: string, user: st
 }
 
 // ============================================================
+// AI画像生成 + HTML埋め込み（LP生成と同一関数内で実行）
+// ============================================================
+
+const GEMINI_API_BASE = "https://generativelanguage.googleapis.com/v1beta";
+const GEMINI_IMAGE_MODEL = "gemini-2.5-flash-image";
+const GEMINI_TIMEOUT_MS = 30_000;
+
+interface GeminiFlashResponse {
+  readonly candidates?: readonly {
+    readonly content?: {
+      readonly parts?: readonly {
+        readonly text?: string;
+        readonly inlineData?: { readonly mimeType: string; readonly data: string };
+      }[];
+    };
+  }[];
+}
+
+async function generateOneImage(prompt: string, geminiKey: string, aspectRatio: string): Promise<string> {
+  const url = `${GEMINI_API_BASE}/models/${GEMINI_IMAGE_MODEL}:generateContent?key=${geminiKey}`;
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), GEMINI_TIMEOUT_MS);
+  try {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { responseModalities: ["IMAGE"], imageConfig: { aspectRatio } },
+      }),
+      signal: controller.signal,
+    });
+    if (!res.ok) throw new Error(`Gemini API ${res.status}`);
+    const data = (await res.json()) as GeminiFlashResponse;
+    const part = data.candidates?.[0]?.content?.parts?.find(p => p.inlineData?.data);
+    if (!part?.inlineData?.data) throw new Error("No image data");
+    return part.inlineData.data;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
+function buildImagePrompt(section: string, context: string, industry: string): string {
+  const noText = `The image must contain ZERO text, ZERO letters, ZERO words, ZERO numbers, ZERO symbols, ZERO watermarks. Pure photograph only.`;
+  const base = `Professional photograph, high quality, clean composition. ${noText} ${industry} industry, Japanese business context.`;
+  const prompts: Record<string, string> = {
+    hero: `Wide landscape photograph of abstract modern architecture or nature scenery. Bright, aspirational. ${context}. ${base}`,
+    about: `Photograph of a professional workspace or modern office interior. ${context}. ${base}`,
+    reason1: `Photograph of professionals collaborating in a meeting room. ${context}. ${base}`,
+    reason2: `Photograph of modern technology equipment or clean workspace. ${context}. ${base}`,
+    feature1: `Photograph of a person using a laptop in a bright modern office. ${context}. ${base}`,
+    feature2: `Photograph of an efficient streamlined workflow environment. ${context}. ${base}`,
+    feature3: `Photograph of a team reviewing documents at a conference table. ${context}. ${base}`,
+    case1: `Photograph of a satisfied business professional smiling in an office. ${context}. ${base}`,
+    case2: `Photograph of a team celebrating success with handshakes. ${context}. ${base}`,
+    usecase1: `Photograph of professionals working together in a modern office. ${context}. ${base}`,
+  };
+  return prompts[section] || `Professional business photograph. ${context}. ${base}`;
+}
+
+async function generateAndEmbedImages(html: string, sessionId: string, data: ReturnType<typeof flatten>, geminiKey: string): Promise<string> {
+  const sections = [
+    { section: "hero", context: `${data.service_name} - ${data.industry}`, ratio: "16:9" },
+    { section: "about", context: data.pain_points.join(", "), ratio: "3:4" },
+    { section: "reason1", context: data.strengths.join(", "), ratio: "3:4" },
+    { section: "reason2", context: `${data.industry}の専門性`, ratio: "3:4" },
+    { section: "feature1", context: `${data.service_name}の主要機能`, ratio: "3:4" },
+    { section: "feature2", context: `${data.target_customer}向け効率化`, ratio: "3:4" },
+    { section: "feature3", context: "データ分析・レポート", ratio: "3:4" },
+    { section: "case1", context: `${data.industry}の顧客満足`, ratio: "3:4" },
+    { section: "case2", context: "サービス導入後の成功", ratio: "3:4" },
+    { section: "usecase1", context: `${data.target_customer}の利用場面`, ratio: "3:4" },
+  ];
+
+  const imageUrls: Record<string, string> = {};
+  const BATCH = 3;
+
+  for (let i = 0; i < sections.length; i += BATCH) {
+    const batch = sections.slice(i, i + BATCH);
+    const results = await Promise.all(batch.map(async (sec) => {
+      try {
+        const prompt = buildImagePrompt(sec.section, sec.context, data.industry);
+        const base64 = await generateOneImage(prompt, geminiKey, sec.ratio);
+        const imgStore = getStore("ai-images");
+        const imgKey = `${sessionId}/${sec.section}`;
+        const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
+        await imgStore.set(imgKey, bytes.buffer as ArrayBuffer);
+        imageUrls[sec.section] = `/api/images/${encodeURIComponent(sessionId)}/${encodeURIComponent(sec.section)}`;
+        console.log(`[generate-bg] Image: ${sec.section} ✓`);
+      } catch (err) {
+        console.warn(`[generate-bg] Image: ${sec.section} ✗`, err);
+      }
+    }));
+    if (i + BATCH < sections.length) await new Promise(r => setTimeout(r, 1000));
+  }
+
+  console.log(`[generate-bg] Images: ${Object.keys(imageUrls).length}/${sections.length}`);
+
+  // HTML内の画像URLを差し替え
+  let updated = html;
+  if (imageUrls["hero"]) {
+    const pattern = /(<div\s+class="fv-bg"\s+style="background-image:url\()[^)]*(\)")/g;
+    if (pattern.test(updated)) {
+      pattern.lastIndex = 0;
+      updated = updated.replace(pattern, `$1'${imageUrls["hero"]}'$2`);
+    }
+  }
+  for (const [section, url] of Object.entries(imageUrls)) {
+    if (section === "hero") continue;
+    const srcPattern = new RegExp(`(<img[^>]*data-img="${section}"[^>]*?)src="[^"]*"`, "g");
+    if (srcPattern.test(updated)) {
+      srcPattern.lastIndex = 0;
+      updated = updated.replace(srcPattern, `$1src="${url}"`);
+      const dispPattern = new RegExp(`(<img[^>]*data-img="${section}"[^>]*?)style="display:none"`, "g");
+      updated = updated.replace(dispPattern, `$1style=""`);
+    }
+  }
+  return updated;
+}
+
+// ============================================================
 // LP Draft / Evaluate
 // ============================================================
 
@@ -298,6 +419,19 @@ export default async function handler(request: Request): Promise<Response> {
       const theme = selectTheme(data);
       html = buildLpHtml(finalContent, data, images, theme);
       console.log(`[generate-bg] LP build done: ${((Date.now() - start) / 1000).toFixed(1)}s, ${html.length}chars`);
+
+      // Step 4: AI画像生成（GOOGLE_API_KEY設定時のみ）
+      const geminiKey = process.env["GOOGLE_API_KEY"];
+      if (geminiKey) {
+        await writeStatus(sessionId, type, "processing", { step: "images" });
+        console.log(`[generate-bg] AI image generation start`);
+        try {
+          html = await generateAndEmbedImages(html, sessionId, data, geminiKey);
+          console.log(`[generate-bg] AI images done: ${((Date.now() - start) / 1000).toFixed(1)}s, ${html.length}chars`);
+        } catch (imgErr) {
+          console.warn("[generate-bg] AI image generation failed, using Unsplash fallback:", imgErr);
+        }
+      }
 
     } else if (type === "ad_creative") {
       await writeStatus(sessionId, type, "processing", { step: "generating" });
