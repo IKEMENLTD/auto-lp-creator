@@ -375,5 +375,21 @@ ${p.theme === "corporate" ? CORPORATE_THEME : ""}
 /* service */
 .svc-card h3{font-size:15px}.svc-body p{font-size:12px}
 }
+/* 印刷用スタイル */
+@media print{
+*{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-adjust:exact!important}
+body{background:#fff!important}
+.hd,.ft,.m-cta,.dvd,.mid-cta,.no-print{display:none!important}
+.fv{min-height:auto!important;padding:40px 0!important;break-after:page}
+.fv-bg{display:none!important}
+.sec{padding:40px 0!important;break-inside:avoid}
+.offer,.offer-accent,.cta-sec{padding:24px 0!important;break-inside:avoid}
+.btn{border:1px solid #333!important;color:#333!important;background:transparent!important}
+.feat-card,.reason-card,.uc-card,.tm-card,.str,.svc-card,.func-row,.col-card,.faq-item,.cmp-card,.prob,.flow-item{break-inside:avoid}
+img{max-height:200px!important;object-fit:cover}
+.banner-sec{display:none!important}
+.hero-dash{display:none!important}
+.fi{opacity:1!important;transform:none!important}
+}
 `;
 }
