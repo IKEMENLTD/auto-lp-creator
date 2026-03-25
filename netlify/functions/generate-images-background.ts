@@ -157,7 +157,7 @@ function updateHtmlWithImages(html: string, imageResults: Readonly<Record<string
 // ============================================================
 
 function buildImagePrompt(section: string, context: string, industry: string, serviceName: string, hint?: string): string {
-  const base = `Professional photograph, high quality, clean composition. CRITICAL: absolutely no text, no letters, no words, no numbers, no watermarks, no logos, no captions anywhere in the image. When depicting people: anatomically correct human bodies with correct number of limbs and fingers. Japanese business context, ${industry} industry.`;
+  const base = `Professional photograph, high quality, clean composition. IMPORTANT: do not include any text, letters, words, numbers, watermarks or logos in the image. Pure visual content only. ${industry} industry, Japanese business context.`;
 
   const sectionPrompts: Record<string, string> = {
     hero: `Wide landscape hero image. Abstract, modern, professional. Represents "${serviceName}" - ${context}. Bright, aspirational, corporate feel. ${base}`,
