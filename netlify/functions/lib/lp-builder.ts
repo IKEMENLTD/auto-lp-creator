@@ -417,9 +417,9 @@ ${badges.length > 0 ? `<div class="fv-awards"><div class="fv-award-row">${badges
 <div class="hero-person">
 <img class="hero-person-img" src="${(() => {
   const photos = [
-    "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=600&h=750&q=80",
-    "https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?auto=format&fit=crop&w=600&h=750&q=80",
-    "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=600&h=750&q=80",
+    "https://images.unsplash.com/photo-1556157382-97eda2d62296?auto=format&fit=crop&w=600&h=800&q=80",
+    "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=600&h=800&q=80",
+    "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=600&h=800&q=80",
   ];
   return photos[Math.floor(Math.random() * photos.length)];
 })()}" alt="ビジネスプロフェッショナル" loading="lazy">
