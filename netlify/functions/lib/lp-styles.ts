@@ -88,8 +88,8 @@ ${p.theme === "corporate" ? CORPORATE_THEME : ""}
 @keyframes heroBarGrow{0%{width:0}}
 @keyframes heroPulse{0%,100%{opacity:.6}50%{opacity:1}}
 @keyframes heroFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
-.hero-person{width:100%;max-width:400px;position:relative}
-.hero-person-img{width:100%;height:auto;object-fit:cover;max-height:500px;-webkit-mask-image:linear-gradient(to bottom,rgba(0,0,0,1) 60%,rgba(0,0,0,0) 100%);mask-image:linear-gradient(to bottom,rgba(0,0,0,1) 60%,rgba(0,0,0,0) 100%)}
+.hero-person{width:100%;max-width:380px;position:relative}
+.hero-person-img{width:100%;height:auto;object-fit:cover;max-height:500px;mix-blend-mode:multiply;filter:contrast(1.05)}
 .hero-dash{width:100%;max-width:420px;background:#1e293b;backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:24px;animation:heroFloat 4s ease-in-out infinite;box-shadow:0 20px 60px rgba(0,0,0,.18)}
 .hero-dash-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
 .hero-dash-title{font-size:13px;font-weight:700;color:rgba(255,255,255,.9);display:flex;align-items:center;gap:8px}
