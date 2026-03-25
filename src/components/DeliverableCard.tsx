@@ -5,7 +5,7 @@
  */
 
 import React from 'react';
-import { ExternalLink, Share2, Loader2, Download, RotateCcw } from 'lucide-react';
+import { ExternalLink, Loader2, RotateCcw } from 'lucide-react';
 import type { DeliverableStatus, DeliverableType } from '../types/dashboard';
 import { FIELD_LABELS, REQUIRED_FIELDS } from '../lib/constants';
 import type { LucideIcon } from 'lucide-react';
@@ -24,45 +24,6 @@ interface DeliverableCardProps {
   readonly errorMessage: string | null;
   readonly onGenerate: () => void;
   readonly onShare: () => void;
-}
-
-// ============================================================
-// PDF対応制作物
-// ============================================================
-
-const PDF_TYPES = new Set<DeliverableType>([
-  'lp', 'ad_creative', 'flyer', 'hearing_form', 'line_design', 'minutes', 'profile', 'system_proposal', 'proposal',
-]);
-
-/** 新しいウィンドウでページを開き、印刷ダイアログ(PDF保存)を表示 */
-function printToPdf(url: string): void {
-  const w = window.open(url, '_blank');
-  if (!w) {
-    // ポップアップブロック時: 直接リンクとして案内
-    alert('ポップアップがブロックされました。表示ページからブラウザの印刷機能(Ctrl+P)でPDF保存してください。');
-    return;
-  }
-
-  // loadイベント + フォールバックタイマーの併用
-  let printed = false;
-  const doPrint = () => {
-    if (printed) return;
-    printed = true;
-    try {
-      w.print();
-    } catch {
-      // クロスオリジンなど: ユーザーに手動操作を案内
-      console.warn('[printToPdf] print() failed, user needs manual Ctrl+P');
-    }
-  };
-
-  w.addEventListener('load', () => {
-    // 画像・フォント読み込みを待つため少し遅延
-    setTimeout(doPrint, 800);
-  });
-
-  // loadが発火しないケースのフォールバック（3秒）
-  setTimeout(doPrint, 3000);
 }
 
 // ============================================================
@@ -199,16 +160,6 @@ export const DeliverableCard: React.FC<DeliverableCardProps> = ({
               <ExternalLink className="w-3 h-3" />
               表示
             </a>
-          )}
-          {resultUrl && PDF_TYPES.has(type) && (
-            <button
-              type="button"
-              className="flex items-center gap-1 px-2 py-1 text-[10px] text-purple-400 bg-purple-500/10 border border-purple-500/30 rounded active:scale-95 transition-transform min-h-[28px]"
-              onClick={() => printToPdf(resultUrl)}
-            >
-              <Download className="w-3 h-3" />
-              PDF
-            </button>
           )}
           <button
             type="button"
