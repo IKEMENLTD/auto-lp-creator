@@ -416,7 +416,7 @@ ${badges.length > 0 ? `<div class="fv-awards"><div class="fv-award-row">${badges
 <div class="fv-right">
 <div class="hero-dash">
 <div class="hero-dash-header"><span class="hero-dash-title">Dashboard</span><span class="hero-dash-badge">Live</span></div>
-<div class="hero-dash-stats">${s.slice(0, 3).map(st => `<div class="hero-dash-stat"><div class="hero-dash-stat-num">${esc(st.number)}</div><div class="hero-dash-stat-label">${esc(st.label)}</div></div>`).join("")}</div>
+<div class="hero-dash-stats">${dm.map((m, i) => `<div class="hero-dash-stat"><div class="hero-dash-stat-num">${m.pct}%</div><div class="hero-dash-stat-label">${esc(m.label)}</div></div>`).join("")}</div>
 <div class="hero-dash-bars">${dm.map((m, i) => `<div class="hero-dash-bar-row"><span class="hero-dash-bar-label">${esc(m.label)}</span><div class="hero-dash-bar-track"><div class="hero-dash-bar-fill b${i + 1}" style="width:${m.pct}%"></div></div><span class="hero-dash-bar-pct">${m.pct}%</span></div>`).join("")}</div>
 <div class="hero-dash-footer"><span class="hero-dash-footer-dot"></span><span class="hero-dash-footer-text">リアルタイム更新中</span></div>
 </div>

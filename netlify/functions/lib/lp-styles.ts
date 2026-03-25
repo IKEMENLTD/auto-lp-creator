@@ -74,7 +74,7 @@ ${p.theme === "corporate" ? CORPORATE_THEME : ""}
 .fv-badge{width:200px;text-align:center}
 .fv-badge-cat{font-size:11px;color:#555;line-height:1.3;font-weight:600;margin-bottom:2px}
 .fv-badge-img-wrap{width:100%;position:relative}
-.fv-badge-img{width:80%;height:auto;display:block;margin:0 auto}
+.fv-badge-img{width:80%;height:auto;display:block;margin:0 auto;object-fit:contain}
 .fv-badge-note{font-size:9px;color:#888;line-height:1;margin-top:1px}
 .fv-award-notes{font-size:10px;color:#8c8c8c;line-height:1.4;margin-top:4px}
 .fv-btns{display:flex;gap:15px;flex-wrap:wrap}
