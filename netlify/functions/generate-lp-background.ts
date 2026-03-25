@@ -195,6 +195,7 @@ function buildImagePrompt(section: string, context: string, industry: string): s
   const base = `Professional photograph, high quality, clean composition. Positive, bright, optimistic mood. ${noText} ${industry} industry, Japanese business context.`;
   const prompts: Record<string, string> = {
     hero: `Wide landscape photograph of abstract modern architecture or nature scenery. Bright, aspirational. ${context}. ${base}`,
+    "hero-person": `Studio photograph of a smiling Japanese business professional on a PURE WHITE background (#FFFFFF). The person is wearing a suit or smart business attire, looking confident and friendly. Upper body shot, facing slightly to the side. The background must be completely white with no shadows, no gradients, no objects. ${noText}`,
     about: `Photograph of a professional workspace or modern office interior. ${context}. ${base}`,
     reason1: `Photograph of professionals collaborating in a meeting room. ${context}. ${base}`,
     reason2: `Photograph of modern technology equipment or clean workspace. ${context}. ${base}`,
@@ -225,6 +226,7 @@ async function generateAiImageUrls(sessionId: string, data: ReturnType<typeof fl
 
   const sections = [
     { section: "hero", context: `${draft.hero_headline}. ${data.service_name}`, ratio: "16:9" },
+    { section: "hero-person", context: `${data.service_name} - ${data.industry}`, ratio: "3:4" },
     { section: "about", context: draft.solution_title || data.pain_points.join(", "), ratio: "3:4" },
     { section: "reason1", context: reasons[0]?.title || data.strengths[0] || "信頼性", ratio: "3:4" },
     { section: "reason2", context: reasons[1]?.title || data.strengths[1] || "専門性", ratio: "3:4" },

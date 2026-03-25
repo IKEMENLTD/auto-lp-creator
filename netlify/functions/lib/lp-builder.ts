@@ -415,14 +415,7 @@ ${badges.length > 0 ? `<div class="fv-awards"><div class="fv-award-row">${badges
 </div>
 <div class="fv-right">
 <div class="hero-person">
-<img class="hero-person-img" src="${(() => {
-  const photos = [
-    "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=500&h=700&q=80&bg=white",
-    "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=500&h=700&q=80&bg=white",
-    "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=500&h=700&q=80&bg=white",
-  ];
-  return photos[Math.floor(Math.random() * photos.length)];
-})()}" alt="ビジネスプロフェッショナル" loading="lazy">
+<img class="hero-person-img" data-img="hero-person" src="" alt="ビジネスプロフェッショナル" loading="lazy" style="display:none">
 </div>
 </div>
 </div>
