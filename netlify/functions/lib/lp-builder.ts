@@ -429,7 +429,7 @@ ${badges.length > 0 ? `<div class="fv-awards"><div class="fv-award-row">${badges
 <p class="logo-strip-label">多種多様な企業様に<br class="only-sp">ご利用いただいております</p>
 <div class="logo-strip-list">
 <span class="logo-strip-item"><img src="https://auto-lp-creator.netlify.app/images/logos/logo-01.png" alt="未来医療福祉コンソーシアム"></span>
-<span class="logo-strip-item"><img src="https://auto-lp-creator.netlify.app/images/logos/logo-02.png" alt="VELOX.AI"></span>
+<span class="logo-strip-item" style="flex-direction:column;justify-content:center"><span style="font-weight:800;font-size:22px;letter-spacing:.12em">VELOX.AI</span><span style="font-size:10px;letter-spacing:.08em;margin-top:2px">次世代人工知能システム</span></span>
 <span class="logo-strip-item"><img src="https://auto-lp-creator.netlify.app/images/logos/logo-03.png" alt="INTEGRA LINK"></span>
 <span class="logo-strip-item"><img src="https://auto-lp-creator.netlify.app/images/logos/logo-04.png" alt="ARCHETYPE SERVICES"></span>
 </div>
