@@ -414,11 +414,15 @@ ${badges.length > 0 ? `<div class="fv-awards"><div class="fv-award-row">${badges
 </div>
 </div>
 <div class="fv-right">
-<div class="hero-dash">
-<div class="hero-dash-header"><span class="hero-dash-title">Dashboard</span><span class="hero-dash-badge">Live</span></div>
-<div class="hero-dash-stats">${dm.map((m, i) => `<div class="hero-dash-stat"><div class="hero-dash-stat-num">${m.pct}%</div><div class="hero-dash-stat-label">${esc(m.label)}</div></div>`).join("")}</div>
-<div class="hero-dash-bars">${dm.map((m, i) => `<div class="hero-dash-bar-row"><span class="hero-dash-bar-label">${esc(m.label)}</span><div class="hero-dash-bar-track"><div class="hero-dash-bar-fill b${i + 1}" style="width:${m.pct}%"></div></div><span class="hero-dash-bar-pct">${m.pct}%</span></div>`).join("")}</div>
-<div class="hero-dash-footer"><span class="hero-dash-footer-dot"></span><span class="hero-dash-footer-text">リアルタイム更新中</span></div>
+<div class="hero-person">
+<img class="hero-person-img" src="${(() => {
+  const photos = [
+    "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=600&h=750&q=80",
+    "https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?auto=format&fit=crop&w=600&h=750&q=80",
+    "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=600&h=750&q=80",
+  ];
+  return photos[Math.floor(Math.random() * photos.length)];
+})()}" alt="ビジネスプロフェッショナル" loading="lazy">
 </div>
 </div>
 </div>
