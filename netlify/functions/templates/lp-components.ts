@@ -322,7 +322,8 @@ section.sec:nth-of-type(odd) { background:var(--bg); }
 /* 中間CTA（セクション間に挿入）— corporateテーマ上書き */
 .mid-cta a.doc { background:var(--card-bg); }
 /* ヒーローダッシュボード（明るい背景用） */
-.hero-person-img { box-shadow:0 8px 32px rgba(0,0,0,.08); }
+.hero-person-img { box-shadow:none; }
+.hero-line { background:var(--c); opacity:.10; }
 .hero-dash { background:#fff; border:1px solid var(--bd); box-shadow:0 8px 32px rgba(0,0,0,.08); }
 .hero-dash-header { border-bottom:1px solid var(--bd); padding-bottom:14px; margin-bottom:16px; }
 .hero-dash-title { color:var(--fg); }

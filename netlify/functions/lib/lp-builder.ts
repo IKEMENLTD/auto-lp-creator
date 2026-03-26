@@ -414,8 +414,15 @@ ${badges.length > 0 ? `<div class="fv-awards"><div class="fv-award-row">${badges
 </div>
 </div>
 <div class="fv-right">
+<div class="hero-person-wrap">
+<div class="hero-person-lines">
+<span class="hero-line hero-line-1"></span>
+<span class="hero-line hero-line-2"></span>
+<span class="hero-line hero-line-3"></span>
+</div>
 <div class="hero-person">
-<img class="hero-person-img" data-img="hero-person" src="" alt="ビジネスプロフェッショナル" loading="lazy" style="display:none">
+<img class="hero-person-img" data-img="hero-person" src="/images/hero-person-${((Date.now() % 3) + 1)}.png" alt="ビジネスプロフェッショナル" loading="lazy">
+</div>
 </div>
 </div>
 </div>
