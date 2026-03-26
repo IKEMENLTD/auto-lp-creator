@@ -959,6 +959,5 @@ ${inputHtml}
 <div class="sec-content">${esc(s.content || '')}</div>
 </article>`).join("\n")}
 </main>
-<footer class="doc-footer">${esc(d.company_name)}</footer>
 </body></html>`;
 }
