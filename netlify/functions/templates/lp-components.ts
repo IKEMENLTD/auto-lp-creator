@@ -323,7 +323,7 @@ section.sec:nth-of-type(odd) { background:var(--bg); }
 .mid-cta a.doc { background:var(--card-bg); }
 /* ヒーローダッシュボード（明るい背景用） */
 .hero-person-img { box-shadow:none; }
-.fv-line { background:var(--c); opacity:.08; }
+.hero-slash { background:var(--c); opacity:.07; }
 .hero-dash { background:#fff; border:1px solid var(--bd); box-shadow:0 8px 32px rgba(0,0,0,.08); }
 .hero-dash-header { border-bottom:1px solid var(--bd); padding-bottom:14px; margin-bottom:16px; }
 .hero-dash-title { color:var(--fg); }

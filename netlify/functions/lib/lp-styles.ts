@@ -88,12 +88,8 @@ ${p.theme === "corporate" ? CORPORATE_THEME : ""}
 @keyframes heroBarGrow{0%{width:0}}
 @keyframes heroPulse{0%,100%{opacity:.6}50%{opacity:1}}
 @keyframes heroFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
-.fv-lines{position:absolute;inset:0;z-index:0;overflow:hidden;pointer-events:none}
-.fv-line{position:absolute;background:var(--c);border-radius:0}
-.fv-line-1{width:150%;height:200px;top:15%;left:-25%;transform:rotate(-12deg);opacity:.10}
-.fv-line-2{width:150%;height:120px;top:50%;left:-25%;transform:rotate(-12deg);opacity:.06}
-.fv-line-3{width:150%;height:80px;top:75%;left:-25%;transform:rotate(-12deg);opacity:.04}
 .hero-person-wrap{width:100%;max-width:420px;position:relative;align-self:flex-end}
+.hero-slash{position:absolute;top:-20%;bottom:-20%;left:50%;width:180px;transform:translateX(-50%) rotate(-12deg);background:var(--c);opacity:.10;border-radius:0;z-index:0;pointer-events:none}
 .hero-person{position:relative;z-index:1}
 .hero-person-img{display:block;width:100%;height:auto;object-fit:contain;max-height:520px;background:transparent!important;min-height:auto!important;filter:drop-shadow(0 4px 20px rgba(0,0,0,.08))}
 .hero-dash{width:100%;max-width:420px;background:#1e293b;backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:24px;animation:heroFloat 4s ease-in-out infinite;box-shadow:0 20px 60px rgba(0,0,0,.18)}
@@ -314,7 +310,6 @@ body{font-size:17px}
 .fv-service-label{font-size:18px}
 .hero-person-wrap{max-width:480px}
 .hero-person-img{max-height:600px}
-/* fv-lines: sized by base styles */
 .fv-btns .btn{font-size:18px;padding:18px 36px;min-width:260px}
 .logo-strip-label{font-size:28px}
 .sec-bg-txt{font-size:80px}
@@ -363,7 +358,6 @@ body{font-size:15px}
 .fv-service-name{font-size:38px}
 .hero-person-wrap{max-width:360px}
 .hero-person-img{max-height:460px}
-/* fv-lines: sized by base styles */
 .fv-btns .btn{font-size:15px;padding:14px 26px;min-width:200px}
 .hd-nav a{font-size:12px}
 .logo-strip-label{font-size:22px}.logo-strip-list{column-gap:60px}
@@ -385,7 +379,6 @@ body{font-size:15px}
 .fv-service-label{font-size:14px}
 .hero-person-wrap{max-width:320px}
 .hero-person-img{max-height:420px}
-/* fv-lines: sized by base styles */
 .fv-btns .btn{font-size:14px;padding:13px 24px;min-width:190px}
 .fv-badge{width:180px}
 .logo-strip-label{font-size:20px;margin-bottom:36px}
@@ -417,7 +410,6 @@ body{font-size:14px;line-height:1.75}
 .fv-right{margin-top:0}
 .hero-person-wrap{max-width:260px;margin:0 auto}
 .hero-person-img{max-height:340px}
-/* fv-lines: sized by base styles */
 .fv-award-row{justify-content:center}
 .fv-badge{width:160px}
 .fv-product{max-width:100%}
@@ -499,7 +491,6 @@ body{font-size:14px;line-height:1.7}
 .fv-badge{width:140px}.fv-badge-cat{font-size:10px}
 .hero-person-wrap{max-width:220px}
 .hero-person-img{max-height:290px}
-/* fv-lines: sized by base styles */
 /* logo strip */
 .logo-strip-label{font-size:14px}.logo-strip-list{column-gap:24px;row-gap:16px}.logo-strip-item{height:56px;font-size:12px}
 /* banner */
@@ -569,7 +560,6 @@ body{font-size:13px;line-height:1.65}
 .fv-award-notes{font-size:9px}
 .hero-person-wrap{max-width:180px}
 .hero-person-img{max-height:240px}
-/* fv-lines: sized by base styles */
 /* logo strip */
 .logo-strip{padding:20px 0}.logo-strip-label{font-size:13px;margin-bottom:16px}
 .logo-strip-list{column-gap:16px;row-gap:12px}.logo-strip-item{height:44px;font-size:11px}
