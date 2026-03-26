@@ -302,24 +302,147 @@ ${p.theme === "corporate" ? CORPORATE_THEME : ""}
 .m-cta a{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;padding:14px;background:var(--c);color:#fff;font-weight:800;font-size:14px;border-radius:var(--r)}
 .m-cta-sub{font-size:10px;color:var(--t3);text-align:center;margin-top:4px}
 
-/* ============================== */
-/* RESPONSIVE 750px               */
-/* ============================== */
-@media(max-width:750px){
+/* ============================================ */
+/* RESPONSIVE: 1920px+ ウルトラワイド以上        */
+/* ============================================ */
+@media(min-width:1920px){
+.inner{max-width:1440px}
+.fv .inner{max-width:1440px;gap:64px}
+body{font-size:17px}
+.fv-lead{font-size:48px!important}
+.fv-service-name{font-size:52px}
+.fv-service-label{font-size:18px}
+.hero-person-wrap{max-width:480px}
+.hero-person-img{max-height:600px}
+.hero-line-1{height:220px}.hero-line-2{height:150px}.hero-line-3{height:80px}
+.fv-btns .btn{font-size:18px;padding:18px 36px;min-width:260px}
+.logo-strip-label{font-size:28px}
+.sec-bg-txt{font-size:80px}
+.feat-body h4{font-size:18px}.feat-body p{font-size:15px}
+.reason-body h4{font-size:20px}.reason-body p{font-size:16px}
+.offer-tit{font-size:28px}.offer-sub{font-size:16px}
+.cta-tit{font-size:28px}.cta-sub{font-size:16px}
+.cta-card h3{font-size:17px}.cta-card .btn{font-size:17px}
+.sol-text{font-size:17px}
+.ft-company{font-size:18px}.ft-links a{font-size:16px}.ft-copy{font-size:15px}
+}
+
+/* ============================================ */
+/* RESPONSIVE: 1441px〜1919px ワイド             */
+/* ============================================ */
+@media(min-width:1441px) and (max-width:1919px){
+.inner{max-width:1380px}
+.fv .inner{max-width:1380px;gap:56px}
+body{font-size:16px}
+.fv-lead{font-size:44px!important}
+.fv-service-name{font-size:48px}
+.hero-person-wrap{max-width:450px}
+.hero-person-img{max-height:560px}
+.fv-btns .btn{font-size:17px;padding:16px 32px}
+.sec-bg-txt{font-size:72px}
+}
+
+/* ============================================ */
+/* RESPONSIVE: 1280px〜1440px PC標準ワイド       */
+/* ============================================ */
+@media(min-width:1280px) and (max-width:1440px){
+body{font-size:16px}
+.fv-lead{font-size:40px!important}
+.fv-service-name{font-size:44px}
+.hero-person-wrap{max-width:420px}
+}
+
+/* ============================================ */
+/* RESPONSIVE: 1025px〜1279px PCデスクトップ標準  */
+/* ============================================ */
+@media(min-width:1025px) and (max-width:1279px){
+body{font-size:15px}
+.inner{max-width:1100px}
+.fv .inner{max-width:1100px;gap:40px;padding:80px 28px 0}
+.fv-lead{font-size:36px!important}
+.fv-service-name{font-size:38px}
+.hero-person-wrap{max-width:360px}
+.hero-person-img{max-height:460px}
+.hero-line-1{height:150px}.hero-line-2{height:100px}.hero-line-3{height:50px}
+.fv-btns .btn{font-size:15px;padding:14px 26px;min-width:200px}
+.hd-nav a{font-size:12px}
+.logo-strip-label{font-size:22px}.logo-strip-list{column-gap:60px}
+.reason-card{grid-template-columns:240px 1fr}
+.feat-body h4{font-size:15px}.feat-body p{font-size:13px}
+.sec-bg-txt{font-size:56px}
+}
+
+/* ============================================ */
+/* RESPONSIVE: 768px〜1024px タブレット横〜小型PC */
+/* ============================================ */
+@media(max-width:1024px){
+body{font-size:15px}
+.inner{max-width:100%;padding:0 24px}
+.hd{padding:0 20px}.hd-nav a:not(.btn):nth-child(n+5){display:none}
+.fv .inner{gap:32px;padding:72px 24px 0}
+.fv-lead{font-size:30px!important}
+.fv-service-name{font-size:34px}
+.fv-service-label{font-size:14px}
+.hero-person-wrap{max-width:320px}
+.hero-person-img{max-height:420px}
+.hero-line-1{height:130px}.hero-line-2{height:90px}.hero-line-3{height:45px}
+.fv-btns .btn{font-size:14px;padding:13px 24px;min-width:190px}
+.fv-badge{width:180px}
+.logo-strip-label{font-size:20px;margin-bottom:36px}
+.logo-strip-list{column-gap:48px;row-gap:32px}.logo-strip-item{height:100px}
+.feat-grid{gap:20px}
+.reason-card{grid-template-columns:220px 1fr;gap:20px}
+.reason-body{padding:24px 24px 24px 0}.reason-card:nth-child(even) .reason-body{padding:24px 0 24px 24px}
+.func-row-text{padding:24px 20px}
+.offer-tit{font-size:22px}
+.cta-tit{font-size:22px}
+.sec-bg-txt{font-size:48px}
+}
+
+/* ============================================ */
+/* RESPONSIVE: 481px〜767px タブレット標準        */
+/* ============================================ */
+@media(max-width:767px){
+body{font-size:14px;line-height:1.75}
 /* header */
 .hd{height:56px;padding:0 16px}.hd-logo{font-size:15px;max-width:60%}.hd-nav{gap:0}.hd-nav a:not(.btn){display:none}
-/* hero */
-.fv{padding-top:56px}.fv .inner{padding:60px 20px 40px;flex-direction:column;text-align:center}
-.fv-left{text-align:center}
+/* hero → 縦積み */
+.fv{padding-top:56px}.fv .inner{padding:60px 20px 0;flex-direction:column;text-align:center;gap:24px}
+.fv-left{text-align:center;padding-bottom:32px}
+.fv-lead{font-size:24px!important}
+.fv-service-name{font-size:28px}
+.fv-service-label{font-size:13px}
 .fv-btns{justify-content:center}
-.fv-right{margin-top:28px}
-.hero-person-wrap{max-width:280px;margin:0 auto}
-.fv-product{max-width:100%}
-.fv-lead{font-size:clamp(20px,4.5vw,26px)!important}
-.fv-service-name{font-size:clamp(22px,5.5vw,32px)}
+.fv-btns .btn{min-width:180px;font-size:14px;padding:12px 24px}
+.fv-right{margin-top:0}
+.hero-person-wrap{max-width:260px;margin:0 auto}
+.hero-person-img{max-height:340px}
+.hero-line-1{height:100px}.hero-line-2{height:70px}.hero-line-3{height:35px}
 .fv-award-row{justify-content:center}
-.fv-badge{width:170px}
-.fv-btns .btn{min-width:180px;font-size:14px}
+.fv-badge{width:160px}
+.fv-product{max-width:100%}
+/* logo strip */
+.logo-strip{padding:30px 0}.logo-strip-label{font-size:16px;margin-bottom:24px}
+.logo-strip-list{column-gap:32px;row-gap:20px}.logo-strip-item{height:70px}
+/* banner */
+.banner-list{flex-direction:column;gap:16px}.banner-item{width:100%}
+.banner-item-text h4{font-size:16px}.banner-item-mockup{width:120px}
+/* about */
+.about-grid{grid-template-columns:1fr;gap:24px}.about-text h3{font-size:20px}.about-text p{font-size:14px}
+/* features */
+.feat-grid{grid-template-columns:1fr;gap:16px}.feat-grid.items-1 .feat-card,.feat-grid.items-2 .feat-card{width:100%;min-width:auto}
+.feat-card-img{height:180px}.feat-body{padding:16px}.feat-body h4{font-size:15px}.feat-body p{font-size:13px}
+/* reasons */
+.reason-card{grid-template-columns:1fr}.reason-card:nth-child(even){direction:ltr}
+.reason-img{min-height:180px;height:200px}.reason-body,.reason-card:nth-child(even) .reason-body{padding:20px}
+.reason-body h4{font-size:16px}.reason-body p{font-size:13px}
+/* use cases */
+.uc-grid{grid-template-columns:1fr;gap:16px}.uc-grid.items-1 .uc-card,.uc-grid.items-2 .uc-card{width:100%;min-width:auto}
+.uc-card-img{height:160px}.uc-card-body h4{font-size:14px}.uc-card-body p{font-size:12px}
+/* functions */
+.func-row{grid-template-columns:1fr;gap:0}.func-row-rev{direction:ltr}
+.func-row-img img{min-height:180px;height:200px}.func-row-text{padding:20px}
+.func-row-text h4{font-size:16px}.func-row-text p{font-size:13px}
 /* problems */
 .prob p{font-size:13px}.prob span{font-size:12px}.prob{padding:14px 16px;gap:10px}
 .prob-ico{width:32px;height:32px}.prob-ico svg{width:16px;height:16px}
@@ -327,55 +450,89 @@ ${p.theme === "corporate" ? CORPORATE_THEME : ""}
 .sol-text{font-size:14px}
 /* service */
 .svc-head{padding:22px 20px 16px}.svc-ico-ring{width:60px;height:60px;border-radius:14px}
-.svc-body{padding:16px 20px 22px}.svc-body p{font-size:13px}
+.svc-body{padding:16px 20px 22px}.svc-body p{font-size:13px}.svc-card h3{font-size:16px}
 /* CTA */
-.offer{padding:32px 0}.offer-accent{padding:36px 0}.offer-tit{font-size:clamp(16px,4.5vw,20px)}
+.offer{padding:32px 0}.offer-accent{padding:36px 0}.offer-tit{font-size:20px}
 .offer-sub{font-size:13px;margin-bottom:16px}
-/* micro copy: stack on mobile */
+.cta-tit{font-size:20px}.cta-sub{font-size:13px}
+/* micro copy */
 .micro{flex-wrap:wrap;gap:8px 14px}
 /* comparison */
-.cmp-card{padding:22px}
+.cmp-card{padding:22px}.cmp-title{font-size:15px}.cmp-row{font-size:13px}
 /* testimonial */
-.tm-card{padding:22px}
+.tm-card{padding:22px}.tm-text{font-size:13px}.tm-result{font-size:11px}
 /* mobile CTA bar */
 .m-cta{display:block}
 /* stats grid */
-.stats-grid{grid-template-columns:repeat(2,1fr)}
+.stats-grid{grid-template-columns:repeat(2,1fr)}.stats-grid .stat-num{font-size:clamp(24px,6vw,36px)}
 /* dashboard */
-.hero-dash{max-width:360px;padding:20px}
-.hero-dash-stat-num{font-size:17px}
+.hero-dash{max-width:360px;padding:20px}.hero-dash-stat-num{font-size:17px}
+/* columns */
+.col-grid{grid-template-columns:1fr;gap:16px}.col-card{padding:16px}
+/* section headers */
+.sec-bg-txt{font-size:42px;margin-bottom:-12px}
+/* flow */
+.flow-num{width:40px;height:40px;font-size:15px}
+/* FAQ */
+.faq-q{font-size:14px}.faq-a{font-size:13px}
+/* footer */
+.ft-inner{flex-direction:column;align-items:center;text-align:center;gap:24px}
+.ft-left{align-items:center}.ft-brand{justify-content:center}.ft-right{align-items:center}.ft-links{align-items:center}.ft-copy{text-align:center}
 }
 
-/* ============================== */
-/* RESPONSIVE 480px               */
-/* ============================== */
+/* ============================================ */
+/* RESPONSIVE: 321px〜480px スマホ大型            */
+/* ============================================ */
 @media(max-width:480px){
+body{font-size:14px;line-height:1.7}
 .only-sp{display:inline}
-.inner{padding:0 16px}.hd-logo{font-size:14px}
+.inner{padding:0 16px}
+.hd-logo{font-size:14px}
 /* hero */
-.fv-lead{font-size:18px!important}.fv-service-name{font-size:22px}
-.fv-btns{flex-direction:column}.fv-btns .btn{width:100%;min-width:auto}
-.fv-badge{width:140px}
-.fv-badge-cat{font-size:10px}
-/* dashboard */
-.hero-dash{max-width:100%;padding:16px}
-.hero-dash-stat-num{font-size:15px}
-.hero-dash-stats{gap:8px}
+.fv .inner{padding:52px 16px 0;gap:20px}
+.fv-left{padding-bottom:24px}
+.fv-lead{font-size:20px!important}
+.fv-service-name{font-size:24px}
+.fv-service-label{font-size:12px}
+.fv-btns{flex-direction:column}.fv-btns .btn{width:100%;min-width:auto;font-size:14px;padding:12px 20px}
+.fv-badge{width:140px}.fv-badge-cat{font-size:10px}
+.hero-person-wrap{max-width:220px}
+.hero-person-img{max-height:290px}
+.hero-line-1{height:80px}.hero-line-2{height:55px}.hero-line-3{height:28px}
+/* logo strip */
+.logo-strip-label{font-size:14px}.logo-strip-list{column-gap:24px;row-gap:16px}.logo-strip-item{height:56px;font-size:12px}
+/* banner */
+.banner-item-text{padding:16px}.banner-item-text h4{font-size:14px}
+.banner-item-mockup{width:100px;padding:10px 10px 10px 0}.banner-item-doc{width:80px;padding:6px}
+/* about */
+.about-text h3{font-size:18px}.about-text p{font-size:13px}
+/* features */
+.feat-card-img{height:160px}.feat-body h4{font-size:14px}.feat-body p{font-size:12px}
+/* reasons */
+.reason-img{height:180px}.reason-body h4{font-size:15px}.reason-body p{font-size:12px}
+/* use cases */
+.uc-card-img{height:140px}.uc-card-body h4{font-size:13px}.uc-card-body p{font-size:12px}
+/* functions */
+.func-row-text h4{font-size:15px}.func-row-text p{font-size:12px}
 /* section headers */
 .sec-bg-txt{font-size:36px;margin-bottom:-12px}
 /* buttons */
 .btn-lg{padding:12px 24px;font-size:13px}.btn-md{padding:10px 20px;font-size:12px}
 /* CTA */
-.offer-tit{font-size:16px}.offer-accent{padding:32px 0}
+.offer-tit{font-size:18px}.offer-accent{padding:32px 0}
+.cta-tit{font-size:18px}.cta-sub{font-size:12px}
+.cta-card h3{font-size:14px}.cta-card .btn{font-size:14px;min-width:180px}
+/* dashboard */
+.hero-dash{max-width:100%;padding:16px}.hero-dash-stat-num{font-size:15px}.hero-dash-stats{gap:8px}
 /* flow */
 .flow-num{width:36px;height:36px;font-size:14px}.flow-list::before{left:18px}
 /* final CTA */
-.cta-tit{font-size:18px}.m-cta a{padding:12px;font-size:13px}
-/* stats grid (separate section) */
+.m-cta a{padding:12px;font-size:13px}
+/* stats grid */
 .stats-grid .stat-num{font-size:clamp(22px,6vw,32px)}
 /* wave */
 .dvd-tall{height:56px}
-/* FAQ tighter */
+/* FAQ */
 .faq-q{padding:12px 14px;font-size:13px}.faq-a{font-size:13px}
 /* testimonial */
 .tm-card{padding:20px}.tm-text{font-size:13px}.tm-result{font-size:11px}
@@ -383,6 +540,101 @@ ${p.theme === "corporate" ? CORPORATE_THEME : ""}
 .cmp-card{padding:18px}.cmp-title{font-size:14px}.cmp-row{font-size:13px}
 /* service */
 .svc-card h3{font-size:15px}.svc-body p{font-size:12px}
+/* columns */
+.col-thumb{width:64px;height:64px}.col-body h4{font-size:13px}.col-body p{font-size:11px}
+/* company */
+.company-box{flex-direction:column;text-align:center;padding:24px}.company-logo{width:56px;height:56px;font-size:20px}
+/* footer */
+.ft-company{font-size:14px}.ft-address{font-size:11px}.ft-links a{font-size:13px}.ft-copy{font-size:12px}
+}
+
+/* ============================================ */
+/* RESPONSIVE: 〜320px スマホ標準                */
+/* ============================================ */
+@media(max-width:320px){
+body{font-size:13px;line-height:1.65}
+.inner{padding:0 12px}
+.hd{height:50px;padding:0 12px}.hd-logo{font-size:13px}
+.hd-nav .btn{font-size:11px;padding:6px 12px}
+/* hero */
+.fv .inner{padding:48px 12px 0;gap:16px}
+.fv-left{padding-bottom:20px}
+.fv-lead{font-size:17px!important}
+.fv-service-name{font-size:20px}
+.fv-service-label{font-size:11px}
+.fv-service-sub{font-size:12px}
+.fv-btns .btn{font-size:13px;padding:10px 16px}
+.fv-badge{width:120px}.fv-badge-cat{font-size:9px}.fv-badge-img{width:90%}
+.fv-award-notes{font-size:9px}
+.hero-person-wrap{max-width:180px}
+.hero-person-img{max-height:240px}
+.hero-line-1{height:60px}.hero-line-2{height:40px}.hero-line-3{height:20px}
+/* logo strip */
+.logo-strip{padding:20px 0}.logo-strip-label{font-size:13px;margin-bottom:16px}
+.logo-strip-list{column-gap:16px;row-gap:12px}.logo-strip-item{height:44px;font-size:11px}
+/* banner */
+.banner-item-text{padding:12px}.banner-item-text h4{font-size:13px}
+.banner-item-cta{font-size:10px;padding:5px 12px}
+.banner-item-mockup{width:80px}.banner-item-doc{width:65px;padding:5px}
+/* about */
+.about-text h3{font-size:16px}.about-text p{font-size:12px}
+.about-pain-item{font-size:11px;padding:6px 12px}
+/* features */
+.feat-card-img{height:140px}.feat-body{padding:14px}.feat-body h4{font-size:13px}.feat-body p{font-size:11px}
+/* reasons */
+.reason-img{height:150px}.reason-body{padding:16px}.reason-card:nth-child(even) .reason-body{padding:16px}
+.reason-num{font-size:11px}.reason-body h4{font-size:14px}.reason-body p{font-size:11px}
+/* use cases */
+.uc-card-img{height:120px}.uc-card-body{padding:16px}.uc-card-body h4{font-size:13px}.uc-card-body p{font-size:11px}
+/* functions */
+.func-row-img img{height:160px}.func-row-text{padding:16px}
+.func-row-text h4{font-size:14px}.func-row-text p{font-size:11px}
+/* problems */
+.prob p{font-size:12px}.prob span{font-size:11px}.prob{padding:12px 14px}
+.prob-ico{width:28px;height:28px}.prob-ico svg{width:14px;height:14px}
+/* solution */
+.sol-text{font-size:13px}
+/* service */
+.svc-head{padding:18px 16px 14px}.svc-ico-ring{width:52px;height:52px;border-radius:12px}
+.svc-body{padding:14px 16px 18px}.svc-body p{font-size:11px}.svc-card h3{font-size:14px}
+/* section headers */
+.sec-bg-txt{font-size:28px;margin-bottom:-10px}
+/* buttons */
+.btn-lg{padding:10px 20px;font-size:12px}.btn-md{padding:8px 16px;font-size:11px}
+/* CTA */
+.offer{padding:28px 0}.offer-accent{padding:28px 0}
+.offer-tit{font-size:16px}.offer-sub{font-size:12px}
+.cta-sec{padding:40px 12px}
+.cta-tit{font-size:16px}.cta-sub{font-size:11px}
+.cta-card{padding:20px 16px}.cta-card h3{font-size:13px}.cta-card .btn{font-size:13px;min-width:160px;padding:8px 16px}
+/* mid CTA */
+.mid-cta a{padding:8px 20px;font-size:13px}
+/* dashboard */
+.hero-dash{padding:14px}.hero-dash-stat-num{font-size:14px}.hero-dash-stats{gap:6px}
+.hero-dash-stat{padding:10px 8px}
+/* flow */
+.flow-num{width:32px;height:32px;font-size:13px}.flow-list::before{left:16px}
+/* mobile CTA bar */
+.m-cta{padding:8px 12px}.m-cta a{padding:10px;font-size:12px}.m-cta-sub{font-size:9px}
+/* stats grid */
+.stats-grid .stat-num{font-size:clamp(20px,6vw,28px)}
+/* wave */
+.dvd-tall{height:44px}
+/* FAQ */
+.faq-q{padding:10px 12px;font-size:12px}.faq-a{font-size:12px;padding:10px 12px}
+/* testimonial */
+.tm-card{padding:16px}.tm-text{font-size:12px}.tm-result{font-size:10px}
+/* comparison */
+.cmp-card{padding:14px}.cmp-title{font-size:13px}.cmp-row{font-size:12px}
+/* columns */
+.col-card{padding:12px;gap:12px}.col-thumb{width:56px;height:56px}
+.col-body h4{font-size:12px}.col-body p{font-size:10px}.col-tag{font-size:9px}
+/* company */
+.company-box{padding:20px 16px}.company-info p{font-size:12px}.company-info strong{font-size:14px}
+.company-logo{width:48px;height:48px;font-size:18px}
+/* footer */
+.ft{padding:16px 12px}.ft-company{font-size:13px}.ft-address{font-size:10px}
+.ft-links a{font-size:12px}.ft-copy{font-size:11px}
 }
 `;
 }
