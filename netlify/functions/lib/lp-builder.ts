@@ -768,26 +768,7 @@ ${faq.map(item => `<dl class="faq-item"><dt class="faq-q">${esc(item.q)}</dt><dd
 </div>
 </section>
 
-<!-- FOOTER -->
-<footer class="ft">
-<div class="ft-inner">
-<div class="ft-left">
-<div class="ft-brand">
-<div class="ft-logo">${esc(d.company_name.charAt(0))}</div>
-<div class="ft-company">${esc(d.company_name)}</div>
-</div>
-<div class="ft-address">〒000-0000 ○○県○○市○○区0-00-000</div>
-</div>
-<div class="ft-right">
-<div class="ft-links">
-<a href="#">運営会社</a>
-<a href="#">プライバシーポリシー</a>
-<a href="#">利用規約</a>
-</div>
-</div>
-</div>
-<div class="ft-copy">&copy; ${esc(d.company_name)} All Rights Reserved.</div>
-</footer>
+<!-- FOOTER (removed) -->
 
 <!-- MOBILE CTA -->
 <div class="m-cta"><a href="#contact">${esc(c.cta_text)}</a><p class="m-cta-sub">${esc(d.company_name)} / 相談無料 / オンライン対応</p></div>

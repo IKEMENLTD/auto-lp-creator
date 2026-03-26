@@ -17,7 +17,7 @@ export function buildLpStyles(p: StyleParams): string {
   return `
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
 img{background:linear-gradient(135deg,#f0f2f5 0%,#e2e6ea 100%);min-height:60px}
-h1,h2,h3,h4,.sec-tit,.hero-headline,.cta-tit,.sec-head h2{word-break:keep-all;overflow-wrap:break-word}
+h1,h2,h3,h4,.sec-tit,.hero-headline,.cta-tit,.sec-head h2{overflow-wrap:anywhere;word-break:auto}
 .only-sp{display:none}
 :root{--c:${p.primary};--cg:${p.gradient};--ca:${p.accent};--c-rgb:${p.cRgb};--dark:#0f172a;--t1:#1e293b;--t2:#475569;--t3:#94a3b8;--bg:#fff;--bg2:#f1f5f9;--bd:#e2e8f0;--r:10px}
 html{scroll-behavior:smooth;-webkit-text-size-adjust:100%;overflow-x:hidden}
@@ -53,7 +53,7 @@ ${p.theme === "corporate" ? CORPORATE_THEME : ""}
 .hd-nav{display:flex;gap:12px;align-items:center;flex-shrink:1;overflow:hidden;min-width:0}
 .hd-nav a{font-size:13px;color:var(--t2);font-weight:500;transition:color .2s;white-space:nowrap}
 .hd-nav a:hover{color:var(--c)}
-.hd-nav a.btn-accent{color:#fff;flex-shrink:0}
+.hd-nav a.btn-accent{color:#fff;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px}
 
 /* ===== HERO ===== */
 .fv{position:relative;display:flex;align-items:center;overflow:hidden;padding-top:64px;background:linear-gradient(160deg,#f8fafe 0%,#eef3fb 40%,#f0f7ff 100%)}
@@ -487,7 +487,8 @@ body{font-size:14px;line-height:1.75}
 body{font-size:14px;line-height:1.7}
 .only-sp{display:inline}
 .inner{padding:0 16px}
-.hd-logo{font-size:14px}
+.hd-logo{font-size:13px;max-width:50%}
+.hd-nav a.btn-accent{max-width:140px;font-size:11px;padding:6px 12px}
 /* hero */
 .fv .inner{padding:52px 16px 0;gap:20px}
 .fv-left{padding-bottom:24px}
@@ -554,8 +555,8 @@ body{font-size:14px;line-height:1.7}
 @media(max-width:320px){
 body{font-size:13px;line-height:1.65}
 .inner{padding:0 12px}
-.hd{height:50px;padding:0 12px}.hd-logo{font-size:13px}
-.hd-nav .btn{font-size:11px;padding:6px 12px}
+.hd{height:50px;padding:0 10px}.hd-logo{font-size:12px;max-width:45%}
+.hd-nav .btn{font-size:10px;padding:5px 10px}.hd-nav a.btn-accent{max-width:120px}
 /* hero */
 .fv .inner{padding:48px 12px 0;gap:16px}
 .fv-left{padding-bottom:20px}
