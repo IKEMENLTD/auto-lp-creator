@@ -402,6 +402,11 @@ ${funcs.length > 0 ? '<a href="#functions">主な機能</a>' : ''}
 <!-- HERO -->
 <section class="fv">
 ${hasImg && images[0] ? `<div class="fv-bg" style="background-image:url('${esc(images[0].url.replace(/w=\d+/, "w=1600").replace(/h=\d+/, "h=1000"))}')"></div>` : ""}
+<div class="fv-lines">
+<span class="fv-line fv-line-1"></span>
+<span class="fv-line fv-line-2"></span>
+<span class="fv-line fv-line-3"></span>
+</div>
 <div class="inner">
 <div class="fv-left">
 <p class="fv-lead" style="font-size:${c.hero_headline.length <= 12 ? '40px' : c.hero_headline.length <= 20 ? '34px' : c.hero_headline.length <= 28 ? '28px' : '24px'}">${esc(c.hero_headline)}</p>
@@ -415,11 +420,6 @@ ${badges.length > 0 ? `<div class="fv-awards"><div class="fv-award-row">${badges
 </div>
 <div class="fv-right">
 <div class="hero-person-wrap">
-<div class="hero-person-lines">
-<span class="hero-line hero-line-1"></span>
-<span class="hero-line hero-line-2"></span>
-<span class="hero-line hero-line-3"></span>
-</div>
 <div class="hero-person">
 <img class="hero-person-img" src="/images/hero-person-${((Date.now() % 3) + 1)}.png" alt="ビジネスプロフェッショナル" loading="lazy">
 </div>
