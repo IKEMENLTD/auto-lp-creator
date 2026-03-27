@@ -70,7 +70,7 @@ async function transcribeWithDeepgram(audioBytes: Uint8Array, prevText: string |
   const dgKey = process.env["DEEPGRAM_API_KEY"];
   if (!dgKey) throw new Error("DEEPGRAM_API_KEY未設定");
 
-  const deepgram = new DeepgramClient({ apiKey: dgKey });
+  const deepgram = new DeepgramClient({ apiKey: dgKey, timeoutInSeconds: 15 });
   const result = await deepgram.listen.v1.media.transcribeFile(
     audioBytes,
     {

@@ -459,7 +459,7 @@ export function useSession(sessionId: string): UseSessionReturn {
       try {
         const body: Record<string, unknown> = {
           session_id: sessionId,
-          transcript: chunks.map(c => c.text).join('\n'),
+          transcript: chunks.map(c => c.speaker ? `[${c.speaker}] ${c.text}` : c.text).join('\n'),
         };
         if (company) {
           body['target_company'] = company;
@@ -550,7 +550,7 @@ export function useSession(sessionId: string): UseSessionReturn {
   const handleGenerateDeliverable = useCallback(async (type: DeliverableType) => {
     try {
       setError(null);
-      const fullText = transcriptChunks.map(c => c.text).join('\n');
+      const fullText = transcriptChunks.map(c => c.speaker ? `[${c.speaker}] ${c.text}` : c.text).join('\n');
 
       // ジョブを即座にUIに反映（processing状態）
       const tempJob: GenerationJob = {
