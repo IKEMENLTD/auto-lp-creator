@@ -118,7 +118,7 @@ async function generateImageWithFlash(prompt: string, geminiKey: string, aspectR
 // HTMLの画像URL更新
 // ============================================================
 
-function updateHtmlWithImages(html: string, imageResults: Readonly<Record<string, string>>): string {
+export function updateHtmlWithImages(html: string, imageResults: Readonly<Record<string, string>>): string {
   let updatedHtml = html;
 
   // heroはfv-bg divのbackground-imageを差し替え

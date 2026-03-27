@@ -42,6 +42,7 @@ function createMockFn(): MockFn {
 function createMockSupabase() {
   const mockFrom = createMockFn();
 
+  // chunks: insert → select → single
   const chunkInsertSingle = createMockFn().mockResolvedValue({
     data: { id: "chunk-uuid-123" },
     error: null,
@@ -57,27 +58,31 @@ function createMockSupabase() {
     eq: chunkUpdateEq,
   });
 
-  const sessionSelectSingle = createMockFn().mockResolvedValue({
-    data: { extracted_data: null, version: 0 },
+  // extracted_data: select → eq → order → limit → maybeSingle
+  const extractedDataMaybeSingle = createMockFn().mockResolvedValue({
+    data: null, // 初回は既存データなし
     error: null,
   });
-  const sessionSelectEq = createMockFn().mockReturnValue({
-    single: sessionSelectSingle,
+  const extractedDataLimit = createMockFn().mockReturnValue({
+    maybeSingle: extractedDataMaybeSingle,
   });
-  const sessionSelect = createMockFn().mockReturnValue({
-    eq: sessionSelectEq,
+  const extractedDataOrder = createMockFn().mockReturnValue({
+    limit: extractedDataLimit,
   });
-  const sessionUpdateEq = createMockFn().mockResolvedValue({ data: null, error: null });
-  const sessionUpdate = createMockFn().mockReturnValue({
-    eq: sessionUpdateEq,
+  const extractedDataEq = createMockFn().mockReturnValue({
+    order: extractedDataOrder,
   });
+  const extractedDataSelect = createMockFn().mockReturnValue({
+    eq: extractedDataEq,
+  });
+  const extractedDataInsert = createMockFn().mockResolvedValue({ data: null, error: null });
 
   mockFrom.mockImplementation((table: string) => {
     if (table === "chunks") {
       return { insert: chunkInsert, update: chunkUpdate };
     }
-    if (table === "sessions") {
-      return { select: sessionSelect, update: sessionUpdate };
+    if (table === "extracted_data") {
+      return { select: extractedDataSelect, insert: extractedDataInsert };
     }
     return {};
   });
@@ -152,7 +157,7 @@ describe("resolveSessionFromMeetingId", () => {
           select: createMockFn().mockReturnValue({
             eq: createMockFn().mockReturnValue({
               single: createMockFn().mockResolvedValue({
-                data: { session_id: "existing-session" },
+                data: { id: "existing-session" },
                 error: null,
               }),
             }),
