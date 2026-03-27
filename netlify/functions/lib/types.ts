@@ -99,18 +99,6 @@ export interface GenerateLpErrorResponse {
 /** generate-lp レスポンス */
 export type GenerateLpResponse = GenerateLpSuccessResponse | GenerateLpErrorResponse;
 
-/** session-status レスポンス */
-export interface SessionStatusResponse {
-  readonly status: "pending" | "processing" | "completed" | "error";
-  readonly session_id: string;
-  readonly extracted_fields?: readonly string[];
-  readonly generation_ready: {
-    readonly lp: boolean;
-    readonly ad: boolean;
-    readonly email: boolean;
-  };
-}
-
 // ============================================================
 // 内部型
 // ============================================================

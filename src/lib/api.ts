@@ -99,24 +99,6 @@ export async function startSession(): Promise<StartSessionResponse> {
 }
 
 /**
- * セッション状態を取得する
- */
-export async function getSessionStatus(sessionId: string): Promise<Record<string, unknown>> {
-  try {
-    const response = await fetchWithTimeout(
-      `/api/session-status?session_id=${encodeURIComponent(sessionId)}`,
-      { method: 'GET' },
-    );
-    return parseResponse<Record<string, unknown>>(response, 'セッション状態取得');
-  } catch (error) {
-    if (error && typeof error === 'object' && 'message' in error) {
-      throw error;
-    }
-    throw { message: 'セッション状態の取得中に通信エラーが発生しました', status: 0 } satisfies ApiError;
-  }
-}
-
-/**
  * 制作物を生成する
  */
 export async function generateDeliverable(
@@ -228,7 +210,6 @@ export async function pollJobStatus(
 
 export const api = {
   startSession,
-  getSessionStatus,
   generateDeliverable,
   updateField,
   endSession,
