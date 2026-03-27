@@ -107,6 +107,8 @@ export default async function handler(
       whisperFormData.append("model", model);
       whisperFormData.append("language", "ja");
       whisperFormData.append("response_format", "json");
+      whisperFormData.append("prompt", "ビジネス商談の文字起こしです。企業名、サービス名、業界用語、数値、人名が含まれます。");
+      whisperFormData.append("temperature", "0");
 
       whisperResponse = await fetch(apiUrl, {
         method: "POST",
