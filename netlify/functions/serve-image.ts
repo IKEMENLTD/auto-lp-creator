@@ -20,6 +20,13 @@ export default async function handler(request: Request): Promise<Response> {
 
     const sessionId = decodeURIComponent(match[1]);
     const section = decodeURIComponent(match[2]);
+
+    const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    const SECTION_RE = /^[a-z0-9_-]{1,50}$/;
+    if (!UUID_RE.test(sessionId) || !SECTION_RE.test(section)) {
+      return new Response("Not Found", { status: 404 });
+    }
+
     const blobKey = `${sessionId}/${section}`;
 
     const store = getStore("ai-images");

@@ -21,6 +21,14 @@ export default async function handler(request: Request): Promise<Response> {
 
     const sessionId = decodeURIComponent(match[1]);
     const type = decodeURIComponent(match[2]);
+
+    // UUID形式 + 英数字のみ許可（パストラバーサル防止）
+    const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    const TYPE_RE = /^[a-z_]{1,30}$/;
+    if (!UUID_RE.test(sessionId) || !TYPE_RE.test(type)) {
+      return new Response("Not Found", { status: 404 });
+    }
+
     const blobKey = `${sessionId}/${type}`;
 
     const store = getStore("deliverables");
