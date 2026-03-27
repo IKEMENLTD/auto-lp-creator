@@ -80,10 +80,17 @@ function buildSystemPrompt(targetCompany: string | null): string {
 
 ${focusRule}
 
+【話者帰属ルール】
+- [自分]の発言 = 自社側の情報（サービス内容・強み・実績・価格）
+- [相手]の発言 = 顧客側の情報（課題・要望・現状の不満）
+- 話者ラベルがない場合は文脈から判断し、自社の実績を顧客の課題と混同しないこと
+- strengthsには[自分]側が語った自社の強みのみ。[相手]が語った他社の強みは含めない
+- pain_pointsには[相手]側が語った課題・不満を優先的に抽出
+
 各フィールド: value + confidence(0.0-1.0)。明確に言及=0.8-1.0、推測=0.3-0.6、情報なし=0.0(valueは""か[])。
 商談中の具体的な数字・事例・エピソードは正確かつ詳細に抽出すること。曖昧にまとめず原文のニュアンスを保持。
 
-{"company_name":{"value":"会社名","confidence":0},"industry":{"value":"業種","confidence":0},"service_name":{"value":"主要サービス名","confidence":0},"target_customer":{"value":"ターゲット顧客（具体的に）","confidence":0},"price_range":{"value":"価格帯・料金体系（具体的な金額）","confidence":0},"strengths":{"value":["強み・特長（数字があれば含める。数字がなくても「安さ」「速さ」等の定性的な強みも必ず抽出）"],"confidence":0},"pain_points":{"value":["顧客が抱える具体的課題"],"confidence":0},"current_marketing":{"value":"現在の集客方法","confidence":0},"specific_numbers":{"value":["商談中に言及された全ての数字（例: 採択率92%、年間300件）"],"confidence":0},"case_studies":{"value":["具体的な事例・エピソード（50字以内で各1つ）"],"confidence":0},"competitive_advantages":{"value":["競合と比べた差別化ポイント"],"confidence":0},"pricing_details":{"value":"詳細な料金体系（月額、成果報酬率、着手金など）","confidence":0},"company_scale":{"value":"従業員数・拠点・設立年数など","confidence":0},"key_persons":{"value":["登場人物の名前と役職"],"confidence":0}}`;
+{"company_name":{"value":"会社名","confidence":0},"industry":{"value":"業種","confidence":0},"service_name":{"value":"主要サービス名","confidence":0},"target_customer":{"value":"ターゲット顧客（具体的に）","confidence":0},"price_range":{"value":"価格帯・料金体系（具体的な金額）","confidence":0},"strengths":{"value":["強み・特長（[自分]側の発言から抽出。数字があれば含める。定性的な強みも必ず抽出）"],"confidence":0},"pain_points":{"value":["顧客が抱える具体的課題（[相手]側の発言から優先抽出）"],"confidence":0},"current_marketing":{"value":"現在の集客方法","confidence":0},"specific_numbers":{"value":["商談中に言及された全ての数字と、その数字が誰の実績かを明記（例: 自社の採択率92%、顧客の月間問い合わせ300件）"],"confidence":0},"case_studies":{"value":["具体的な事例・エピソード（100字以内で各1つ。顧客名は匿名化）"],"confidence":0},"competitive_advantages":{"value":["競合と比べた差別化ポイント（[自分]側の発言から抽出）"],"confidence":0},"pricing_details":{"value":"詳細な料金体系（月額、成果報酬率、着手金など）","confidence":0},"company_scale":{"value":"従業員数・拠点・設立年数など","confidence":0},"key_persons":{"value":["登場人物の名前と役職（話者ラベルから特定）"],"confidence":0},"desired_outcome":{"value":"顧客が望む理想の状態・ゴール（[相手]の発言から抽出）","confidence":0}}`;
 }
 
 // ============================================================
