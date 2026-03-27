@@ -88,7 +88,7 @@ ${p.theme === "corporate" ? CORPORATE_THEME : ""}
 @keyframes heroBarGrow{0%{width:0}}
 @keyframes heroPulse{0%,100%{opacity:.6}50%{opacity:1}}
 @keyframes heroFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
-.hero-slash{position:absolute;top:-30%;bottom:-30%;right:5%;width:220px;transform:rotate(8deg);background:var(--c);opacity:.08;z-index:0;pointer-events:none}
+.hero-slash{position:absolute;top:-30%;bottom:-30%;right:5%;width:220px;transform:rotate(18deg);background:var(--c);opacity:.08;z-index:0;pointer-events:none}
 .hero-person-wrap{width:100%;max-width:420px;position:relative;align-self:flex-end;margin-bottom:0;padding-bottom:0;line-height:0}
 .hero-person{position:relative;z-index:1;line-height:0}
 .hero-person-img{display:block;width:100%;height:auto;object-fit:contain;max-height:520px;background:transparent!important;min-height:auto!important;filter:drop-shadow(0 4px 20px rgba(0,0,0,.08));vertical-align:bottom;margin-bottom:-1px}
