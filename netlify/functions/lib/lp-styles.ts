@@ -398,7 +398,7 @@ body{font-size:15px}
 @media(max-width:767px){
 body{font-size:14px;line-height:1.75}
 /* header */
-.hd{height:56px;padding:0 16px}.hd-logo{font-size:15px;max-width:60%}.hd-nav{gap:0}.hd-nav a:not(.btn){display:none}
+.hd{height:56px;padding:0 16px}.hd-logo{font-size:15px;max-width:100%}.hd-nav{display:none}
 /* hero → 縦積み */
 .fv{padding-top:56px}.fv .inner{padding:60px 20px 0;flex-direction:column;text-align:center;gap:24px}
 .fv-left{text-align:center;padding-bottom:32px}
@@ -479,8 +479,7 @@ body{font-size:14px;line-height:1.75}
 body{font-size:14px;line-height:1.7}
 .only-sp{display:inline}
 .inner{padding:0 16px}
-.hd-logo{font-size:13px;max-width:50%}
-.hd-nav a.btn-accent{max-width:140px;font-size:11px;padding:6px 12px}
+.hd-logo{font-size:13px}
 /* hero */
 .fv .inner{padding:52px 16px 0;gap:20px}
 .fv-left{padding-bottom:24px}
@@ -546,8 +545,7 @@ body{font-size:14px;line-height:1.7}
 @media(max-width:320px){
 body{font-size:13px;line-height:1.65}
 .inner{padding:0 12px}
-.hd{height:50px;padding:0 10px}.hd-logo{font-size:12px;max-width:45%}
-.hd-nav .btn{font-size:10px;padding:5px 10px}.hd-nav a.btn-accent{max-width:120px}
+.hd{height:50px;padding:0 10px}.hd-logo{font-size:12px}
 /* hero */
 .fv .inner{padding:48px 12px 0;gap:16px}
 .fv-left{padding-bottom:20px}
