@@ -188,8 +188,11 @@ export default async function handler(request: Request): Promise<Response> {
     return new Response(null, { status: 204 });
   }
 
+  let parsedSessionId: string | null = null;
+
   try {
     const body = (await request.json()) as ImageRequest;
+    parsedSessionId = body.session_id ?? null;
 
     if (!body.session_id || !body.sections?.length) {
       console.error("[images-bg] invalid params");
@@ -275,13 +278,12 @@ export default async function handler(request: Request): Promise<Response> {
   } catch (err) {
     const msg = err instanceof Error ? err.message : "画像生成に失敗しました";
     console.error("[images-bg] Error:", msg);
-    try {
-      const body = await request.clone().json() as ImageRequest;
-      if (body.session_id) {
-        await writeStatus(body.session_id, "failed", { error: msg });
+    if (parsedSessionId) {
+      try {
+        await writeStatus(parsedSessionId, "failed", { error: msg });
+      } catch (statusErr) {
+        console.warn("[images-bg] Failed to write error status:", statusErr);
       }
-    } catch (statusErr) {
-      console.warn("[images-bg] Failed to write error status:", statusErr);
     }
   }
 

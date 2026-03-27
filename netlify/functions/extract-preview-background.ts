@@ -98,7 +98,7 @@ ${focusRule}
 // ============================================================
 
 async function callClaude(transcript: string, apiKey: string, targetCompany: string | null = null): Promise<ExtractedData> {
-  const client = new Anthropic({ apiKey });
+  const client = new Anthropic({ apiKey, timeout: 120_000 });
 
   const response = await client.messages.create({
     model: CLAUDE_MODEL,

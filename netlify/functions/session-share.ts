@@ -23,11 +23,15 @@ const corsHeaders: Record<string, string> = {
 // バリデーション
 // ============================================================
 
+const SESSION_ID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 function extractSessionId(url: string): string | null {
   try {
     const parsed = new URL(url);
     const match = parsed.pathname.match(/\/api\/session\/([^/]+)\/share/);
-    return match?.[1] ?? null;
+    const id = match?.[1] ?? null;
+    if (id && !SESSION_ID_RE.test(id)) return null;
+    return id;
   } catch {
     return null;
   }

@@ -48,6 +48,8 @@ export type Database = {
           status: SessionStatus;
           started_at: string;
           ended_at: string | null;
+          meeting_id: string | null;
+          full_transcript: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -57,6 +59,8 @@ export type Database = {
           status?: SessionStatus;
           started_at?: string;
           ended_at?: string | null;
+          meeting_id?: string | null;
+          full_transcript?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -66,6 +70,8 @@ export type Database = {
           status?: SessionStatus;
           started_at?: string;
           ended_at?: string | null;
+          meeting_id?: string | null;
+          full_transcript?: string | null;
           created_at?: string;
           updated_at?: string;
         };

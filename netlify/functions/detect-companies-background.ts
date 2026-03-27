@@ -119,7 +119,7 @@ export default async function handler(request: Request): Promise<Response> {
     await clearOldStatus(sessionId);
     await writeStatus(sessionId, "processing");
 
-    const client = new Anthropic({ apiKey });
+    const client = new Anthropic({ apiKey, timeout: 120_000 });
     const input = transcript.trim().slice(0, 15000);
 
     const res = await client.messages.create({

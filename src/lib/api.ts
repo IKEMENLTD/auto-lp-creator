@@ -21,9 +21,13 @@ import type {
 
 const API_TIMEOUT_MS = 120_000;
 
-interface ApiError {
-  readonly message: string;
+export class ApiError extends Error {
   readonly status: number;
+  constructor(message: string, status: number) {
+    super(message);
+    this.name = 'ApiError';
+    this.status = status;
+  }
 }
 
 /**
@@ -35,13 +39,19 @@ async function fetchWithTimeout(
   timeoutMs: number = API_TIMEOUT_MS,
 ): Promise<Response> {
   const controller = new AbortController();
-  const existingSignal = options.signal;
+  const existingSignal = options.signal as AbortSignal | undefined;
 
   // 外部シグナルとタイムアウトシグナルを統合
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
+  const onExternalAbort = () => controller.abort();
+
   if (existingSignal) {
-    existingSignal.addEventListener('abort', () => controller.abort());
+    if (existingSignal.aborted) {
+      controller.abort();
+    } else {
+      existingSignal.addEventListener('abort', onExternalAbort);
+    }
   }
 
   try {
@@ -52,6 +62,7 @@ async function fetchWithTimeout(
     return response;
   } finally {
     clearTimeout(timeoutId);
+    existingSignal?.removeEventListener('abort', onExternalAbort);
   }
 }
 
@@ -69,8 +80,7 @@ async function parseResponse<T>(response: Response, operation: string): Promise<
     } catch (parseErr) {
       console.warn('[api] Error response body parse failed:', parseErr);
     }
-    const apiError: ApiError = { message: errorMessage, status: response.status };
-    throw apiError;
+    throw new ApiError(errorMessage, response.status);
   }
 
   return response.json() as Promise<T>;
@@ -91,10 +101,8 @@ export async function startSession(): Promise<StartSessionResponse> {
     });
     return parseResponse<StartSessionResponse>(response, 'セッション開始');
   } catch (error) {
-    if (error && typeof error === 'object' && 'message' in error) {
-      throw error;
-    }
-    throw { message: 'セッション開始中に通信エラーが発生しました', status: 0 } satisfies ApiError;
+    if (error instanceof Error) throw error;
+    throw new ApiError('セッション開始中に通信エラーが発生しました', 0);
   }
 }
 
@@ -113,10 +121,8 @@ export async function generateDeliverable(
     });
     return parseResponse<GenerateDeliverableResponse>(response, '制作物生成');
   } catch (error) {
-    if (error && typeof error === 'object' && 'message' in error) {
-      throw error;
-    }
-    throw { message: '制作物生成中に通信エラーが発生しました', status: 0 } satisfies ApiError;
+    if (error instanceof Error) throw error;
+    throw new ApiError('制作物生成中に通信エラーが発生しました', 0);
   }
 }
 
@@ -136,10 +142,8 @@ export async function updateField(
     });
     return parseResponse<UpdateFieldResponse>(response, 'フィールド更新');
   } catch (error) {
-    if (error && typeof error === 'object' && 'message' in error) {
-      throw error;
-    }
-    throw { message: 'フィールド更新中に通信エラーが発生しました', status: 0 } satisfies ApiError;
+    if (error instanceof Error) throw error;
+    throw new ApiError('フィールド更新中に通信エラーが発生しました', 0);
   }
 }
 
@@ -154,10 +158,8 @@ export async function endSession(sessionId: string): Promise<EndSessionResponse>
     });
     return parseResponse<EndSessionResponse>(response, 'セッション終了');
   } catch (error) {
-    if (error && typeof error === 'object' && 'message' in error) {
-      throw error;
-    }
-    throw { message: 'セッション終了中に通信エラーが発生しました', status: 0 } satisfies ApiError;
+    if (error instanceof Error) throw error;
+    throw new ApiError('セッション終了中に通信エラーが発生しました', 0);
   }
 }
 
@@ -179,10 +181,8 @@ export async function shareAll(
     );
     return parseResponse<ShareAllResponse>(response, '一括共有');
   } catch (error) {
-    if (error && typeof error === 'object' && 'message' in error) {
-      throw error;
-    }
-    throw { message: '一括共有中に通信エラーが発生しました', status: 0 } satisfies ApiError;
+    if (error instanceof Error) throw error;
+    throw new ApiError('一括共有中に通信エラーが発生しました', 0);
   }
 }
 
@@ -201,10 +201,8 @@ export async function pollJobStatus(
     );
     return parseResponse<PollStatusResponse>(response, 'ステータス確認');
   } catch (error) {
-    if (error && typeof error === 'object' && 'message' in error) {
-      throw error;
-    }
-    throw { message: 'ステータス確認中に通信エラーが発生しました', status: 0 } satisfies ApiError;
+    if (error instanceof Error) throw error;
+    throw new ApiError('ステータス確認中に通信エラーが発生しました', 0);
   }
 }
 

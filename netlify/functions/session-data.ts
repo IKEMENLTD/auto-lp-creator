@@ -23,11 +23,15 @@ const corsHeaders: Record<string, string> = {
 // バリデーション
 // ============================================================
 
+const SESSION_ID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 function extractSessionId(url: string): string | null {
   try {
     const parsed = new URL(url);
     const match = parsed.pathname.match(/\/api\/session\/([^/]+)\/data/);
-    return match?.[1] ?? null;
+    const id = match?.[1] ?? null;
+    if (id && !SESSION_ID_RE.test(id)) return null;
+    return id;
   } catch {
     return null;
   }
@@ -71,6 +75,7 @@ export default async function handler(
     }
 
     // Supabaseのextracted_dataを更新
+    let supabaseWarning: string | null = null;
     try {
       const { getLatestExtraction, updateExtraction } = await import("./lib/supabase.js");
       const existing = await getLatestExtraction(sessionId);
@@ -96,11 +101,16 @@ export default async function handler(
         console.log(`[session-data] Created extracted_data for session ${sessionId}`);
       }
     } catch (err) {
+      const errMsg = err instanceof Error ? err.message : "不明なエラー";
       console.warn("[session-data] Supabase update failed (continuing):", err);
+      supabaseWarning = `サーバー側の保存に失敗しました: ${errMsg}`;
     }
 
     return new Response(
-      JSON.stringify({ success: true }),
+      JSON.stringify({
+        success: true,
+        ...(supabaseWarning ? { warning: supabaseWarning, persisted: false } : { persisted: true }),
+      }),
       {
         status: 200,
         headers: { "Content-Type": "application/json", ...corsHeaders },

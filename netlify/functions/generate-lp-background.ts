@@ -64,7 +64,7 @@ async function writeStatus(sessionId: string, type: string, status: string, extr
 // ============================================================
 
 async function callClaudeJson<T>(system: string, user: string, apiKey: string, maxTokens = 4000, model = CLAUDE_MODEL): Promise<T> {
-  const client = new Anthropic({ apiKey });
+  const client = new Anthropic({ apiKey, timeout: 120_000 });
 
   const MAX_RETRIES = 3;
   let lastError: Error | null = null;

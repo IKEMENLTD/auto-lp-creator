@@ -12,7 +12,7 @@ const TRANSCRIPT_MAX_CHARS = 8000;
 
 export function truncateTranscript(transcript: string): string {
   if (!transcript || transcript.length <= TRANSCRIPT_MAX_CHARS) return transcript;
-  return transcript.slice(0, TRANSCRIPT_MAX_CHARS);
+  return transcript.slice(0, TRANSCRIPT_MAX_CHARS) + "\n...(以下省略 - 全体の一部のみ提供されています)";
 }
 
 export function bizContext(d: FlatData, transcript: string, rawData?: Record<string, unknown>): string {

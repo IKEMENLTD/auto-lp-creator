@@ -29,6 +29,9 @@ const MIN_AUDIO_SIZE = 1000;
 const GROQ_WHISPER_URL = "https://api.groq.com/openai/v1/audio/transcriptions";
 
 // レート制限: セッションごとに60秒間で最大20リクエスト
+// NOTE: サーバーレス環境ではコンテナごとにMapが独立するため、
+// 同一コンテナに当たった場合のみ有効なベストエフォート制限。
+// 厳密な制限が必要な場合はRedis等の外部ストアを使用すること。
 const RATE_WINDOW_MS = 60_000;
 const RATE_MAX = 20;
 const rateBuckets = new Map<string, number[]>();

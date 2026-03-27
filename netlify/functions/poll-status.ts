@@ -58,11 +58,30 @@ export default async function handler(request: Request): Promise<Response> {
       );
     }
 
-    const statusStore = getStore("job-status");
+    let statusStore;
+    try {
+      statusStore = getStore("job-status");
+    } catch (storeErr) {
+      console.error("[poll-status] getStore failed:", storeErr);
+      return new Response(
+        JSON.stringify({ error: "Blobストア初期化エラー", details: storeErr instanceof Error ? storeErr.message : "不明" }),
+        { status: 500, headers: { "Content-Type": "application/json", ...CORS } },
+      );
+    }
+
     const statusKey = `status/${sessionId}/${type}`;
 
     // ステータスBlob読み取り
-    const statusRaw = await statusStore.get(statusKey, { type: "text" });
+    let statusRaw: string | null;
+    try {
+      statusRaw = await statusStore.get(statusKey, { type: "text" });
+    } catch (blobErr) {
+      console.error("[poll-status] Blob read failed:", blobErr);
+      return new Response(
+        JSON.stringify({ error: "ステータス読み取りエラー", details: blobErr instanceof Error ? blobErr.message : "不明" }),
+        { status: 500, headers: { "Content-Type": "application/json", ...CORS } },
+      );
+    }
 
     if (!statusRaw) {
       return new Response(
@@ -71,7 +90,16 @@ export default async function handler(request: Request): Promise<Response> {
       );
     }
 
-    const jobStatus = JSON.parse(statusRaw) as JobStatus;
+    let jobStatus: JobStatus;
+    try {
+      jobStatus = JSON.parse(statusRaw) as JobStatus;
+    } catch (parseErr) {
+      console.error("[poll-status] JSON parse failed:", parseErr, "raw:", statusRaw.slice(0, 200));
+      return new Response(
+        JSON.stringify({ error: "ステータスデータのパースエラー" }),
+        { status: 500, headers: { "Content-Type": "application/json", ...CORS } },
+      );
+    }
 
     // 完了時: typeに応じて結果データも返す
     if (jobStatus.status === "completed") {

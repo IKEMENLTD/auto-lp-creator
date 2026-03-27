@@ -24,10 +24,10 @@ import {
  * tl;dvとWhisper両方から呼ばれる共通処理。
  *
  * 1. chunksテーブルにINSERT
- * 2. 前回のextracted_dataを取得
+ * 2. extracted_dataテーブルから前回データ取得
  * 3. Haiku API呼出で差分抽出
  * 4. merge処理
- * 5. extracted_dataテーブルをUPDATE (version increment)
+ * 5. extracted_dataテーブルをUPSERT (version increment)
  * 6. generation_readiness判定を返す
  */
 export async function processTranscriptChunk(
@@ -46,9 +46,8 @@ export async function processTranscriptChunk(
   }
 
   const now = new Date().toISOString();
-  const chunkTimestamp = options?.timestamp ?? Date.now();
 
-  // 1. chunksテーブルにINSERT (status: processing)
+  // 1. chunksテーブルにINSERT
   const { data: insertedChunk, error: insertError } = await supabaseClient
     .from("chunks")
     .insert({
@@ -56,9 +55,8 @@ export async function processTranscriptChunk(
       text,
       chunk_index: chunkIndex,
       speaker: options?.speaker ?? null,
-      timestamp: chunkTimestamp,
+      timestamp: options?.timestamp ? new Date(options.timestamp).toISOString() : now,
       processed: false,
-      status: "processing",
       created_at: now,
     })
     .select("id")
@@ -72,26 +70,23 @@ export async function processTranscriptChunk(
   const chunkId = (insertedChunk as { id: string }).id;
 
   try {
-    // 2. 前回のextracted_dataを取得
-    const { data: sessionData, error: sessionError } = await supabaseClient
-      .from("sessions")
-      .select("extracted_data, version")
+    // 2. extracted_dataテーブルから前回データを取得
+    const { data: extractionRow, error: extractionError } = await supabaseClient
+      .from("extracted_data")
+      .select("id, data_json, version")
       .eq("session_id", sessionId)
-      .single();
+      .order("version", { ascending: false })
+      .limit(1)
+      .maybeSingle();
 
-    if (sessionError) {
-      console.error("セッション取得エラー:", sessionError.message);
-      throw new Error(`セッション情報の取得に失敗しました: ${sessionError.message}`);
+    if (extractionError) {
+      console.error("抽出データ取得エラー:", extractionError.message);
+      throw new Error(`抽出データの取得に失敗しました: ${extractionError.message}`);
     }
 
-    const session = sessionData as {
-      extracted_data: ExtractedDataWithConfidence | null;
-      version: number;
-    } | null;
-
     const previousData: ExtractedDataWithConfidence | null =
-      session?.extracted_data ?? null;
-    const previousVersion = session?.version ?? 0;
+      (extractionRow?.data_json as ExtractedDataWithConfidence | null) ?? null;
+    const previousVersion = extractionRow?.version ?? 0;
 
     // 3-4. Haiku API呼出 + マージ
     const { merged, fieldsUpdated } = await extractAndMerge(
@@ -100,29 +95,44 @@ export async function processTranscriptChunk(
       anthropicApiKey,
     );
 
-    // 5. extracted_dataテーブルをUPDATE (version increment)
+    // 5. extracted_dataテーブルをUPSERT (version increment)
     const newVersion = previousVersion + 1;
 
-    const { error: updateError } = await supabaseClient
-      .from("sessions")
-      .update({
-        extracted_data: merged,
-        version: newVersion,
-        updated_at: now,
-      })
-      .eq("session_id", sessionId);
+    if (extractionRow) {
+      // 既存レコードを更新
+      const { error: updateError } = await supabaseClient
+        .from("extracted_data")
+        .update({
+          data_json: merged as unknown as Record<string, unknown>,
+          version: newVersion,
+        })
+        .eq("id", extractionRow.id);
 
-    if (updateError) {
-      console.error("セッション更新エラー:", updateError.message);
-      throw new Error(`抽出データの更新に失敗しました: ${updateError.message}`);
+      if (updateError) {
+        console.error("抽出データ更新エラー:", updateError.message);
+        throw new Error(`抽出データの更新に失敗しました: ${updateError.message}`);
+      }
+    } else {
+      // 新規レコード作成
+      const { error: insertExtError } = await supabaseClient
+        .from("extracted_data")
+        .insert({
+          session_id: sessionId,
+          data_json: merged as unknown as Record<string, unknown>,
+          version: newVersion,
+        });
+
+      if (insertExtError) {
+        console.error("抽出データ挿入エラー:", insertExtError.message);
+        throw new Error(`抽出データの挿入に失敗しました: ${insertExtError.message}`);
+      }
     }
 
-    // チャンクを completed に更新
+    // チャンクを processed: true に更新
     await supabaseClient
       .from("chunks")
       .update({
         processed: true,
-        status: "completed",
       })
       .eq("id", chunkId);
 
@@ -136,15 +146,11 @@ export async function processTranscriptChunk(
       readiness,
     };
   } catch (error) {
-    // エラー時はchunkを "failed" ステータスで保存して次に進む
-    const errorMessage = error instanceof Error ? error.message : "不明なエラー";
-
+    // エラー時はchunkを未処理のままにする
     await supabaseClient
       .from("chunks")
       .update({
         processed: false,
-        status: "failed",
-        error_message: errorMessage,
       })
       .eq("id", chunkId);
 
@@ -167,7 +173,7 @@ export async function resolveSessionFromMeetingId(
   // 既存セッションを検索
   const { data: existing, error: lookupError } = await supabaseClient
     .from("sessions")
-    .select("session_id")
+    .select("id")
     .eq("meeting_id", meetingId)
     .single();
 
@@ -177,7 +183,7 @@ export async function resolveSessionFromMeetingId(
   }
 
   if (existing) {
-    const sessionId = (existing as { session_id: string }).session_id;
+    const sessionId = (existing as { id: string }).id;
 
     // 現在のチャンク数を取得
     const { count, error: countError } = await supabaseClient
@@ -192,25 +198,33 @@ export async function resolveSessionFromMeetingId(
     return { sessionId, chunkIndex: count ?? 0 };
   }
 
-  // 新規セッション作成
-  const sessionId = `tldv_${meetingId}_${Date.now()}`;
-  const now = new Date().toISOString();
+  // 新規セッション作成 (ANONYMOUS_USER_ID を使用)
+  const ANONYMOUS_USER_ID = "00000000-0000-4000-a000-000000000000";
 
-  const { error: createError } = await supabaseClient
+  const { data: newSession, error: createError } = await supabaseClient
     .from("sessions")
     .insert({
-      session_id: sessionId,
+      user_id: ANONYMOUS_USER_ID,
       meeting_id: meetingId,
-      extracted_data: createEmptyExtractedData(),
-      version: 0,
       status: "active",
-      created_at: now,
-      updated_at: now,
-    });
+    })
+    .select("id")
+    .single();
 
   if (createError) {
     throw new Error(`セッション作成に失敗しました: ${createError.message}`);
   }
+
+  const sessionId = (newSession as { id: string }).id;
+
+  // extracted_data の初期レコード作成
+  await supabaseClient
+    .from("extracted_data")
+    .insert({
+      session_id: sessionId,
+      data_json: createEmptyExtractedData() as unknown as Record<string, unknown>,
+      version: 1,
+    });
 
   return { sessionId, chunkIndex: 0 };
 }
@@ -223,14 +237,12 @@ export async function saveMeetingTranscript(
   fullTranscript: string,
   supabaseClient: SupabaseClient,
 ): Promise<void> {
-  const now = new Date().toISOString();
-
   const { error } = await supabaseClient
     .from("sessions")
     .update({
       full_transcript: fullTranscript,
-      status: "completed",
-      updated_at: now,
+      status: "ended",
+      ended_at: new Date().toISOString(),
     })
     .eq("meeting_id", meetingId);
 

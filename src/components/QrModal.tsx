@@ -5,7 +5,7 @@
  * 複数URLの場合は改行区切りで1つのQRにまとめる。
  */
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { X, Download, Copy, Check } from 'lucide-react';
 import QRCode from 'qrcode';
 
@@ -33,11 +33,20 @@ export const QrModal: React.FC<QrModalProps> = ({ urls, title, onClose }) => {
       .catch(() => setError('QRコードの生成に失敗しました'));
   }, [qrText]);
 
+  const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
+    };
+  }, []);
+
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(qrText);
       setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
+      copyTimerRef.current = setTimeout(() => setCopied(false), 2000);
     } catch {
       window.prompt('URLをコピーしてください:', qrText);
     }

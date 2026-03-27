@@ -8,6 +8,7 @@
  */
 
 import type { Config } from "@netlify/functions";
+import { timingSafeEqual } from "node:crypto";
 
 const corsHeaders: Record<string, string> = {
   "Access-Control-Allow-Origin": "*",
@@ -40,7 +41,13 @@ export default async function handler(request: Request): Promise<Response> {
     const body = (await request.json()) as { password?: string };
     const input = body.password?.trim() ?? "";
 
-    if (input === appPassword) {
+    const inputBuf = Buffer.from(input, "utf-8");
+    const expectedBuf = Buffer.from(appPassword, "utf-8");
+    const isMatch =
+      inputBuf.length === expectedBuf.length &&
+      timingSafeEqual(inputBuf, expectedBuf);
+
+    if (isMatch) {
       return new Response(
         JSON.stringify({ success: true }),
         { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } },

@@ -95,27 +95,27 @@ function getStorageKey(sessionId: string): string {
 }
 
 function saveSessionState(sessionId: string, state: PersistedSessionState): boolean {
+  // blob URLは保存不可 — view URLに差し替えて完了状態を維持
+  const cleanJobs = state.jobs.map(j => {
+    if (j.result_url?.startsWith('blob:') && j.status === 'completed') {
+      return {
+        ...j,
+        result_url: `/view/${encodeURIComponent(sessionId)}/${encodeURIComponent(j.type)}`,
+      };
+    }
+    if (j.result_url?.startsWith('blob:')) {
+      return { ...j, result_url: null };
+    }
+    return j;
+  });
   try {
-    // blob URLは保存不可 — result_urlがblob:で始まるジョブはURLをnullにして保存
-    const cleanJobs = state.jobs.map(j => ({
-      ...j,
-      result_url: j.result_url?.startsWith('blob:') ? null : j.result_url,
-      // blob URLジョブのstatusはreadyに戻す（再生成が必要）
-      status: (j.result_url?.startsWith('blob:') && j.status === 'completed') ? 'queued' as const : j.status,
-    }));
     const toSave: PersistedSessionState = { ...state, jobs: cleanJobs, savedAt: Date.now() };
     localStorage.setItem(getStorageKey(sessionId), JSON.stringify(toSave));
     return true;
   } catch (err) {
     console.warn('[useSession] localStorage save failed (capacity exceeded?):', err);
-    // 古いセッションを削除して再試行
     try {
       clearOldSessions();
-      const cleanJobs = state.jobs.map(j => ({
-        ...j,
-        result_url: j.result_url?.startsWith('blob:') ? null : j.result_url,
-        status: (j.result_url?.startsWith('blob:') && j.status === 'completed') ? 'queued' as const : j.status,
-      }));
       localStorage.setItem(getStorageKey(sessionId), JSON.stringify({ ...state, jobs: cleanJobs, savedAt: Date.now() }));
       return true;
     } catch {
@@ -275,6 +275,17 @@ export function useSession(sessionId: string): UseSessionReturn {
   const targetCompanyRef = useRef<string | null>(targetCompany);
   const pollIntervalsRef = useRef<Map<string, ReturnType<typeof setInterval>>>(new Map());
 
+  // unmount時にポーリングintervalを全クリア
+  useEffect(() => {
+    const intervals = pollIntervalsRef.current;
+    return () => {
+      for (const [, intervalId] of intervals) {
+        clearInterval(intervalId);
+      }
+      intervals.clear();
+    };
+  }, []);
+
   // sessionId変更時にリセット（初回マウントではなく、実際にIDが変わった時のみ）
   const prevSessionIdRef = useRef<string>(sessionId);
   useEffect(() => {
@@ -388,9 +399,13 @@ export function useSession(sessionId: string): UseSessionReturn {
       // BG Functionがステータスを書く時間を最低限確保
       await new Promise(r => setTimeout(r, 1000));
 
+      let pollErrorCount = 0;
+      const MAX_POLL_ERRORS = 5;
+
       while (Date.now() - startTime < POLL_TIMEOUT_MS) {
         try {
           const pollResult = await api.pollJobStatus(sessionId, 'extract');
+          pollErrorCount = 0; // 成功したらリセット
 
           if (pollResult.status === 'completed') {
             const resultData = pollResult.data as Record<string, unknown> | undefined;
@@ -414,7 +429,12 @@ export function useSession(sessionId: string): UseSessionReturn {
           // processing / unknown → 待つ
           await new Promise(r => setTimeout(r, 3000));
         } catch (pollErr) {
-          console.warn('[useSession] extractForCompany poll error:', pollErr);
+          pollErrorCount += 1;
+          console.warn(`[useSession] extractForCompany poll error (${pollErrorCount}/${MAX_POLL_ERRORS}):`, pollErr);
+          if (pollErrorCount >= MAX_POLL_ERRORS) {
+            setError('企業情報の抽出中に通信エラーが繰り返し発生しました。ネットワーク接続を確認してください。');
+            return;
+          }
           await new Promise(r => setTimeout(r, 3000));
         }
       }
@@ -550,7 +570,7 @@ export function useSession(sessionId: string): UseSessionReturn {
   const handleGenerateDeliverable = useCallback(async (type: DeliverableType) => {
     try {
       setError(null);
-      const fullText = transcriptChunks.map(c => c.speaker ? `[${c.speaker}] ${c.text}` : c.text).join('\n');
+      const fullText = transcriptChunksRef.current.map(c => c.speaker ? `[${c.speaker}] ${c.text}` : c.text).join('\n');
 
       if (fullText.trim().length === 0) {
         setError('文字起こしデータがありません。録音またはテキスト貼り付けを行ってください。');
@@ -587,9 +607,11 @@ export function useSession(sessionId: string): UseSessionReturn {
       const existingInterval = pollIntervalsRef.current.get(type);
       if (existingInterval) clearInterval(existingInterval);
 
-      // ポーリング開始（3秒間隔、最大90秒）
+      // ポーリング開始（3秒間隔、最大300秒）
       const pollStartTime = Date.now();
       const POLL_TIMEOUT_MS = 300_000;
+      const MAX_CONSECUTIVE_ERRORS = 10;
+      let consecutiveErrors = 0;
 
       const intervalId = setInterval(async () => {
         try {
@@ -605,6 +627,7 @@ export function useSession(sessionId: string): UseSessionReturn {
           }
 
           const pollResult = await api.pollJobStatus(sessionId, type);
+          consecutiveErrors = 0; // 成功したらリセット
 
           if (pollResult.status === 'processing') {
             updateJobStatus(type, 'processing', stepToLabel(pollResult.step));
@@ -638,7 +661,17 @@ export function useSession(sessionId: string): UseSessionReturn {
             ));
           }
         } catch (pollErr) {
-          console.warn('[useSession] deliverable poll error (will retry):', pollErr);
+          consecutiveErrors += 1;
+          console.warn(`[useSession] deliverable poll error (${consecutiveErrors}/${MAX_CONSECUTIVE_ERRORS}):`, pollErr);
+          if (consecutiveErrors >= MAX_CONSECUTIVE_ERRORS) {
+            clearInterval(intervalId);
+            pollIntervalsRef.current.delete(type);
+            const errorMsg = 'サーバーとの通信エラーが繰り返し発生しました。ネットワーク接続を確認し、もう一度お試しください。';
+            setError(errorMsg);
+            setJobs(prev => prev.map(j =>
+              j.type === type ? { ...j, status: 'failed' as const, error: errorMsg } : j
+            ));
+          }
         }
       }, 3000);
 
@@ -651,7 +684,7 @@ export function useSession(sessionId: string): UseSessionReturn {
         j.type === type ? { ...j, status: 'failed' as const, error: msg } : j
       ));
     }
-  }, [sessionId, transcriptChunks, extractedData, updateJobStatus]);
+  }, [sessionId, extractedData, updateJobStatus]);
 
   // セッション終了
   const handleEndSession = useCallback(async () => {
@@ -672,6 +705,7 @@ export function useSession(sessionId: string): UseSessionReturn {
     if (job) {
       if (job.status === 'completed' && job.result_url) return 'completed';
       if (job.status === 'processing' || job.status === 'queued') return 'generating';
+      if (job.status === 'failed') return 'ready';
     }
 
     // 文字起こしがなければ情報不足

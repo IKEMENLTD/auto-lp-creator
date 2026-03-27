@@ -9,7 +9,7 @@
  * selecting: 企業選択ステップ（対象企業を選んでからフォーカス抽出→生成）
  */
 
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { AlertCircle, Mic, ClipboardPaste, ArrowLeft, Send, Monitor } from 'lucide-react';
 import { StatusBar } from '../components/StatusBar';
 import { TranscriptView } from '../components/TranscriptView';
@@ -101,7 +101,7 @@ export const Dashboard: React.FC = () => {
               }
 
               if (companies.length === 1) {
-                await handleCompanySelected(companies[0]!);
+                await handleCompanySelectedRef.current(companies[0]!);
                 return;
               }
 
@@ -157,6 +157,10 @@ export const Dashboard: React.FC = () => {
     setRecordingState('ended');
   }, [session]);
 
+  // detectCompanies内から常に最新のhandleCompanySelectedを参照するためのref
+  const handleCompanySelectedRef = useRef(handleCompanySelected);
+  handleCompanySelectedRef.current = handleCompanySelected;
+
   // ================================================================
   // 録音制御
   // ================================================================
@@ -199,7 +203,11 @@ export const Dashboard: React.FC = () => {
     try {
       audio.stop();
       if (sessionId) {
-        await session.endSession();
+        try {
+          await session.endSession();
+        } catch (endErr) {
+          console.warn('[Dashboard] endSession failed (continuing to detect):', endErr);
+        }
       }
       // 録音停止 → 企業検出 → 選択ステップ
       const transcript = session.getFullTranscript();
@@ -209,7 +217,7 @@ export const Dashboard: React.FC = () => {
         setRecordingState('ended');
       }
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'セッションの終了に失敗しました';
+      const msg = err instanceof Error ? err.message : '録音の停止に失敗しました';
       setGlobalError(msg);
     }
   }, [audio, session, sessionId, detectCompanies]);

@@ -592,7 +592,7 @@ export async function callHaiku(
   userPrompt: string,
   apiKey: string,
 ): Promise<string> {
-  const client = new Anthropic({ apiKey });
+  const client = new Anthropic({ apiKey, timeout: HAIKU_TIMEOUT_MS });
 
   for (let attempt = 0; attempt <= HAIKU_MAX_RETRIES; attempt++) {
     const controller = new AbortController();
