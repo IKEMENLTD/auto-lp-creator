@@ -47,7 +47,7 @@ function isRateLimited(sessionId: string): boolean {
   if (timestamps.length >= RATE_MAX) return true;
   timestamps.push(now);
   // メモリリーク防止: 古いセッションを定期的に掃除
-  if (rateBuckets.size > 500) {
+  if (rateBuckets.size > 100) {
     for (const [key, ts] of rateBuckets) {
       if (ts.length === 0 || ts[ts.length - 1]! < now - RATE_WINDOW_MS * 5) {
         rateBuckets.delete(key);

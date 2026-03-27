@@ -552,6 +552,11 @@ export function useSession(sessionId: string): UseSessionReturn {
       setError(null);
       const fullText = transcriptChunks.map(c => c.speaker ? `[${c.speaker}] ${c.text}` : c.text).join('\n');
 
+      if (fullText.trim().length === 0) {
+        setError('文字起こしデータがありません。録音またはテキスト貼り付けを行ってください。');
+        return;
+      }
+
       // ジョブを即座にUIに反映（processing状態）
       const tempJob: GenerationJob = {
         id: `temp-${Date.now()}`,

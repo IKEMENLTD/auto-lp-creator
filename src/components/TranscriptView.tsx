@@ -72,7 +72,7 @@ export const TranscriptView: React.FC<TranscriptViewProps> = ({
                     [{chunk.speaker}]
                   </span>
                 )}
-                <span className="text-gray-300">{chunk.text}</span>
+                <span className="text-gray-300 break-all">{chunk.text}</span>
               </div>
             ))}
 

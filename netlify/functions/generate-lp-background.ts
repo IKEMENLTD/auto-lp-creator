@@ -453,7 +453,7 @@ export default async function handler(request: Request): Promise<Response> {
               console.log(`[generate-bg] AI images done: ${((Date.now() - start) / 1000).toFixed(1)}s`);
               return urls;
             } catch (imgErr) {
-              console.warn("[generate-bg] AI images failed:", imgErr);
+              console.error("[generate-bg] AI images ALL failed (LP will have no AI images):", imgErr);
               return {} as Record<string, string>;
             }
           })()

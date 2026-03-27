@@ -144,13 +144,16 @@ export const Dashboard: React.FC = () => {
 
   const handleCompanySelected = useCallback(async (company: DetectedCompany) => {
     session.setTargetCompany(company.name);
-    setRecordingState('analyzing');
 
-    // 選択した企業にフォーカスして抽出完了を待つ
     const fullTranscript = session.getFullTranscript();
-    if (fullTranscript.length > 0) {
-      await session.extractForCompany(company.name, fullTranscript);
+    if (fullTranscript.trim().length === 0) {
+      setGlobalError('文字起こしデータがありません。録音してから企業を選択してください。');
+      setRecordingState('ended');
+      return;
     }
+
+    setRecordingState('analyzing');
+    await session.extractForCompany(company.name, fullTranscript);
     setRecordingState('ended');
   }, [session]);
 
@@ -173,7 +176,11 @@ export const Dashboard: React.FC = () => {
   // 録音開始: recording状態かつ未録音かつ一時停止中でもない場合のみstart()
   useEffect(() => {
     if (recordingState === 'recording' && sessionId && !audio.isRecording && !audio.isPaused) {
-      void audio.start();
+      audio.start().catch((err) => {
+        console.error('[Dashboard] audio.start failed:', err);
+        setGlobalError(err instanceof Error ? err.message : '録音の開始に失敗しました');
+        setRecordingState('idle');
+      });
     }
   }, [recordingState, sessionId, audio.isRecording, audio.isPaused, audio.start]);
 

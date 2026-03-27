@@ -178,6 +178,11 @@ function splitTranscript(transcript: string): string[] {
     if (start >= transcript.length) break;
   }
 
+  const maxCoverage = MAX_CHUNKS * CHUNK_SIZE - (MAX_CHUNKS - 1) * CHUNK_OVERLAP;
+  if (transcript.length > maxCoverage) {
+    console.warn(`[extract-bg] transcript truncated: ${transcript.length}chars → ${maxCoverage}chars covered (${((maxCoverage / transcript.length) * 100).toFixed(0)}%)`);
+  }
+
   return chunks;
 }
 
@@ -206,10 +211,15 @@ function mergeExtractions(results: ExtractedData[]): ExtractedData {
       }
 
       if (field.confidence > existing.confidence) {
-        merged[key] = field;
+        // 高confidence側が空文字でない場合のみ上書き
+        const newVal = typeof field.value === "string" ? field.value : "";
+        if (newVal.length > 0 || field.confidence > existing.confidence + 0.2) {
+          merged[key] = field;
+        }
       } else if (field.confidence === existing.confidence) {
         const existStr = typeof existing.value === "string" ? existing.value : "";
         const newStr = typeof field.value === "string" ? field.value : "";
+        // 空文字より実データを優先
         if (newStr.length > existStr.length) {
           merged[key] = field;
         }
