@@ -56,7 +56,7 @@ ${p.theme === "corporate" ? CORPORATE_THEME : ""}
 .hd-nav a.btn-accent{color:#fff;flex-shrink:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px;min-width:0}
 
 /* ===== HERO ===== */
-.fv{position:relative;display:flex;align-items:center;overflow:hidden;padding-top:64px;background:linear-gradient(160deg,#f8fafe 0%,#eef3fb 40%,#f0f7ff 100%)}
+.fv{position:relative;display:flex;align-items:flex-end;overflow:hidden;padding-top:64px;padding-bottom:0;background:linear-gradient(160deg,#f8fafe 0%,#eef3fb 40%,#f0f7ff 100%)}
 .fv::before,.fv::after{content:'';position:absolute;top:0;width:320px;height:100%;z-index:0;opacity:.35;pointer-events:none;background:radial-gradient(ellipse at center,var(--c) 0%,transparent 70%)}
 .fv::before{left:-120px}
 .fv::after{right:-120px}
@@ -91,7 +91,7 @@ ${p.theme === "corporate" ? CORPORATE_THEME : ""}
 .hero-person-wrap{width:100%;max-width:420px;position:relative;align-self:flex-end;margin-bottom:0;padding-bottom:0;line-height:0}
 .hero-slash{position:absolute;top:-20%;bottom:-20%;left:50%;width:180px;transform:translateX(-50%) rotate(-12deg);background:var(--c);opacity:.10;border-radius:0;z-index:0;pointer-events:none}
 .hero-person{position:relative;z-index:1;line-height:0}
-.hero-person-img{display:block;width:100%;height:auto;object-fit:contain;max-height:520px;background:transparent!important;min-height:auto!important;filter:drop-shadow(0 4px 20px rgba(0,0,0,.08));vertical-align:bottom;margin-bottom:0}
+.hero-person-img{display:block;width:100%;height:auto;object-fit:contain;max-height:520px;background:transparent!important;min-height:auto!important;filter:drop-shadow(0 4px 20px rgba(0,0,0,.08));vertical-align:bottom;margin-bottom:-1px}
 .hero-dash{width:100%;max-width:420px;background:#1e293b;backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:24px;animation:heroFloat 4s ease-in-out infinite;box-shadow:0 20px 60px rgba(0,0,0,.18)}
 .hero-dash-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
 .hero-dash-title{font-size:13px;font-weight:700;color:rgba(255,255,255,.9);display:flex;align-items:center;gap:8px}
