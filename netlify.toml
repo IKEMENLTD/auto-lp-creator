@@ -8,7 +8,7 @@
 [functions]
   directory = "netlify/functions"
   node_bundler = "esbuild"
-  external_node_modules = ["@netlify/blobs"]
+  external_node_modules = ["@netlify/blobs", "@deepgram/sdk"]
 
 # Background Functions（-background suffix）は15分タイムアウト。個別設定不要。
 
