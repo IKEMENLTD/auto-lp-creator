@@ -5,11 +5,11 @@
  *
  * ブラウザから音声チャンク(webm/opus)を受け取り、
  * Groq Whisper API（無料）で文字起こしして返す。
- *
- * Groq は Whisper-large-v3 を無料・高速で提供。
+ * diarize=true の場合は Deepgram API で話者分離付き文字起こし。
  */
 
 import type { Config } from "@netlify/functions";
+import { createClient } from "@deepgram/sdk";
 
 // ============================================================
 // CORSヘッダー
@@ -58,6 +58,65 @@ function isRateLimited(sessionId: string): boolean {
 }
 
 // ============================================================
+// Deepgram 話者分離付き文字起こし
+// ============================================================
+
+interface DiarizedSegment {
+  speaker: string;
+  text: string;
+}
+
+async function transcribeWithDeepgram(audioBytes: Uint8Array, prevText: string | null): Promise<DiarizedSegment[]> {
+  const dgKey = process.env["DEEPGRAM_API_KEY"];
+  if (!dgKey) throw new Error("DEEPGRAM_API_KEY未設定");
+
+  const deepgram = createClient(dgKey);
+  const { result, error } = await deepgram.listen.prerecorded.transcribeFile(
+    Buffer.from(audioBytes),
+    {
+      model: "nova-3",
+      language: "ja",
+      diarize: true,
+      utterances: true,
+      smart_format: true,
+      ...(prevText ? { keywords: prevText.slice(-100).split(/\s+/).slice(0, 5) } : {}),
+    },
+  );
+
+  if (error) throw new Error(`Deepgram error: ${error.message}`);
+
+  const utterances = result?.results?.utterances;
+  if (!utterances || utterances.length === 0) {
+    // utterancesがない場合はwordsからまとめる
+    const words = result?.results?.channels?.[0]?.alternatives?.[0]?.words ?? [];
+    if (words.length === 0) return [];
+
+    const segments: DiarizedSegment[] = [];
+    let currentSpeaker = -1;
+    let currentText = "";
+
+    for (const w of words) {
+      const sp = (w as { speaker?: number }).speaker ?? 0;
+      if (sp !== currentSpeaker && currentText) {
+        segments.push({ speaker: `話者${currentSpeaker + 1}`, text: currentText.trim() });
+        currentText = "";
+      }
+      currentSpeaker = sp;
+      currentText += (w.punctuated_word ?? w.word) + " ";
+    }
+    if (currentText.trim()) {
+      segments.push({ speaker: `話者${currentSpeaker + 1}`, text: currentText.trim() });
+    }
+    return segments;
+  }
+
+  return utterances.map((u) => ({
+    speaker: `話者${(u.speaker ?? 0) + 1}`,
+    text: u.transcript ?? "",
+  }));
+}
+
+// ============================================================
 // メインハンドラー
 // ============================================================
 
@@ -99,6 +158,7 @@ export default async function handler(
     const sessionId = formData.get("session_id");
     const speaker = formData.get("speaker") as string | null;
     const prevText = formData.get("prev_text") as string | null;
+    const diarize = formData.get("diarize") === "true";
 
     if (!sessionId || typeof sessionId !== "string") {
       return new Response(
@@ -129,10 +189,33 @@ export default async function handler(
       );
     }
 
-    console.log(`[TRANSCRIBE] ${sessionId} - ${audioFile.size} bytes, type="${audioFile.type}" → ${groqKey ? 'Groq' : 'OpenAI'} ${model}`);
-
-    // 音声データをバッファに保存（リトライ用）
+    // 音声データをバッファに保存
     const audioBytes = new Uint8Array(await audioFile.arrayBuffer());
+
+    // Deepgram話者分離モード
+    if (diarize && process.env["DEEPGRAM_API_KEY"]) {
+      console.log(`[TRANSCRIBE] ${sessionId} - ${audioFile.size} bytes → Deepgram (diarize)`);
+      try {
+        const segments = await transcribeWithDeepgram(audioBytes, prevText);
+        if (segments.length === 0) {
+          return new Response(
+            JSON.stringify({ success: true, text: "", speaker: null, segments: [] }),
+            { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } },
+          );
+        }
+        const fullText = segments.map(s => `[${s.speaker}] ${s.text}`).join("\n");
+        console.log(`[TRANSCRIBE] ${sessionId} → Deepgram ${segments.length} segments`);
+        return new Response(
+          JSON.stringify({ success: true, text: fullText, speaker: segments[0]?.speaker ?? "話者1", segments }),
+          { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } },
+        );
+      } catch (dgErr) {
+        console.warn(`[TRANSCRIBE] Deepgram failed, falling back to Whisper:`, dgErr);
+        // フォールバック: 下のWhisper処理に続く
+      }
+    }
+
+    console.log(`[TRANSCRIBE] ${sessionId} - ${audioFile.size} bytes, type="${audioFile.type}" → ${groqKey ? 'Groq' : 'OpenAI'} ${model}`);
 
     // Whisper API呼び出し（リトライ付き）
     let whisperResponse: Response | null = null;

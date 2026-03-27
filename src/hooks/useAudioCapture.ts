@@ -205,6 +205,7 @@ export function useAudioCapture(sessionId: string): UseAudioCaptureReturn {
   const stoppedRef = useRef(false);
   const abortRef = useRef<AbortController | null>(null);
   const lastTranscriptRef = useRef<Record<string, string>>({});
+  const isInPersonRef = useRef(false);
   sessionIdRef.current = sessionId;
 
   // クリーンアップ
@@ -216,6 +217,7 @@ export function useAudioCapture(sessionId: string): UseAudioCaptureReturn {
 
   function cleanup() {
     stoppedRef.current = true;
+    isInPersonRef.current = false;
     abortRef.current?.abort();
     abortRef.current = null;
     micCycleRef.current?.stop();
@@ -249,6 +251,9 @@ export function useAudioCapture(sessionId: string): UseAudioCaptureReturn {
       const prevText = lastTranscriptRef.current[speaker] ?? '';
       if (prevText) {
         formData.append('prev_text', prevText.slice(-200));
+      }
+      if (isInPersonRef.current) {
+        formData.append('diarize', 'true');
       }
 
       const res = await fetch('/api/transcribe-chunk', {
@@ -395,7 +400,8 @@ export function useAudioCapture(sessionId: string): UseAudioCaptureReturn {
           console.log('画面共有に音声トラックなし → マイクのみ');
         }
       } catch {
-        console.log('画面共有なし → マイクのみで録音（対面モード）');
+        console.log('画面共有なし → マイクのみで録音（対面モード・Deepgram話者分離）');
+        isInPersonRef.current = true;
       }
 
       // 3. 全許可完了後にマイク録音サイクル開始
