@@ -68,6 +68,7 @@ class RecordingCycle {
   private paused = false;
   private timerId: ReturnType<typeof setTimeout> | null = null;
   private pausedAt: number | null = null;
+  private cycleStartedAt: number = 0;
   private remainingMs: number = CHUNK_INTERVAL_MS;
   private readonly opts: RecordingCycleOptions;
 
@@ -98,11 +99,10 @@ class RecordingCycle {
     // タイマーを停止し、残り時間を記録
     if (this.timerId !== null) {
       this.clearTimer();
-      if (this.pausedAt === null) {
-        // 残り時間を推定（次のcycle開始からの経過で計算）
-        this.pausedAt = Date.now();
-      }
+      const elapsedInCycle = Date.now() - this.cycleStartedAt;
+      this.remainingMs = Math.max(CHUNK_INTERVAL_MS - elapsedInCycle, 500);
     }
+    this.pausedAt = Date.now();
 
     if (this.recorder && this.recorder.state === 'recording') {
       this.recorder.pause();
@@ -112,24 +112,20 @@ class RecordingCycle {
   resume(): void {
     if (!this.running || !this.paused) return;
     this.paused = false;
+    this.pausedAt = null;
 
     if (this.recorder && this.recorder.state === 'paused') {
       this.recorder.resume();
 
-      // 残り時間でタイマーを再設定
-      const elapsed = this.pausedAt ? Date.now() - this.pausedAt : 0;
-      const remaining = Math.max(this.remainingMs - elapsed, 500);
-      this.pausedAt = null;
-
+      // pause時に計算済みの残り時間でタイマーを再設定
       this.timerId = setTimeout(() => {
         this.timerId = null;
         if (this.recorder && this.recorder.state === 'recording') {
           this.recorder.stop();
         }
-      }, remaining);
+      }, this.remainingMs);
     } else {
       // レコーダーがpausedでない場合は新サイクル開始
-      this.pausedAt = null;
       this.cycle();
     }
   }
@@ -170,7 +166,8 @@ class RecordingCycle {
 
     rec.start();
     this.remainingMs = CHUNK_INTERVAL_MS;
-    this.pausedAt = Date.now(); // サイクル開始時刻を記録
+    this.pausedAt = null; // cycle開始時はnull、pause()で記録する
+    this.cycleStartedAt = Date.now();
 
     this.timerId = setTimeout(() => {
       this.timerId = null;
@@ -452,9 +449,9 @@ export function useAudioCapture(sessionId: string): UseAudioCaptureReturn {
   }, []);
 
   const stop = useCallback(() => {
-    stoppedRef.current = true;
-    abortRef.current?.abort();
-    abortRef.current = null;
+    // stoppedRefはまだtrueにしない — 最終チャンクのWhisper送信を許可する
+    // RecordingCycle.stop()がrecorder.stop()を呼び、
+    // ondataavailable→onstop→onChunk→sendChunkToWhisperが非同期で実行される
     micCycleRef.current?.stop();
     micCycleRef.current = null;
     displayCycleRef.current?.stop();
@@ -471,6 +468,15 @@ export function useAudioCapture(sessionId: string): UseAudioCaptureReturn {
     setIsRecording(false);
     setIsPaused(false);
     setInterimText('');
+
+    // 最終チャンクの送信完了後にクリーンアップ
+    // (キュー内の処理が完了してから後続の送信をブロック + abort)
+    Promise.all([micQueueRef.current, displayQueueRef.current])
+      .finally(() => {
+        stoppedRef.current = true;
+        abortRef.current?.abort();
+        abortRef.current = null;
+      });
   }, []);
 
   return {

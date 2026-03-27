@@ -234,7 +234,7 @@ export default async function handler(request: Request): Promise<Response> {
           imageResults[sec.section] = `/api/images/${encodeURIComponent(body.session_id)}/${encodeURIComponent(sec.section)}`;
           console.log(`[images-bg] Generated: ${sec.section}`);
         } catch (err) {
-          console.warn(`[images-bg] Failed: ${sec.section}`, err);
+          console.warn(`[images-bg] Failed: ${sec.section}`, err instanceof Error ? err.message : "unknown error");
         }
       });
 

@@ -172,6 +172,8 @@ interface GeminiFlashResponse {
 }
 
 async function generateOneImage(prompt: string, geminiKey: string, aspectRatio: string): Promise<string> {
+  // NOTE: APIキーはクエリパラメータで渡す（Gemini APIの仕様）
+  // エラー時にURLがログに出ないよう、catchでメッセージを制御する
   const url = `${GEMINI_API_BASE}/models/${GEMINI_IMAGE_MODEL}:generateContent?key=${geminiKey}`;
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), GEMINI_TIMEOUT_MS);
@@ -266,7 +268,7 @@ async function generateAiImageUrls(sessionId: string, data: ReturnType<typeof fl
         imageUrls[sec.section] = `/api/images/${encodeURIComponent(sessionId)}/${encodeURIComponent(sec.section)}`;
         console.log(`[generate-bg] Image: ${sec.section} ✓`);
       } catch (err) {
-        console.warn(`[generate-bg] Image: ${sec.section} ✗`, err);
+        console.warn(`[generate-bg] Image: ${sec.section} ✗`, err instanceof Error ? err.message : "unknown error");
       }
     }));
     if (i + BATCH < sections.length) await new Promise(r => setTimeout(r, 1000));

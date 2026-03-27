@@ -70,11 +70,14 @@ export const Dashboard: React.FC = () => {
       setGlobalError(null);
 
       // Background Function起動（即座に202が返る）
-      await fetch('/api/detect-companies', {
+      const bgRes = await fetch('/api/detect-companies', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ transcript, session_id: sessionId ?? 'detect' }),
       });
+      if (!bgRes.ok) {
+        throw new Error(`企業検出の開始に失敗しました (${bgRes.status})`);
+      }
 
       // ポーリングで結果を待つ
       // Background Function側で古いステータスを削除済みなので、即ポーリング開始

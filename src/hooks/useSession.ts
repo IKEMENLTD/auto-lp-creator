@@ -258,8 +258,12 @@ async function triggerImageGeneration(
 // ============================================================
 
 export function useSession(sessionId: string): UseSessionReturn {
-  // 初期状態をlocalStorageから復元
-  const restored = sessionId !== '__none__' ? loadSessionState(sessionId) : null;
+  // 初期状態をlocalStorageから復元（lazy initializer — 初回マウント時のみ実行）
+  const restoredRef = useRef<PersistedSessionState | null | undefined>(undefined);
+  if (restoredRef.current === undefined) {
+    restoredRef.current = sessionId !== '__none__' ? loadSessionState(sessionId) : null;
+  }
+  const restored = restoredRef.current;
 
   const [extractedData, setExtractedData] = useState<ExtractedDataMap>(restored?.extractedData ?? {});
   const [jobs, setJobs] = useState<GenerationJob[]>(restored?.jobs ?? []);
@@ -382,7 +386,7 @@ export function useSession(sessionId: string): UseSessionReturn {
       setError(null);
 
       // Background Function起動（即座に202が返る）
-      await fetch('/api/extract-preview', {
+      const bgRes = await fetch('/api/extract-preview', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -391,6 +395,9 @@ export function useSession(sessionId: string): UseSessionReturn {
           target_company: companyName,
         }),
       });
+      if (!bgRes.ok) {
+        throw new Error(`企業情報の抽出開始に失敗しました (${bgRes.status})`);
+      }
 
       // ポーリングで結果を待つ（最大180秒）
       const POLL_TIMEOUT_MS = 300_000;
@@ -592,7 +599,7 @@ export function useSession(sessionId: string): UseSessionReturn {
       setJobs(prev => [...prev.filter(j => j.type !== type), tempJob]);
 
       // Background Functionを起動（即座に202が返る）
-      await fetch('/api/generate-lp', {
+      const bgRes = await fetch('/api/generate-lp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -602,6 +609,9 @@ export function useSession(sessionId: string): UseSessionReturn {
           extracted_data: extractedData,
         }),
       });
+      if (!bgRes.ok) {
+        throw new Error(`制作物生成の開始に失敗しました (${bgRes.status})`);
+      }
 
       // 既存のポーリングがあればクリア
       const existingInterval = pollIntervalsRef.current.get(type);
