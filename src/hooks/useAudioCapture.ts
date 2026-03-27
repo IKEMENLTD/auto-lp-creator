@@ -285,10 +285,21 @@ export function useAudioCapture(sessionId: string): UseAudioCaptureReturn {
       consecutiveErrorsRef.current = 0;
       setError(null);
 
-      const data = await res.json() as { text?: string; speaker?: string };
+      const data = await res.json() as { text?: string; speaker?: string; segments?: Array<{ speaker: string; text: string }> };
       setInterimText('');
 
-      if (data.text && data.text.trim().length > 0) {
+      // Deepgram話者分離モード: セグメントごとにコールバック
+      if (data.segments && data.segments.length > 0) {
+        for (const seg of data.segments) {
+          if (seg.text.trim().length > 0) {
+            setChunkCount((prev) => prev + 1);
+            if (onTranscriptCallback) {
+              onTranscriptCallback(seg.text.trim(), seg.speaker);
+            }
+          }
+        }
+        lastTranscriptRef.current[speaker] = data.segments[data.segments.length - 1]?.text ?? '';
+      } else if (data.text && data.text.trim().length > 0) {
         lastTranscriptRef.current[speaker] = data.text.trim();
         setChunkCount((prev) => prev + 1);
         if (onTranscriptCallback) {

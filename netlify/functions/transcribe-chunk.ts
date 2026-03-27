@@ -9,7 +9,7 @@
  */
 
 import type { Config } from "@netlify/functions";
-import { createClient } from "@deepgram/sdk";
+import { DeepgramClient } from "@deepgram/sdk";
 
 // ============================================================
 // CORSヘッダー
@@ -70,8 +70,8 @@ async function transcribeWithDeepgram(audioBytes: Uint8Array, prevText: string |
   const dgKey = process.env["DEEPGRAM_API_KEY"];
   if (!dgKey) throw new Error("DEEPGRAM_API_KEY未設定");
 
-  const deepgram = createClient(dgKey);
-  const { result, error } = await deepgram.listen.prerecorded.transcribeFile(
+  const deepgram = new DeepgramClient({ apiKey: dgKey });
+  const result = await deepgram.listen.v1.media.transcribeFile(
     Buffer.from(audioBytes),
     {
       model: "nova-3",
@@ -79,41 +79,40 @@ async function transcribeWithDeepgram(audioBytes: Uint8Array, prevText: string |
       diarize: true,
       utterances: true,
       smart_format: true,
-      ...(prevText ? { keywords: prevText.slice(-100).split(/\s+/).slice(0, 5) } : {}),
     },
   );
 
-  if (error) throw new Error(`Deepgram error: ${error.message}`);
-
-  const utterances = result?.results?.utterances;
-  if (!utterances || utterances.length === 0) {
-    // utterancesがない場合はwordsからまとめる
-    const words = result?.results?.channels?.[0]?.alternatives?.[0]?.words ?? [];
-    if (words.length === 0) return [];
-
-    const segments: DiarizedSegment[] = [];
-    let currentSpeaker = -1;
-    let currentText = "";
-
-    for (const w of words) {
-      const sp = (w as { speaker?: number }).speaker ?? 0;
-      if (sp !== currentSpeaker && currentText) {
-        segments.push({ speaker: `話者${currentSpeaker + 1}`, text: currentText.trim() });
-        currentText = "";
-      }
-      currentSpeaker = sp;
-      currentText += (w.punctuated_word ?? w.word) + " ";
-    }
-    if (currentText.trim()) {
-      segments.push({ speaker: `話者${currentSpeaker + 1}`, text: currentText.trim() });
-    }
-    return segments;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const body = result as any;
+  const utterances = body?.results?.utterances;
+  if (utterances && utterances.length > 0) {
+    return utterances.map((u: { speaker?: number; transcript?: string }) => ({
+      speaker: `話者${(u.speaker ?? 0) + 1}`,
+      text: u.transcript ?? "",
+    }));
   }
 
-  return utterances.map((u) => ({
-    speaker: `話者${(u.speaker ?? 0) + 1}`,
-    text: u.transcript ?? "",
-  }));
+  // utterancesがない場合はwordsからまとめる
+  const words = body?.results?.channels?.[0]?.alternatives?.[0]?.words ?? [];
+  if (words.length === 0) return [];
+
+  const segments: DiarizedSegment[] = [];
+  let currentSpeaker = -1;
+  let currentText = "";
+
+  for (const w of words) {
+    const sp = (w as { speaker?: number }).speaker ?? 0;
+    if (sp !== currentSpeaker && currentText) {
+      segments.push({ speaker: `話者${currentSpeaker + 1}`, text: currentText.trim() });
+      currentText = "";
+    }
+    currentSpeaker = sp;
+    currentText += ((w as { punctuated_word?: string }).punctuated_word ?? (w as { word: string }).word) + " ";
+  }
+  if (currentText.trim()) {
+    segments.push({ speaker: `話者${currentSpeaker + 1}`, text: currentText.trim() });
+  }
+  return segments;
 }
 
 // ============================================================
