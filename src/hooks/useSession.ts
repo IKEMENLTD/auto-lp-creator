@@ -94,7 +94,7 @@ function getStorageKey(sessionId: string): string {
   return `${STORAGE_KEY_PREFIX}${sessionId}`;
 }
 
-function saveSessionState(sessionId: string, state: PersistedSessionState): void {
+function saveSessionState(sessionId: string, state: PersistedSessionState): boolean {
   try {
     // blob URLは保存不可 — result_urlがblob:で始まるジョブはURLをnullにして保存
     const cleanJobs = state.jobs.map(j => ({
@@ -105,8 +105,22 @@ function saveSessionState(sessionId: string, state: PersistedSessionState): void
     }));
     const toSave: PersistedSessionState = { ...state, jobs: cleanJobs, savedAt: Date.now() };
     localStorage.setItem(getStorageKey(sessionId), JSON.stringify(toSave));
+    return true;
   } catch (err) {
     console.warn('[useSession] localStorage save failed (capacity exceeded?):', err);
+    // 古いセッションを削除して再試行
+    try {
+      clearOldSessions();
+      const cleanJobs = state.jobs.map(j => ({
+        ...j,
+        result_url: j.result_url?.startsWith('blob:') ? null : j.result_url,
+        status: (j.result_url?.startsWith('blob:') && j.status === 'completed') ? 'queued' as const : j.status,
+      }));
+      localStorage.setItem(getStorageKey(sessionId), JSON.stringify({ ...state, jobs: cleanJobs, savedAt: Date.now() }));
+      return true;
+    } catch {
+      return false;
+    }
   }
 }
 
@@ -405,7 +419,7 @@ export function useSession(sessionId: string): UseSessionReturn {
         }
       }
       // ループを抜けた = タイムアウト
-      setError('企業情報の抽出がタイムアウトしました。もう一度お試しください。');
+      setError('企業情報の抽出がタイムアウトしました（通常2分以内に完了します）。ネットワーク接続を確認し、もう一度お試しください。');
     } catch (err) {
       const msg = err instanceof Error ? err.message : '企業情報の抽出中にエラーが発生しました';
       console.error('[useSession] extractForCompany error:', msg);
@@ -576,7 +590,7 @@ export function useSession(sessionId: string): UseSessionReturn {
           if (Date.now() - pollStartTime > POLL_TIMEOUT_MS) {
             clearInterval(intervalId);
             pollIntervalsRef.current.delete(type);
-            setError('生成がタイムアウトしました。もう一度お試しください。');
+            setError('制作物の生成がタイムアウトしました（通常1〜3分で完了します）。ネットワーク接続を確認し、もう一度お試しください。');
             setJobs(prev => prev.map(j =>
               j.type === type ? { ...j, status: 'failed' as const, error: 'タイムアウト' } : j
             ));

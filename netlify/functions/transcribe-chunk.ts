@@ -28,6 +28,35 @@ const corsHeaders: Record<string, string> = {
 const MIN_AUDIO_SIZE = 1000;
 const GROQ_WHISPER_URL = "https://api.groq.com/openai/v1/audio/transcriptions";
 
+// レート制限: セッションごとに60秒間で最大20リクエスト
+const RATE_WINDOW_MS = 60_000;
+const RATE_MAX = 20;
+const rateBuckets = new Map<string, number[]>();
+
+function isRateLimited(sessionId: string): boolean {
+  const now = Date.now();
+  let timestamps = rateBuckets.get(sessionId);
+  if (!timestamps) {
+    timestamps = [];
+    rateBuckets.set(sessionId, timestamps);
+  }
+  // 古いタイムスタンプを除去
+  while (timestamps.length > 0 && timestamps[0]! < now - RATE_WINDOW_MS) {
+    timestamps.shift();
+  }
+  if (timestamps.length >= RATE_MAX) return true;
+  timestamps.push(now);
+  // メモリリーク防止: 古いセッションを定期的に掃除
+  if (rateBuckets.size > 500) {
+    for (const [key, ts] of rateBuckets) {
+      if (ts.length === 0 || ts[ts.length - 1]! < now - RATE_WINDOW_MS * 5) {
+        rateBuckets.delete(key);
+      }
+    }
+  }
+  return false;
+}
+
 // ============================================================
 // メインハンドラー
 // ============================================================
@@ -75,6 +104,13 @@ export default async function handler(
       return new Response(
         JSON.stringify({ error: "session_id は必須パラメータです" }),
         { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } },
+      );
+    }
+
+    if (isRateLimited(sessionId)) {
+      return new Response(
+        JSON.stringify({ error: "リクエストが多すぎます。少し待ってから再試行してください" }),
+        { status: 429, headers: { "Content-Type": "application/json", ...corsHeaders } },
       );
     }
 

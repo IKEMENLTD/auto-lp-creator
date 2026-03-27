@@ -137,9 +137,21 @@ export default async function handler(request: Request): Promise<Response> {
     let text = block.text.trim();
     const m = text.match(/```(?:json)?\s*([\s\S]*?)```/);
     if (m?.[1]) text = m[1].trim();
+    else {
+      const start = text.indexOf("{");
+      const end = text.lastIndexOf("}");
+      if (start !== -1 && end > start) text = text.slice(start, end + 1);
+    }
 
-    const parsed = JSON.parse(text) as { companies: DetectedCompany[] };
-    const companies = parsed.companies || [];
+    let companies: DetectedCompany[] = [];
+    try {
+      const parsed = JSON.parse(text) as { companies?: DetectedCompany[] };
+      companies = Array.isArray(parsed.companies) ? parsed.companies : [];
+    } catch (parseErr) {
+      console.error("[detect-bg] JSON parse failed:", text.slice(0, 200));
+      await writeStatus(sessionId, "failed", { error: "企業検出結果の解析に失敗しました" });
+      return new Response(null, { status: 202 });
+    }
 
     console.log(`[detect-bg] found ${companies.length} companies`);
 

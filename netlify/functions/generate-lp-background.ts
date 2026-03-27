@@ -39,19 +39,24 @@ async function clearOldStatus(sessionId: string, type: string): Promise<void> {
   }
 }
 
-async function writeStatus(sessionId: string, type: string, status: string, extra?: Record<string, string>): Promise<void> {
-  try {
-    const store = getStore("job-status");
-    const key = `status/${sessionId}/${type}`;
-    const data = JSON.stringify({
-      status,
-      updatedAt: new Date().toISOString(),
-      ...extra,
-    });
-    await store.set(key, data);
-  } catch (err) {
-    console.warn("[generate-bg] status write failed:", err);
+async function writeStatus(sessionId: string, type: string, status: string, extra?: Record<string, string>): Promise<boolean> {
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const store = getStore("job-status");
+      const key = `status/${sessionId}/${type}`;
+      const data = JSON.stringify({
+        status,
+        updatedAt: new Date().toISOString(),
+        ...extra,
+      });
+      await store.set(key, data);
+      return true;
+    } catch (err) {
+      console.error(`[generate-bg] status write failed (attempt ${attempt + 1}):`, err);
+      if (attempt === 0) await new Promise(r => setTimeout(r, 1000));
+    }
   }
+  return false;
 }
 
 // ============================================================
