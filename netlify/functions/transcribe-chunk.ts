@@ -69,6 +69,7 @@ export default async function handler(
     const audioFile = formData.get("audio");
     const sessionId = formData.get("session_id");
     const speaker = formData.get("speaker") as string | null;
+    const prevText = formData.get("prev_text") as string | null;
 
     if (!sessionId || typeof sessionId !== "string") {
       return new Response(
@@ -107,7 +108,9 @@ export default async function handler(
       whisperFormData.append("model", model);
       whisperFormData.append("language", "ja");
       whisperFormData.append("response_format", "json");
-      whisperFormData.append("prompt", "ビジネス商談の文字起こしです。企業名、サービス名、業界用語、数値、人名が含まれます。");
+      const basePrompt = "ビジネス商談の文字起こしです。企業名、サービス名、業界用語、数値、人名が含まれます。";
+      const prompt = prevText ? `${basePrompt}\n前の発言: ${prevText}` : basePrompt;
+      whisperFormData.append("prompt", prompt.slice(0, 800));
       whisperFormData.append("temperature", "0");
 
       whisperResponse = await fetch(apiUrl, {

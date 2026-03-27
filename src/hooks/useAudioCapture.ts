@@ -44,8 +44,8 @@ export function setOnTranscript(cb: TranscriptCallback | null): void {
 // 定数
 // ============================================================
 
-/** 録音チャンク間隔 (ms) */
-const CHUNK_INTERVAL_MS = 30_000;
+/** 録音チャンク間隔 (ms) - 短いほどリアルタイム性UP＋文脈切れ軽減 */
+const CHUNK_INTERVAL_MS = 15_000;
 
 /** 連続エラー回数の閾値（これを超えたらUIにエラーを出す） */
 const ERROR_THRESHOLD = 2;
@@ -145,7 +145,7 @@ class RecordingCycle {
     if (!this.running || this.paused) return;
 
     const chunks: Blob[] = [];
-    const rec = new MediaRecorder(this.opts.stream, { mimeType: this.opts.mimeType });
+    const rec = new MediaRecorder(this.opts.stream, { mimeType: this.opts.mimeType, audioBitsPerSecond: 128_000 });
     this.recorder = rec;
 
     rec.ondataavailable = (event: BlobEvent) => {
@@ -204,6 +204,7 @@ export function useAudioCapture(sessionId: string): UseAudioCaptureReturn {
   const consecutiveErrorsRef = useRef(0);
   const stoppedRef = useRef(false);
   const abortRef = useRef<AbortController | null>(null);
+  const lastTranscriptRef = useRef<Record<string, string>>({});
   sessionIdRef.current = sessionId;
 
   // クリーンアップ
@@ -245,6 +246,10 @@ export function useAudioCapture(sessionId: string): UseAudioCaptureReturn {
       formData.append('session_id', sessionIdRef.current);
       formData.append('chunk_index', String(index));
       formData.append('speaker', speaker);
+      const prevText = lastTranscriptRef.current[speaker] ?? '';
+      if (prevText) {
+        formData.append('prev_text', prevText.slice(-200));
+      }
 
       const res = await fetch('/api/transcribe-chunk', {
         method: 'POST',
@@ -279,6 +284,7 @@ export function useAudioCapture(sessionId: string): UseAudioCaptureReturn {
       setInterimText('');
 
       if (data.text && data.text.trim().length > 0) {
+        lastTranscriptRef.current[speaker] = data.text.trim();
         setChunkCount((prev) => prev + 1);
         if (onTranscriptCallback) {
           onTranscriptCallback(data.text.trim(), data.speaker ?? speaker);
