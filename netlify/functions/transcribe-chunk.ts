@@ -72,7 +72,7 @@ async function transcribeWithDeepgram(audioBytes: Uint8Array, prevText: string |
 
   const deepgram = new DeepgramClient({ apiKey: dgKey });
   const result = await deepgram.listen.v1.media.transcribeFile(
-    Buffer.from(audioBytes),
+    audioBytes,
     {
       model: "nova-3",
       language: "ja",

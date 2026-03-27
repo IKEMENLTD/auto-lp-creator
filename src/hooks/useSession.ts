@@ -429,7 +429,9 @@ export function useSession(sessionId: string): UseSessionReturn {
 
   // 全文テキスト取得（refから読むことでstale closure問題を回避）
   const getFullTranscript = useCallback((): string => {
-    return transcriptChunksRef.current.map(c => c.text).join('\n');
+    return transcriptChunksRef.current.map(c =>
+      c.speaker ? `[${c.speaker}] ${c.text}` : c.text
+    ).join('\n');
   }, []);
 
   // sessionIdが仮IDの場合はスキップ

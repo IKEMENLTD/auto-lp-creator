@@ -298,7 +298,8 @@ export function useAudioCapture(sessionId: string): UseAudioCaptureReturn {
             }
           }
         }
-        lastTranscriptRef.current[speaker] = data.segments[data.segments.length - 1]?.text ?? '';
+        // 全セグメントを結合してprev_text用に保存（話者ごとではなくチャンク全体の文脈）
+        lastTranscriptRef.current[speaker] = data.segments.map(s => s.text).join(' ');
       } else if (data.text && data.text.trim().length > 0) {
         lastTranscriptRef.current[speaker] = data.text.trim();
         setChunkCount((prev) => prev + 1);
