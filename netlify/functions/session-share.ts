@@ -8,6 +8,7 @@
  */
 
 import type { Config } from "@netlify/functions";
+import { verifyAuth } from "./lib/auth.js";
 
 // ============================================================
 // CORSヘッダー
@@ -62,6 +63,9 @@ export default async function handler(
       { status: 405, headers: { "Content-Type": "application/json", ...corsHeaders } },
     );
   }
+
+  const authError = verifyAuth(request, corsHeaders);
+  if (authError) return authError;
 
   try {
     const sessionId = extractSessionId(request.url);

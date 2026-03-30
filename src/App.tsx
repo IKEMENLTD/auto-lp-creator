@@ -9,6 +9,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Dashboard } from './pages/Dashboard';
 
 const AUTH_KEY = 'app_authenticated';
+const TOKEN_KEY = 'app_auth_token';
 
 export const App: React.FC = () => {
   const [authenticated, setAuthenticated] = useState(false);
@@ -36,10 +37,13 @@ export const App: React.FC = () => {
         body: JSON.stringify({ password }),
       });
 
-      const data = await res.json() as { success?: boolean; error?: string };
+      const data = await res.json() as { success?: boolean; error?: string; token?: string };
 
       if (data.success) {
         sessionStorage.setItem(AUTH_KEY, 'true');
+        if (data.token) {
+          sessionStorage.setItem(TOKEN_KEY, data.token);
+        }
         setAuthenticated(true);
       } else {
         setError(data.error || 'パスワードが正しくありません');

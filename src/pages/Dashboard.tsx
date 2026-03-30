@@ -21,7 +21,7 @@ import { CompanySelector, type DetectedCompany } from '../components/CompanySele
 import { QrModal } from '../components/QrModal';
 import { useSession } from '../hooks/useSession';
 import { useAudioCapture, setOnTranscript } from '../hooks/useAudioCapture';
-import { api } from '../lib/api';
+import { api, authHeaders } from '../lib/api';
 import type { DeliverableType, ShareMethod, PollStatusResponse } from '../types/dashboard';
 
 type RecordingState = 'idle' | 'recording' | 'paused' | 'ended' | 'pasting' | 'analyzing' | 'selecting';
@@ -72,7 +72,7 @@ export const Dashboard: React.FC = () => {
       // Background Function起動（即座に202が返る）
       const bgRes = await fetch('/api/detect-companies', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...authHeaders() },
         body: JSON.stringify({ transcript, session_id: sessionId ?? 'detect' }),
       });
       if (!bgRes.ok) {
@@ -87,11 +87,23 @@ export const Dashboard: React.FC = () => {
 
       const poll = async (): Promise<void> => {
         let pollRetries = 0;
+        // sawProcessingガード: BG Functionが"processing"を書く前の古い結果を無視
+        let sawProcessing = false;
         // 最初の1回だけ短い待機（BG Functionがステータスを書く時間を最低限確保）
-        await new Promise(r => setTimeout(r, 1000));
+        await new Promise(r => setTimeout(r, 2000));
         while (Date.now() - startTime < POLL_TIMEOUT_MS) {
           try {
             const pollResult = await api.pollJobStatus(detectSessionId, 'detect') as PollStatusResponse;
+
+            if (pollResult.status === 'processing') {
+              sawProcessing = true;
+            }
+
+            if ((pollResult.status === 'completed' || pollResult.status === 'failed') && !sawProcessing) {
+              // BG Functionがまだ起動していない → 前回の結果なので無視
+              await new Promise(r => setTimeout(r, 2000));
+              continue;
+            }
 
             if (pollResult.status === 'completed') {
               const resultData = pollResult.data as { companies?: DetectedCompany[] } | undefined;
@@ -204,7 +216,8 @@ export const Dashboard: React.FC = () => {
 
   const handleStopRecording = useCallback(async () => {
     try {
-      audio.stop();
+      // 最終チャンクのWhisper送信完了まで待つ
+      await audio.stop();
       if (sessionId) {
         try {
           await session.endSession();
@@ -212,7 +225,7 @@ export const Dashboard: React.FC = () => {
           console.warn('[Dashboard] endSession failed (continuing to detect):', endErr);
         }
       }
-      // 録音停止 → 企業検出 → 選択ステップ
+      // 録音停止 → 企業検出 → 選択ステップ（最終チャンク含む全transcript）
       const transcript = session.getFullTranscript();
       if (transcript.length > 0) {
         void detectCompanies(transcript);

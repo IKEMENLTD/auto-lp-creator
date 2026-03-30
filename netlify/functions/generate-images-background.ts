@@ -9,6 +9,7 @@
 
 import type { Config } from "@netlify/functions";
 import { getStore } from "@netlify/blobs";
+import { verifyAuth } from "./lib/auth.js";
 
 // ============================================================
 // 定数
@@ -186,6 +187,12 @@ function buildImagePrompt(section: string, context: string, industry: string, se
 export default async function handler(request: Request): Promise<Response> {
   if (request.method === "OPTIONS") {
     return new Response(null, { status: 204 });
+  }
+
+  const authError = verifyAuth(request, {});
+  if (authError) {
+    console.error("[images-bg] 認証失敗");
+    return new Response(null, { status: 202 });
   }
 
   let parsedSessionId: string | null = null;

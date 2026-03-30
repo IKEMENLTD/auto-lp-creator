@@ -9,6 +9,7 @@
 
 import type { Config } from "@netlify/functions";
 import { randomUUID } from "node:crypto";
+import { verifyAuth } from "./lib/auth.js";
 
 // ============================================================
 // CORSヘッダー
@@ -37,6 +38,9 @@ export default async function handler(
       { status: 405, headers: { "Content-Type": "application/json", ...corsHeaders } },
     );
   }
+
+  const authError = verifyAuth(request, corsHeaders);
+  if (authError) return authError;
 
   try {
     let sessionId: string;

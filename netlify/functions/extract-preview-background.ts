@@ -10,6 +10,7 @@
 import type { Config } from "@netlify/functions";
 import { getStore } from "@netlify/blobs";
 import Anthropic from "@anthropic-ai/sdk";
+import { verifyAuth } from "./lib/auth.js";
 
 // ============================================================
 // 定数
@@ -239,6 +240,12 @@ export default async function handler(request: Request): Promise<Response> {
     return new Response(null, { status: 204 });
   }
 
+  const authError = verifyAuth(request, {});
+  if (authError) {
+    console.error("[extract-bg] 認証失敗");
+    return new Response(null, { status: 202 });
+  }
+
   let sessionId = "unknown";
 
   try {
@@ -248,6 +255,9 @@ export default async function handler(request: Request): Promise<Response> {
 
     if (!transcript || typeof transcript !== "string" || transcript.trim().length === 0) {
       console.error("[extract-bg] no transcript");
+      if (sessionId && sessionId !== "unknown") {
+        await writeStatus(sessionId, "failed", { error: "トランスクリプトが空です" });
+      }
       return new Response(null, { status: 202 });
     }
 

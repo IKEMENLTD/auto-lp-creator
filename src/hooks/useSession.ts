@@ -11,7 +11,7 @@
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { api } from '../lib/api';
+import { api, authHeaders } from '../lib/api';
 import type {
   ExtractedDataMap,
   GenerationJob,
@@ -204,7 +204,7 @@ async function triggerImageGeneration(
 
     const res = await fetch('/api/generate-images', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
       body: JSON.stringify({
         session_id: sessionId,
         type: 'lp',
@@ -388,7 +388,7 @@ export function useSession(sessionId: string): UseSessionReturn {
       // Background Function起動（即座に202が返る）
       const bgRes = await fetch('/api/extract-preview', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...authHeaders() },
         body: JSON.stringify({
           session_id: sessionId,
           transcript,
@@ -404,15 +404,27 @@ export function useSession(sessionId: string): UseSessionReturn {
       const startTime = Date.now();
 
       // BG Functionがステータスを書く時間を最低限確保
-      await new Promise(r => setTimeout(r, 1000));
+      await new Promise(r => setTimeout(r, 2000));
 
       let pollErrorCount = 0;
       const MAX_POLL_ERRORS = 5;
+      // sawProcessingガード: BG Functionが"processing"を書く前の古い"completed"を無視
+      let sawProcessing = false;
 
       while (Date.now() - startTime < POLL_TIMEOUT_MS) {
         try {
           const pollResult = await api.pollJobStatus(sessionId, 'extract');
           pollErrorCount = 0; // 成功したらリセット
+
+          if (pollResult.status === 'processing') {
+            sawProcessing = true;
+          }
+
+          if (pollResult.status === 'completed' && !sawProcessing) {
+            // BG Functionがまだ起動していない可能性 → 無視して待つ
+            await new Promise(r => setTimeout(r, 2000));
+            continue;
+          }
 
           if (pollResult.status === 'completed') {
             const resultData = pollResult.data as Record<string, unknown> | undefined;
@@ -426,14 +438,14 @@ export function useSession(sessionId: string): UseSessionReturn {
             return;
           }
 
-          if (pollResult.status === 'failed') {
+          if (pollResult.status === 'failed' && sawProcessing) {
             const errorMsg = pollResult.error ?? '企業情報の抽出に失敗しました';
             console.warn('[useSession] extractForCompany failed:', errorMsg);
             setError(errorMsg);
             return;
           }
 
-          // processing / unknown → 待つ
+          // processing / unknown / stale completed/failed → 待つ
           await new Promise(r => setTimeout(r, 3000));
         } catch (pollErr) {
           pollErrorCount += 1;
@@ -495,7 +507,7 @@ export function useSession(sessionId: string): UseSessionReturn {
         // Background Function起動
         await fetch('/api/extract-preview', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', ...authHeaders() },
           body: JSON.stringify(body),
         });
 
@@ -601,7 +613,7 @@ export function useSession(sessionId: string): UseSessionReturn {
       // Background Functionを起動（即座に202が返る）
       const bgRes = await fetch('/api/generate-lp', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...authHeaders() },
         body: JSON.stringify({
           session_id: sessionId,
           type,
@@ -622,6 +634,8 @@ export function useSession(sessionId: string): UseSessionReturn {
       const POLL_TIMEOUT_MS = 300_000;
       const MAX_CONSECUTIVE_ERRORS = 10;
       let consecutiveErrors = 0;
+      // sawProcessingガード: BG Functionが"processing"を書く前の古い結果を無視
+      let sawProcessing = false;
 
       const intervalId = setInterval(async () => {
         try {
@@ -640,7 +654,11 @@ export function useSession(sessionId: string): UseSessionReturn {
           consecutiveErrors = 0; // 成功したらリセット
 
           if (pollResult.status === 'processing') {
+            sawProcessing = true;
             updateJobStatus(type, 'processing', stepToLabel(pollResult.step));
+          } else if (pollResult.status === 'completed' && !sawProcessing) {
+            // BG Functionがまだ起動していない可能性 → 前回の結果なので無視
+            return;
           } else if (pollResult.status === 'completed') {
             clearInterval(intervalId);
             pollIntervalsRef.current.delete(type);
@@ -661,7 +679,7 @@ export function useSession(sessionId: string): UseSessionReturn {
             });
 
             // AI画像はLP生成Background Function内で同時生成済み
-          } else if (pollResult.status === 'failed') {
+          } else if (pollResult.status === 'failed' && sawProcessing) {
             clearInterval(intervalId);
             pollIntervalsRef.current.delete(type);
             const errorMsg = pollResult.error ?? '生成に失敗しました';
@@ -670,6 +688,7 @@ export function useSession(sessionId: string): UseSessionReturn {
               j.type === type ? { ...j, status: 'failed' as const, error: errorMsg } : j
             ));
           }
+          // !sawProcessing かつ completed/failed → 前回の結果、無視して待つ
         } catch (pollErr) {
           consecutiveErrors += 1;
           console.warn(`[useSession] deliverable poll error (${consecutiveErrors}/${MAX_CONSECUTIVE_ERRORS}):`, pollErr);

@@ -10,6 +10,7 @@
 
 import type { Config } from "@netlify/functions";
 import { DeepgramClient } from "@deepgram/sdk";
+import { verifyAuth } from "./lib/auth.js";
 
 // ============================================================
 // CORSヘッダー
@@ -26,6 +27,7 @@ const corsHeaders: Record<string, string> = {
 // ============================================================
 
 const MIN_AUDIO_SIZE = 1000;
+const MAX_AUDIO_SIZE = 25 * 1024 * 1024; // 25MB — Whisper APIの上限と同等
 const GROQ_WHISPER_URL = "https://api.groq.com/openai/v1/audio/transcriptions";
 
 // レート制限: セッションごとに60秒間で最大20リクエスト
@@ -136,6 +138,9 @@ export default async function handler(
     );
   }
 
+  const authError = verifyAuth(request, corsHeaders);
+  if (authError) return authError;
+
   try {
     // APIキー取得（Groq優先、OpenAIフォールバック）
     const groqKey = process.env["GROQ_API_KEY"];
@@ -180,6 +185,14 @@ export default async function handler(
       return new Response(
         JSON.stringify({ error: "audio は必須パラメータです" }),
         { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } },
+      );
+    }
+
+    // 音声が大きすぎる場合は拒否
+    if (audioFile.size > MAX_AUDIO_SIZE) {
+      return new Response(
+        JSON.stringify({ error: `ファイルサイズが上限(${MAX_AUDIO_SIZE / 1024 / 1024}MB)を超えています` }),
+        { status: 413, headers: { "Content-Type": "application/json", ...corsHeaders } },
       );
     }
 

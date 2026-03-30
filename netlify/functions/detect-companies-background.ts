@@ -10,6 +10,7 @@
 import type { Config } from "@netlify/functions";
 import { getStore } from "@netlify/blobs";
 import Anthropic from "@anthropic-ai/sdk";
+import { verifyAuth } from "./lib/auth.js";
 
 // ============================================================
 // 型定義
@@ -98,6 +99,12 @@ export default async function handler(request: Request): Promise<Response> {
     return new Response(null, { status: 204 });
   }
 
+  const authError = verifyAuth(request, {});
+  if (authError) {
+    console.error("[detect-bg] 認証失敗");
+    return new Response(null, { status: 202 });
+  }
+
   let sessionId = "unknown";
 
   try {
@@ -107,6 +114,9 @@ export default async function handler(request: Request): Promise<Response> {
 
     if (!sessionId || sessionId === "unknown" || !transcript || transcript.trim().length === 0) {
       console.error("[detect-bg] invalid params");
+      if (sessionId && sessionId !== "unknown") {
+        await writeStatus(sessionId, "failed", { error: "無効なパラメータです" });
+      }
       return new Response(null, { status: 202 });
     }
 

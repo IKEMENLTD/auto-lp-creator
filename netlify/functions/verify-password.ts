@@ -9,6 +9,7 @@
 
 import type { Config } from "@netlify/functions";
 import { timingSafeEqual } from "node:crypto";
+import { deriveToken } from "./lib/auth.js";
 
 const corsHeaders: Record<string, string> = {
   "Access-Control-Allow-Origin": "*",
@@ -31,7 +32,7 @@ export default async function handler(request: Request): Promise<Response> {
   try {
     const appPassword = process.env["APP_PASSWORD"];
     if (!appPassword) {
-      // パスワード未設定 = 認証なしで通す
+      // パスワード未設定 = 認証なしで通す（トークンなし）
       return new Response(
         JSON.stringify({ success: true }),
         { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } },
@@ -48,8 +49,9 @@ export default async function handler(request: Request): Promise<Response> {
       timingSafeEqual(inputBuf, expectedBuf);
 
     if (isMatch) {
+      const token = deriveToken(appPassword);
       return new Response(
-        JSON.stringify({ success: true }),
+        JSON.stringify({ success: true, token }),
         { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } },
       );
     }

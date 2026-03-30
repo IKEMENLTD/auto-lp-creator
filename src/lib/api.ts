@@ -21,6 +21,17 @@ import type {
 
 const API_TIMEOUT_MS = 120_000;
 
+/**
+ * sessionStorage から認証トークンを取得し、Authorization ヘッダーを返す。
+ * トークンがなければ空オブジェクト（公開モード）。
+ */
+export function authHeaders(): Record<string, string> {
+  const token = typeof sessionStorage !== 'undefined'
+    ? sessionStorage.getItem('app_auth_token')
+    : null;
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
 export class ApiError extends Error {
   readonly status: number;
   constructor(message: string, status: number) {
@@ -97,7 +108,7 @@ export async function startSession(): Promise<StartSessionResponse> {
   try {
     const response = await fetchWithTimeout('/api/session/start', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
     });
     return parseResponse<StartSessionResponse>(response, 'セッション開始');
   } catch (error) {
@@ -116,7 +127,7 @@ export async function generateDeliverable(
   try {
     const response = await fetchWithTimeout('/api/generate-lp', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
       body: JSON.stringify({ session_id: sessionId, type }),
     });
     return parseResponse<GenerateDeliverableResponse>(response, '制作物生成');
@@ -137,7 +148,7 @@ export async function updateField(
   try {
     const response = await fetchWithTimeout(`/api/session/${encodeURIComponent(sessionId)}/data`, {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
       body: JSON.stringify({ [field]: value }),
     });
     return parseResponse<UpdateFieldResponse>(response, 'フィールド更新');
@@ -154,7 +165,7 @@ export async function endSession(sessionId: string): Promise<EndSessionResponse>
   try {
     const response = await fetchWithTimeout(`/api/session/${encodeURIComponent(sessionId)}/end`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
     });
     return parseResponse<EndSessionResponse>(response, 'セッション終了');
   } catch (error) {
@@ -175,7 +186,7 @@ export async function shareAll(
       `/api/session/${encodeURIComponent(sessionId)}/share`,
       {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...authHeaders() },
         body: JSON.stringify({ method }),
       },
     );
@@ -196,7 +207,7 @@ export async function pollJobStatus(
   try {
     const response = await fetchWithTimeout(
       `/api/poll-status?session_id=${encodeURIComponent(sessionId)}&type=${encodeURIComponent(type)}`,
-      { method: 'GET' },
+      { method: 'GET', headers: { ...authHeaders() } },
       10_000,
     );
     return parseResponse<PollStatusResponse>(response, 'ステータス確認');

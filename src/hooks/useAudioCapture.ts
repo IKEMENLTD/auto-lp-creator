@@ -11,6 +11,7 @@
  */
 
 import { useState, useCallback, useRef, useEffect } from 'react';
+import { authHeaders } from '../lib/api';
 
 // ============================================================
 // 型定義
@@ -25,15 +26,20 @@ export interface UseAudioCaptureReturn {
   readonly start: () => Promise<void>;
   readonly pause: () => void;
   readonly resume: () => void;
-  readonly stop: () => void;
+  readonly stop: () => Promise<void>;
 }
 
 // ============================================================
 // コールバック
 // ============================================================
 
-type TranscriptCallback = (text: string, speaker?: string) => void;
+export type TranscriptCallback = (text: string, speaker?: string) => void;
 
+/**
+ * コールバック参照。モジュールレベルではなく useAudioCapture 内の
+ * transcriptCallbackRef に委譲する形に変更済み。
+ * setOnTranscript は後方互換のためフックからエクスポートする。
+ */
 let onTranscriptCallback: TranscriptCallback | null = null;
 
 export function setOnTranscript(cb: TranscriptCallback | null): void {
@@ -80,6 +86,33 @@ class RecordingCycle {
     this.running = true;
     this.paused = false;
     this.cycle();
+  }
+
+  /**
+   * 録音を停止し、最終チャンクの onChunk が呼ばれるまで待つ Promise を返す。
+   * onstop が非同期で発火するため、呼び出し側は await stopAsync() で
+   * 最終チャンクのキュー追加を保証してから Promise.all でキュー完了を待てる。
+   */
+  stopAsync(): Promise<void> {
+    this.running = false;
+    this.paused = false;
+    this.clearTimer();
+    if (!this.recorder || this.recorder.state === 'inactive') {
+      this.recorder = null;
+      return Promise.resolve();
+    }
+    return new Promise<void>((resolve) => {
+      const rec = this.recorder!;
+      const origOnStop = rec.onstop;
+      rec.onstop = (ev) => {
+        if (typeof origOnStop === 'function') {
+          origOnStop.call(rec, ev);
+        }
+        this.recorder = null;
+        resolve();
+      };
+      rec.stop();
+    });
   }
 
   stop(): void {
@@ -255,6 +288,7 @@ export function useAudioCapture(sessionId: string): UseAudioCaptureReturn {
 
       const res = await fetch('/api/transcribe-chunk', {
         method: 'POST',
+        headers: { ...authHeaders() },
         body: formData,
         signal: abortRef.current?.signal,
       });
@@ -284,6 +318,9 @@ export function useAudioCapture(sessionId: string): UseAudioCaptureReturn {
 
       const data = await res.json() as { text?: string; speaker?: string; segments?: Array<{ speaker: string; text: string }> };
       setInterimText('');
+
+      // 停止後のコールバック呼び出しを防止
+      if (stoppedRef.current) return;
 
       // Deepgram話者分離モード: セグメントごとにコールバック
       if (data.segments && data.segments.length > 0) {
@@ -448,14 +485,15 @@ export function useAudioCapture(sessionId: string): UseAudioCaptureReturn {
     setIsRecording(true);
   }, []);
 
-  const stop = useCallback(() => {
-    // stoppedRefはまだtrueにしない — 最終チャンクのWhisper送信を許可する
-    // RecordingCycle.stop()がrecorder.stop()を呼び、
-    // ondataavailable→onstop→onChunk→sendChunkToWhisperが非同期で実行される
-    micCycleRef.current?.stop();
+  const stop = useCallback(async () => {
+    // stopAsync()で最終チャンクの onstop→onChunk→キュー追加 を待つ
+    const micStop = micCycleRef.current?.stopAsync() ?? Promise.resolve();
     micCycleRef.current = null;
-    displayCycleRef.current?.stop();
+    const displayStop = displayCycleRef.current?.stopAsync() ?? Promise.resolve();
     displayCycleRef.current = null;
+
+    // onstop コールバック完了を待つ（最終チャンクがキューに追加される）
+    await Promise.allSettled([micStop, displayStop]);
 
     if (micStreamRef.current) {
       micStreamRef.current.getTracks().forEach((t) => t.stop());
@@ -469,14 +507,17 @@ export function useAudioCapture(sessionId: string): UseAudioCaptureReturn {
     setIsPaused(false);
     setInterimText('');
 
-    // 最終チャンクの送信完了後にクリーンアップ
-    // (キュー内の処理が完了してから後続の送信をブロック + abort)
-    Promise.all([micQueueRef.current, displayQueueRef.current])
-      .finally(() => {
-        stoppedRef.current = true;
-        abortRef.current?.abort();
-        abortRef.current = null;
-      });
+    // 最終チャンクのWhisper送信完了を待つ
+    // (キュー内の処理が完了してからstoppedフラグを立てる)
+    try {
+      await Promise.all([micQueueRef.current, displayQueueRef.current]);
+    } catch {
+      // キュー内のエラーは既にsendChunkToWhisper内で処理済み
+    } finally {
+      stoppedRef.current = true;
+      abortRef.current?.abort();
+      abortRef.current = null;
+    }
   }, []);
 
   return {

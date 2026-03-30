@@ -13,6 +13,7 @@
 import type { Config } from "@netlify/functions";
 import { getStore } from "@netlify/blobs";
 import Anthropic from "@anthropic-ai/sdk";
+import { verifyAuth } from "./lib/auth.js";
 import type { LpContent, AdContent, MinutesContent, GenericContent } from "./lib/lp-types";
 import { flatten } from "./lib/lp-types";
 import { LP_DRAFT_PROMPT, LP_EVALUATE_PROMPT, GENERIC_PROMPTS, GENERIC_TITLES, bizContext, truncateTranscript } from "./lib/lp-prompts";
@@ -393,6 +394,14 @@ export default async function handler(request: Request): Promise<Response> {
     return new Response(null, { status: 204 });
   }
 
+  // 認証チェック（Background Functionは202が自動返却済みなので、失敗時は早期終了のみ）
+  const dummyCors: Record<string, string> = {};
+  const authError = verifyAuth(request, dummyCors);
+  if (authError) {
+    console.error("[generate-bg] 認証失敗");
+    return new Response(null, { status: 202 });
+  }
+
   let sessionId = "";
   let type = "";
 
@@ -405,6 +414,10 @@ export default async function handler(request: Request): Promise<Response> {
 
     if (!sessionId || !type || !VALID_TYPES.has(type)) {
       console.error("[generate-bg] invalid params:", { sessionId, type });
+      // sessionId と type がある場合はエラーステータスを書いてフロントのポーリングを終了させる
+      if (sessionId && type) {
+        await writeStatus(sessionId, type, "failed", { error: "無効なパラメータです" });
+      }
       return new Response(null, { status: 202 });
     }
 
@@ -493,8 +506,13 @@ export default async function handler(request: Request): Promise<Response> {
     const store = getStore("deliverables");
     await store.set(blobKey, html, { metadata: { type, sessionId, createdAt: new Date().toISOString() } });
 
-    // ステータス: completed
-    await writeStatus(sessionId, type, "completed");
+    // ステータス: completed（失敗時は追加リトライ）
+    const ok = await writeStatus(sessionId, type, "completed");
+    if (!ok) {
+      console.warn("[generate-bg] completed status write failed, retrying after 2s...");
+      await new Promise(r => setTimeout(r, 2000));
+      await writeStatus(sessionId, type, "completed");
+    }
 
   } catch (error) {
     console.error("[generate-bg] error:", error);

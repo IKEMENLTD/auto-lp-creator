@@ -8,6 +8,7 @@
 
 import type { Config } from "@netlify/functions";
 import { getStore } from "@netlify/blobs";
+import { verifyAuth } from "./lib/auth.js";
 
 // ============================================================
 // 型定義
@@ -27,7 +28,7 @@ interface JobStatus {
 const CORS: Record<string, string> = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization",
 };
 
 // ============================================================
@@ -45,6 +46,9 @@ export default async function handler(request: Request): Promise<Response> {
       { status: 405, headers: { "Content-Type": "application/json", ...CORS } },
     );
   }
+
+  const authError = verifyAuth(request, CORS);
+  if (authError) return authError;
 
   try {
     const url = new URL(request.url);
