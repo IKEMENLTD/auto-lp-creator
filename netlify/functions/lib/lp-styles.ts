@@ -399,19 +399,19 @@ body{font-size:15px}
 body{font-size:14px;line-height:1.75}
 /* header */
 .hd{height:56px;padding:0 16px}.hd-logo{font-size:15px;max-width:100%}.hd-nav{display:none}
-/* hero → 横並び維持。左テキスト(z-index上) + 右人物(z-index下、右端に寄せ) */
+/* hero → テキストフル幅 + 人物を右下1/4に後ろレイヤー配置 */
 .fv{padding-top:56px}
-.fv .inner{padding:60px 16px 0;flex-direction:row;align-items:flex-end;gap:0;position:relative}
-.fv-left{position:relative;z-index:2;flex:1;min-width:0;padding-bottom:28px;padding-right:8px}
+.fv .inner{padding:60px 16px 0;flex-direction:column;align-items:stretch;gap:0;position:relative;overflow:visible}
+.fv-left{position:relative;z-index:2;width:100%;min-width:0;padding-bottom:28px}
 .fv-lead{font-size:clamp(20px,5vw,24px)!important}
 .fv-service-name{font-size:clamp(22px,5.5vw,28px)}
 .fv-service-label{font-size:12px}
-.fv-btns .btn{min-width:140px;font-size:13px;padding:10px 16px}
-/* 人物画像：右端に配置、テキストの後ろレイヤー */
-.fv-right{position:relative;z-index:1;flex-shrink:0;width:38%;max-width:180px;align-self:flex-end;margin-right:-8px;margin-bottom:0}
-.hero-person{-webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 55%,transparent 95%);mask-image:linear-gradient(to bottom,#000 0%,#000 55%,transparent 95%)}
+.fv-btns .btn{min-width:160px;font-size:13px;padding:10px 16px}
+/* 人物画像：右下に absolute 配置、画面の約1/4サイズ、後ろレイヤー */
+.fv-right{position:absolute;bottom:0;right:0;width:50%;max-width:210px;z-index:1;opacity:.32;pointer-events:none}
+.hero-person{-webkit-mask-image:linear-gradient(to bottom,transparent 0%,rgba(0,0,0,.4) 25%,#000 50%,#000 100%);mask-image:linear-gradient(to bottom,transparent 0%,rgba(0,0,0,.4) 25%,#000 50%,#000 100%)}
 .hero-person-wrap{max-width:100%}
-.hero-person-img{max-height:340px;filter:drop-shadow(0 2px 12px rgba(0,0,0,.06))}
+.hero-person-img{max-height:380px;filter:none}
 .hero-slash{display:none}
 .fv-badge{width:140px}
 .fv-product{max-width:100%}
@@ -484,15 +484,15 @@ body{font-size:14px;line-height:1.7}
 .hd-logo{font-size:13px}
 /* hero */
 .fv .inner{padding:52px 12px 0;gap:0}
-.fv-left{padding-bottom:20px;padding-right:4px}
+.fv-left{padding-bottom:20px}
 .fv-lead{font-size:clamp(16px,4.5vw,20px)!important}
 .fv-service-name{font-size:clamp(18px,5vw,22px)}
 .fv-service-label{font-size:11px}
 .fv-btns{flex-direction:column}.fv-btns .btn{width:100%;min-width:auto;font-size:13px;padding:10px 16px}
 .fv-badge{width:120px}.fv-badge-cat{font-size:10px}
-/* 人物: サイズ縮小、右端寄せ */
-.fv-right{width:34%;max-width:150px;margin-right:-6px}
-.hero-person-img{max-height:280px}
+/* 人物: 右下1/4、やや縮小 */
+.fv-right{width:48%;max-width:190px;opacity:.28}
+.hero-person-img{max-height:320px}
 /* logo strip */
 .logo-strip-label{font-size:14px}.logo-strip-list{column-gap:24px;row-gap:16px}.logo-strip-item{height:56px;font-size:12px}
 /* banner */
@@ -559,9 +559,9 @@ body{font-size:13px;line-height:1.65}
 .fv-btns .btn{font-size:12px;padding:8px 12px}
 .fv-badge{width:100px}.fv-badge-cat{font-size:9px}.fv-badge-img{width:90%}
 .fv-award-notes{font-size:9px}
-/* 人物: 最小サイズ */
-.fv-right{width:30%;max-width:110px;margin-right:-4px}
-.hero-person-img{max-height:220px}
+/* 人物: 右下、最小 */
+.fv-right{width:45%;max-width:150px;opacity:.22}
+.hero-person-img{max-height:260px}
 /* logo strip */
 .logo-strip{padding:20px 0}.logo-strip-label{font-size:13px;margin-bottom:16px}
 .logo-strip-list{column-gap:16px;row-gap:12px}.logo-strip-item{height:44px;font-size:11px}
