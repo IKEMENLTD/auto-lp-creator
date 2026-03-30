@@ -306,11 +306,23 @@ function embedImageUrls(html: string, imageUrls: Record<string, string>): string
 // ============================================================
 
 function normalizeLpContent(raw: LpContent): LpContent {
-  if (raw.faq) {
+  if (raw.faq && Array.isArray(raw.faq)) {
     raw.faq = raw.faq.map((item: Record<string, unknown>) => ({
       q: (item.q || item.question || "") as string,
       a: (item.a || item.answer || "") as string,
     }));
+  }
+  // faq未定義・不足時のフォールバック（max_tokensでtruncateされた場合の救済）
+  const validFaq = (raw.faq || []).filter(item => item.q && item.q.trim().length > 0);
+  if (validFaq.length < 5) {
+    const defaults = [
+      { q: "料金はどのくらいですか？", a: "ご要望・規模に応じてお見積りいたします。まずはお気軽にご相談ください。" },
+      { q: "どのくらいの期間がかかりますか？", a: "内容により異なりますが、初回ご相談から最短2週間で対応可能です。" },
+      { q: "まずは相談だけでも大丈夫ですか？", a: "はい、初回のご相談は無料です。お気軽にお問い合わせください。" },
+      { q: "対応エリアに制限はありますか？", a: "オンラインでの対応も可能なため、全国どこからでもご利用いただけます。" },
+      { q: "導入後のサポート体制はありますか？", a: "専任担当が継続的にサポートいたします。お困りの際はいつでもご連絡ください。" },
+    ];
+    raw.faq = [...validFaq, ...defaults.slice(validFaq.length)].slice(0, 5);
   }
   // brand_name未生成時のフォールバック（古いモデル応答対応）
   if (!raw.brand_name || raw.brand_name.trim().length < 2) {

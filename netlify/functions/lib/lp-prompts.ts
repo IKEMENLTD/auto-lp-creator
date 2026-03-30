@@ -106,12 +106,12 @@ export const LP_DRAFT_PROMPT = `商談トランスクリプトから「課題解
   "cases": [{"category":"案件カテゴリ","detail":"具体内容50字","result":"成果数字20字"}],
   "comparison": [{"feature":"比較項目","us":"自社の方法","other":"一般的な方法"}],
   "flow": [{"title":"ステップ10字","desc":"説明40字"}],
-  "faq": [{"q":"質問","a":"回答50字"}],
+  "faq": [{"q":"質問","a":"50字以内の回答"}]を必ず5個。料金・期間・進め方・対象範囲・サポート体制の5テーマを網羅,
   "cta_text": "8字以内。矢印(→>＞)は含めない。テキストのみ",
   "cta_sub": "20字以内",
   "company_profile": "会社概要80字"
 }
-problems3-4,strengths3,services3,reasons3,use_cases3,stats4,dashboard_metrics3,trust_badges2,functions3,columns2,comparison4-5,flow4,faq5。
+problems3-4,strengths3,services3,reasons3,use_cases3,stats4,dashboard_metrics3,trust_badges2,functions3,columns2,comparison4-5,flow4,faq必ず5個。
 cases:最低2件。トランスクリプトに具体的事例があればそのまま使用。不足分は業種の典型的な成功パターンで補完（「某○○企業」等の匿名表記）。最大3件。
 JSONのみ出力。`;
 

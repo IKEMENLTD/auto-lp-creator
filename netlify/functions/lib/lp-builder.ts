@@ -340,7 +340,16 @@ export function buildLpHtml(c: LpContent, d: FlatData, images: import("./lp-imag
   const funcs = c.functions || [];
   const dm = c.dashboard_metrics || [{ label: "効率", pct: 85 }, { label: "削減", pct: 72 }, { label: "満足度", pct: 93 }];
   const f = c.flow || [];
-  const faq = (c.faq || []).filter(item => item.q && item.q.trim().length > 0);
+  const faqRaw = (c.faq || []).filter(item => item.q && item.q.trim().length > 0);
+  // FAQ最低5個保証（AI生成が不足した場合のフォールバック）
+  const faqDefaults = [
+    { q: "料金はどのくらいですか？", a: "ご要望・規模に応じてお見積りいたします。まずはお気軽にご相談ください。" },
+    { q: "どのくらいの期間がかかりますか？", a: "内容により異なりますが、初回ご相談から最短2週間で対応可能です。" },
+    { q: "まずは相談だけでも大丈夫ですか？", a: "はい、初回のご相談は無料です。お気軽にお問い合わせください。" },
+    { q: "対応エリアに制限はありますか？", a: "オンラインでの対応も可能なため、全国どこからでもご利用いただけます。" },
+    { q: "導入後のサポート体制はありますか？", a: "専任担当が継続的にサポートいたします。お困りの際はいつでもご連絡ください。" },
+  ];
+  const faq = faqRaw.length >= 5 ? faqRaw : [...faqRaw, ...faqDefaults.slice(faqRaw.length)].slice(0, 5);
   const hf = c.hero_features || [];
   const badges = c.trust_badges || [];
   const colors = getDecoColors(d.industry);
