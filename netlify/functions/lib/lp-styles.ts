@@ -413,7 +413,10 @@ body{font-size:14px;line-height:1.75}
 .hero-person-wrap{max-width:100%}
 .hero-person-img{max-height:380px;filter:none}
 .hero-slash{display:none}
+.fv-awards{align-items:center}
+.fv-award-row{justify-content:center;gap:12px}
 .fv-badge{width:140px}
+.fv-award-notes{text-align:center}
 .fv-product{max-width:100%}
 /* logo strip */
 .logo-strip{padding:30px 0}.logo-strip-label{font-size:16px;margin-bottom:24px}
@@ -489,7 +492,7 @@ body{font-size:14px;line-height:1.7}
 .fv-service-name{font-size:clamp(18px,5vw,22px)}
 .fv-service-label{font-size:11px}
 .fv-btns{flex-direction:column}.fv-btns .btn{width:100%;min-width:auto;font-size:13px;padding:10px 16px}
-.fv-badge{width:120px}.fv-badge-cat{font-size:10px}
+.fv-award-row{gap:8px}.fv-badge{width:130px}.fv-badge-cat{font-size:10px}
 /* 人物: 右下1/4、やや縮小 */
 .fv-right{width:48%;max-width:190px;opacity:.28}
 .hero-person-img{max-height:320px}
