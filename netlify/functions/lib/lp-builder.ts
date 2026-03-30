@@ -421,7 +421,7 @@ ${hasImg && images[0] ? `<div class="fv-bg" style="background-image:url('${esc(i
 <p class="fv-lead" style="--fv-lead-base:${c.hero_headline.length <= 12 ? '40px' : c.hero_headline.length <= 20 ? '34px' : c.hero_headline.length <= 28 ? '28px' : '24px'}">${esc(c.hero_headline)}</p>
 <p class="fv-service-label">${esc(d.industry)}</p>
 <h1 class="fv-service-name">${esc(brandName)}${brandSub ? `<span class="fv-service-sub">${esc(brandSub)}</span>` : ""}</h1>
-${badges.length > 0 ? `<div class="fv-awards"><div class="fv-award-row">${badges.slice(0, 2).map((b, i) => `<div class="fv-badge"><p class="fv-badge-cat">${esc(b)}</p><div class="fv-badge-img-wrap"><img class="fv-badge-img" src="${awardImg}" alt="No.1"><span class="fv-badge-note">※${i + 1}</span></div></div>`).join("")}</div><p class="fv-award-notes">※1※2 自社調べ</p></div>` : ""}
+${badges.length > 0 ? `<div class="fv-awards"><div class="fv-award-row">${badges.slice(0, 2).map((b, i) => `<div class="fv-badge"><p class="fv-badge-cat">${esc(b)}</p><div class="fv-badge-img-wrap"><img class="fv-badge-img" src="${awardImg}" alt="No.1" loading="lazy" width="160" height="80"><span class="fv-badge-note">※${i + 1}</span></div></div>`).join("")}</div><p class="fv-award-notes">※1※2 自社調べ</p></div>` : ""}
 <div class="fv-btns">
 <a href="#contact" class="btn btn-lg btn-accent">${esc(c.cta_text)} →</a>
 <a href="#features" class="btn btn-lg btn-outline-accent">詳しく見る</a>
@@ -430,7 +430,7 @@ ${badges.length > 0 ? `<div class="fv-awards"><div class="fv-award-row">${badges
 <div class="fv-right">
 <div class="hero-person-wrap">
 <div class="hero-person">
-<img class="hero-person-img" src="/images/hero-person-${((Date.now() % 3) + 1)}.png" alt="ビジネスプロフェッショナル" loading="eager">
+<img class="hero-person-img" src="/images/hero-person-${((Date.now() % 3) + 1)}.png" alt="ビジネスプロフェッショナル" loading="eager" width="420" height="520" fetchpriority="high">
 </div>
 </div>
 </div>
@@ -441,10 +441,10 @@ ${badges.length > 0 ? `<div class="fv-awards"><div class="fv-award-row">${badges
 <div class="logo-strip">
 <p class="logo-strip-label">多種多様な企業様に<br class="only-sp">ご利用いただいております</p>
 <div class="logo-strip-list">
-<span class="logo-strip-item"><img src="https://auto-lp-creator.netlify.app/images/logos/logo-01.png" alt="未来医療福祉コンソーシアム"></span>
+<span class="logo-strip-item"><img src="/images/logos/logo-01.png" alt="未来医療福祉コンソーシアム" loading="lazy" width="120" height="60"></span>
 <span class="logo-strip-item" style="flex-direction:column;justify-content:center"><span style="font-weight:800;font-size:22px;letter-spacing:.12em">VELOX.AI</span><span style="font-size:10px;letter-spacing:.08em;margin-top:2px">次世代人工知能システム</span></span>
-<span class="logo-strip-item"><img src="https://auto-lp-creator.netlify.app/images/logos/logo-03.png" alt="INTEGRA LINK"></span>
-<span class="logo-strip-item"><img src="https://auto-lp-creator.netlify.app/images/logos/logo-04.png" alt="ARCHETYPE SERVICES"></span>
+<span class="logo-strip-item"><img src="/images/logos/logo-03.png" alt="INTEGRA LINK" loading="lazy" width="120" height="60"></span>
+<span class="logo-strip-item"><img src="/images/logos/logo-04.png" alt="ARCHETYPE SERVICES" loading="lazy" width="120" height="60"></span>
 </div>
 </div>
 

@@ -36,11 +36,18 @@ export default async function handler(request: Request): Promise<Response> {
       return new Response("Image not found", { status: 404 });
     }
 
+    // Gemini画像のContent-Typeを推定（先頭バイトでPNG/JPEG/WebP判定）
+    const bytes = new Uint8Array(data);
+    let contentType = "image/png";
+    if (bytes[0] === 0xFF && bytes[1] === 0xD8) contentType = "image/jpeg";
+    else if (bytes[0] === 0x52 && bytes[1] === 0x49) contentType = "image/webp"; // "RI" = RIFF
+
     return new Response(data, {
       status: 200,
       headers: {
-        "Content-Type": "image/png",
-        "Cache-Control": "public, max-age=86400",
+        "Content-Type": contentType,
+        "Cache-Control": "public, max-age=604800, immutable",
+        "Vary": "Accept",
       },
     });
   } catch (error) {
