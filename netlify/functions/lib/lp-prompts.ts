@@ -111,7 +111,7 @@ export const LP_DRAFT_PROMPT = `商談トランスクリプトから「課題解
   "cta_sub": "20字以内",
   "company_profile": "会社概要80字"
 }
-problems3-4,strengths3,services3,reasons3,use_cases3,stats4,dashboard_metrics3,trust_badges2,functions3,columns2,comparison4-5,flow4,faq4。
+problems3-4,strengths3,services3,reasons3,use_cases3,stats4,dashboard_metrics3,trust_badges2,functions3,columns2,comparison4-5,flow4,faq5。
 cases:最低2件。トランスクリプトに具体的事例があればそのまま使用。不足分は業種の典型的な成功パターンで補完（「某○○企業」等の匿名表記）。最大3件。
 JSONのみ出力。`;
 
@@ -142,7 +142,7 @@ export const LP_EVALUATE_PROMPT = `あなたは課題解決型ページ専門の
 14. functions: サービスの具体的な機能。servicesとは異なり個別の機能名と説明。3個
 15. columns: ターゲットが検索しそうな「〜とは？」「〜の方法」形式のタイトル。業種に特化した実用的な内容。2個
 16. trust_badges: 業種に合ったカテゴリ名のみ（例:「○○部門 導入社数」「顧客満足度」）。No.1はUI側で自動付与するので含めない。2個
-17. faq: 料金・期間・進め方・対象範囲をカバー。4個
+17. faq: 料金・期間・進め方・対象範囲・サポート体制をカバー。必ず5個
 18. cta_text: 8字以内。矢印(→>＞)は含めずテキストのみ
 
 【情報帰属チェック（厳守）】
