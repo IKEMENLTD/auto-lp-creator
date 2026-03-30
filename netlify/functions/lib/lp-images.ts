@@ -13,8 +13,8 @@ export interface LpImage {
   alt: string;
 }
 
-export const unsplashUrl = (id: string, w = 800, h = 600): string =>
-  `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=${w}&h=${h}&q=80`;
+export const unsplashUrl = (id: string, w = 800, h = 600, q = 75): string =>
+  `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=${w}&h=${h}&q=${q}`;
 
 // 全カテゴリ間で重複なし。各カテゴリ20枚以上を確保。
 export const PHOTO_LIBRARY: Record<string, string[]> = {
@@ -304,9 +304,10 @@ export function selectImages(d: FlatData): LpImage[] {
   return labels.map((label, i) => {
     const isHero = i === 0;
     const isThumb = i === 16;
-    const w = isHero ? 1920 : isThumb ? 200 : 800;
-    const h = isHero ? 1080 : isThumb ? 200 : 600;
+    const w = isHero ? 1280 : isThumb ? 200 : 600;
+    const h = isHero ? 720 : isThumb ? 200 : 400;
+    const q = isHero ? 70 : isThumb ? 60 : 72;
     const id = picked[i] || picked[0]!;
-    return { url: unsplashUrl(id, w, h), alt: `${i === 0 ? d.company_name : d.service_name} ${label}` };
+    return { url: unsplashUrl(id, w, h, q), alt: `${i === 0 ? d.company_name : d.service_name} ${label}` };
   });
 }

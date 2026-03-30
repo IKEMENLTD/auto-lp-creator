@@ -24,6 +24,8 @@ export interface LpContent {
   // Person
   person_name: string;
   person_title: string;
+  // Brand (AI要約)
+  brand_name: string;
   // Hero
   hero_headline: string;
   hero_sub: string;

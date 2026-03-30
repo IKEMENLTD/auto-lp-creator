@@ -312,6 +312,10 @@ function normalizeLpContent(raw: LpContent): LpContent {
       a: (item.a || item.answer || "") as string,
     }));
   }
+  // brand_name未生成時のフォールバック（古いモデル応答対応）
+  if (!raw.brand_name || raw.brand_name.trim().length < 2) {
+    raw.brand_name = "";
+  }
   return raw;
 }
 

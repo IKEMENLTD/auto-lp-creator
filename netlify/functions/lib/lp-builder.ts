@@ -345,9 +345,21 @@ export function buildLpHtml(c: LpContent, d: FlatData, images: import("./lp-imag
   const badges = c.trust_badges || [];
   const colors = getDecoColors(d.industry);
   const hasImg = images.length > 0;
-  const rawBrand = d.service_name || d.company_name;
-  const brandName = rawBrand.replace(/[（(].+?[）)]/g, "").trim();
-  const brandSub = (rawBrand.match(/[（(](.+?)[）)]/) || [])[1] || "";
+  // brand_name: AIが要約した短いブランド名を優先。なければservice_nameからパーレン除去
+  const rawBrand = c.brand_name && c.brand_name.trim().length >= 2
+    ? c.brand_name.trim()
+    : (d.service_name || d.company_name).replace(/[（(].+?[）)]/g, "").trim();
+  const brandName = rawBrand;
+  // サブタイトル: service_nameにパーレンがあればその中身。なければservice_nameのうちbrandName以外の部分
+  const brandSub = (() => {
+    const parenMatch = (d.service_name || "").match(/[（(](.+?)[）)]/);
+    if (parenMatch?.[1]) return parenMatch[1];
+    // brand_nameがservice_nameと異なる場合、service_nameをサブに表示
+    if (c.brand_name && c.brand_name.trim().length >= 2 && d.service_name && d.service_name !== c.brand_name.trim()) {
+      return d.service_name;
+    }
+    return "";
+  })();
 
   // CTAテキストから矢印・記号を全除去（HTML側で→を付与するため）
   if (c.cta_text) c.cta_text = c.cta_text.replace(/[→>＞►▶➤➜➡⇒›〉»≫▷▹⇨⟶⟹>]/g, "").trim();
@@ -379,7 +391,8 @@ export function buildLpHtml(c: LpContent, d: FlatData, images: import("./lp-imag
 <meta property="og:title" content="${esc(d.service_name)} | ${esc(d.company_name)}">
 <meta property="og:description" content="${esc(c.hero_headline)}">
 <meta property="og:type" content="website">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@700;900&family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
 <style>
 ${buildLpStyles({ primary: colors.primary, gradient: colors.gradient, accent: colors.accent, cRgb, theme })}
 </style>
@@ -387,7 +400,7 @@ ${buildLpStyles({ primary: colors.primary, gradient: colors.gradient, accent: co
 
 <!-- HEADER -->
 <header class="hd"><div class="hd-wrap">
-<p class="hd-logo">${esc(brandName)}</p>
+<p class="hd-logo">${esc(d.company_name)}</p>
 <nav class="hd-nav">
 <a href="#about">${esc(brandName)}とは</a>
 <a href="#features">できること</a>
@@ -401,11 +414,11 @@ ${funcs.length > 0 ? '<a href="#functions">主な機能</a>' : ''}
 
 <!-- HERO -->
 <section class="fv">
-${hasImg && images[0] ? `<div class="fv-bg" style="background-image:url('${esc(images[0].url.replace(/w=\d+/, "w=1600").replace(/h=\d+/, "h=1000"))}')"></div>` : ""}
+${hasImg && images[0] ? `<div class="fv-bg" style="background-image:url('${esc(images[0].url.replace(/w=\d+/, "w=1280").replace(/h=\d+/, "h=720"))}')"></div>` : ""}
 <span class="hero-slash"></span>
 <div class="inner">
 <div class="fv-left">
-<p class="fv-lead" style="font-size:${c.hero_headline.length <= 12 ? '40px' : c.hero_headline.length <= 20 ? '34px' : c.hero_headline.length <= 28 ? '28px' : '24px'}">${esc(c.hero_headline)}</p>
+<p class="fv-lead" style="--fv-lead-base:${c.hero_headline.length <= 12 ? '40px' : c.hero_headline.length <= 20 ? '34px' : c.hero_headline.length <= 28 ? '28px' : '24px'}">${esc(c.hero_headline)}</p>
 <p class="fv-service-label">${esc(d.industry)}</p>
 <h1 class="fv-service-name">${esc(brandName)}${brandSub ? `<span class="fv-service-sub">${esc(brandSub)}</span>` : ""}</h1>
 ${badges.length > 0 ? `<div class="fv-awards"><div class="fv-award-row">${badges.slice(0, 2).map((b, i) => `<div class="fv-badge"><p class="fv-badge-cat">${esc(b)}</p><div class="fv-badge-img-wrap"><img class="fv-badge-img" src="${awardImg}" alt="No.1"><span class="fv-badge-note">※${i + 1}</span></div></div>`).join("")}</div><p class="fv-award-notes">※1※2 自社調べ</p></div>` : ""}
@@ -417,7 +430,7 @@ ${badges.length > 0 ? `<div class="fv-awards"><div class="fv-award-row">${badges
 <div class="fv-right">
 <div class="hero-person-wrap">
 <div class="hero-person">
-<img class="hero-person-img" src="/images/hero-person-${((Date.now() % 3) + 1)}.png" alt="ビジネスプロフェッショナル" loading="lazy">
+<img class="hero-person-img" src="/images/hero-person-${((Date.now() % 3) + 1)}.png" alt="ビジネスプロフェッショナル" loading="eager">
 </div>
 </div>
 </div>
@@ -468,13 +481,13 @@ ${columns.slice(0, 2).map((col, i) => `<li class="banner-item">
 <!-- ABOUT: 〇〇とは（課題 + 解決アプローチ） -->
 <section class="sec" id="about">
 <div class="inner">
-<div class="sec-hd"><p class="sec-bg-txt">About</p><p class="sec-eng">About</p><h2 class="sec-tit fi">${esc(d.service_name)}とは</h2></div>
+<div class="sec-hd"><p class="sec-bg-txt">About</p><p class="sec-eng">About</p><h2 class="sec-tit fi">${esc(brandName)}とは</h2></div>
 ${prob.length > 0 ? `<div class="about-pain fi">
 ${prob.map(item => `<span class="about-pain-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/></svg>${esc(item.title)}</span>`).join("")}
 </div>` : ""}
 <div class="about-grid fi">
 <div class="about-img">
-${hasImg && images[0] ? `<img data-img="about" src="${esc(images[0].url.replace(/w=\d+/, "w=800").replace(/h=\d+/, "h=600"))}" alt="${esc(d.service_name)}" loading="lazy">` : ""}
+${hasImg && images[0] ? `<img data-img="about" src="${esc(images[0].url.replace(/w=\d+/, "w=600").replace(/h=\d+/, "h=400"))}" alt="${esc(brandName)}" loading="lazy">` : ""}
 </div>
 <div class="about-text">
 <h3>${esc(c.solution_title || `${d.company_name}が解決します`)}</h3>
@@ -493,7 +506,7 @@ ${hasImg && images[0] ? `<img data-img="about" src="${esc(images[0].url.replace(
 <!-- FEATURES: できること（サービス + 強み統合） -->
 <section class="sec dot-bg" id="features" style="background:var(--bg2)">
 <div class="inner">
-<div class="sec-hd"><p class="sec-bg-txt">Features</p><p class="sec-eng">Features</p><h2 class="sec-tit fi">${esc(d.service_name)}でできること</h2></div>
+<div class="sec-hd"><p class="sec-bg-txt">Features</p><p class="sec-eng">Features</p><h2 class="sec-tit fi">${esc(brandName)}でできること</h2></div>
 <div class="feat-grid${svc.length < 3 ? ` items-${svc.length}` : ''}">
 ${svc.map((item, i) => {
   const img = images[i + 1];
@@ -523,7 +536,7 @@ ${reasons.length > 0 ? `<section class="sec" id="reasons">
 <div class="reason-list">
 ${reasons.map((item, i) => {
   const reasonImgEntry = images[i + 4];
-  const reasonImg = reasonImgEntry ? reasonImgEntry.url.replace(/w=\d+/, "w=600").replace(/h=\d+/, "h=400") : unsplashUrl((PHOTO_LIBRARY["business"] ?? [])[(i + 4) % 15] ?? "", 600, 400);
+  const reasonImg = reasonImgEntry ? reasonImgEntry.url.replace(/w=\d+/, "w=600").replace(/h=\d+/, "h=400") : unsplashUrl((PHOTO_LIBRARY["business"] ?? [])[(i + 4) % 15] ?? "", 600, 400, 72);
   return `<div class="reason-card fi">
 <img class="reason-img" data-img="reason${i + 1}" src="${esc(reasonImg)}" alt="${esc(item.title)}" loading="lazy">
 <div class="reason-body">
@@ -559,7 +572,7 @@ ${useCases.map((item, i) => {
   };
   const ucIcon = ucIcoMap[item.icon_keyword] || ucIcoMap["zap"];
   const ucImgEntry = images[i + 7];
-  const ucImg = ucImgEntry ? ucImgEntry.url.replace(/w=\d+/, "w=600").replace(/h=\d+/, "h=400") : unsplashUrl((PHOTO_LIBRARY["business"] ?? [])[(i + 7) % 15] ?? "", 600, 400);
+  const ucImg = ucImgEntry ? ucImgEntry.url.replace(/w=\d+/, "w=600").replace(/h=\d+/, "h=400") : unsplashUrl((PHOTO_LIBRARY["business"] ?? [])[(i + 7) % 15] ?? "", 600, 400, 72);
   return `<div class="uc-card fi">
 <img class="uc-card-img" data-img="usecase${i + 1}" src="${esc(ucImg)}" alt="${esc(item.title)}" loading="lazy">
 <div class="uc-card-body">
@@ -587,7 +600,7 @@ ${cas.length > 0 ? (() => {
 <div class="tm-grid${cas.length < 3 ? ` items-${cas.length}` : ''}">
 ${cas.map((item, i) => {
   const caseImgEntry = images[i + 13];
-  const caseImg = caseImgEntry ? caseImgEntry.url.replace(/w=\d+/, "w=600").replace(/h=\d+/, "h=400") : unsplashUrl((PHOTO_LIBRARY["business"] ?? [])[(i + 13) % 15] ?? "", 600, 400);
+  const caseImg = caseImgEntry ? caseImgEntry.url.replace(/w=\d+/, "w=600").replace(/h=\d+/, "h=400") : unsplashUrl((PHOTO_LIBRARY["business"] ?? [])[(i + 13) % 15] ?? "", 600, 400, 72);
   const companyName = logoCompanies[i % logoCompanies.length] ?? "企業";
   return `<div class="tm-card fi">
 <img class="tm-card-img" data-img="case${i + 1}" src="${esc(caseImg)}" alt="${esc(item.category)}" loading="lazy">
@@ -615,7 +628,7 @@ ${cas.length > 0 ? `<!-- MID-CTA: Cases後 -->
 <!-- FUNCTIONS: 主な機能 -->
 ${funcs.length > 0 ? `<section class="sec" id="functions">
 <div class="inner">
-<div class="sec-hd"><p class="sec-bg-txt">Functions</p><p class="sec-eng">Main Features</p><h2 class="sec-tit fi">${esc(d.service_name)}の主な機能</h2></div>
+<div class="sec-hd"><p class="sec-bg-txt">Functions</p><p class="sec-eng">Main Features</p><h2 class="sec-tit fi">${esc(brandName)}の主な機能</h2></div>
 <div class="func-rows">
 ${funcs.map((item, i) => {
   const funcImg = images[i + 10];
@@ -647,7 +660,7 @@ ${columns.length > 0 ? `<section class="sec">
 <div class="col-grid">
 ${columns.map((col, i) => {
   const colImgEntry = images[i + 16];
-  const colImg = colImgEntry ? colImgEntry.url.replace(/w=\d+/, "w=200").replace(/h=\d+/, "h=200") : unsplashUrl((PHOTO_LIBRARY["business"] ?? [])[(i + 11) % 15] ?? "", 200, 200);
+  const colImg = colImgEntry ? colImgEntry.url.replace(/w=\d+/, "w=200").replace(/h=\d+/, "h=200") : unsplashUrl((PHOTO_LIBRARY["business"] ?? [])[(i + 11) % 15] ?? "", 200, 200, 60);
   return `<div class="col-card fi">
 <img class="col-thumb" src="${esc(colImg)}" alt="${esc(col.title)}" loading="lazy">
 <div class="col-body">
@@ -771,7 +784,7 @@ ${faq.map(item => `<dl class="faq-item"><dt class="faq-q">${esc(item.q)}</dt><dd
 
 <!-- SCROLL ANIMATION + FAQ TOGGLE -->
 <script>
-document.addEventListener('DOMContentLoaded',function(){var o=new IntersectionObserver(function(e){e.forEach(function(en){if(en.isIntersecting){en.target.classList.add('vis');o.unobserve(en.target)}})},{threshold:.12,rootMargin:'0px 0px -40px 0px'});document.querySelectorAll('.fi').forEach(function(el){o.observe(el)});document.querySelectorAll('.faq-q').forEach(function(dt){dt.addEventListener('click',function(){var dl=this.parentElement;if(dl.classList.contains('open')){dl.classList.remove('open')}else{dl.classList.add('open')}})});document.querySelectorAll('img[src*="unsplash"]').forEach(function(img){img.onerror=function(){var fallbacks=['1497366216548-37526070297c','1553877522-43269d4ea984','1600880292203-757bb62b4baf','1521737711867-e3b97375f902','1542744173-8e7e91415657'];var idx=Math.floor(Math.random()*fallbacks.length);var w=this.width||800;var h=this.height||600;this.onerror=function(){this.onerror=null;this.style.display='none';var p=this.parentElement;if(p){p.style.background='linear-gradient(135deg,#e2e8f0,#cbd5e1)';p.style.minHeight='200px'}};this.src='https://images.unsplash.com/photo-'+fallbacks[idx]+'?auto=format&fit=crop&w='+w+'&h='+h+'&q=80'}})});
+document.addEventListener('DOMContentLoaded',function(){var o=new IntersectionObserver(function(e){e.forEach(function(en){if(en.isIntersecting){en.target.classList.add('vis');o.unobserve(en.target)}})},{threshold:.12,rootMargin:'0px 0px -40px 0px'});document.querySelectorAll('.fi').forEach(function(el){o.observe(el)});document.querySelectorAll('.faq-q').forEach(function(dt){dt.addEventListener('click',function(){var dl=this.parentElement;if(dl.classList.contains('open')){dl.classList.remove('open')}else{dl.classList.add('open')}})});document.querySelectorAll('img[src*="unsplash"]').forEach(function(img){img.onerror=function(){var fallbacks=['1497366216548-37526070297c','1553877522-43269d4ea984','1600880292203-757bb62b4baf','1521737711867-e3b97375f902','1542744173-8e7e91415657'];var idx=Math.floor(Math.random()*fallbacks.length);var w=this.width||800;var h=this.height||600;this.onerror=function(){this.onerror=null;this.style.display='none';var p=this.parentElement;if(p){p.style.background='linear-gradient(135deg,#e2e8f0,#cbd5e1)';p.style.minHeight='200px'}};this.src='https://images.unsplash.com/photo-'+fallbacks[idx]+'?auto=format&fit=crop&w='+w+'&h='+h+'&q=72'}})});
 </script>
 </body></html>`;
 }

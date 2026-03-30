@@ -60,14 +60,14 @@ export const SEC_HEADER = `
 .sec-eng{font-family:'Inter',sans-serif;font-size:12px;font-weight:700;letter-spacing:.3em;text-transform:uppercase;color:var(--c);margin-bottom:8px}
 .sec-tit{font-size:clamp(22px,3.5vw,32px);font-weight:900;line-height:1.35;position:relative;z-index:1}
 .sec-sub{font-size:15px;color:var(--t2);margin-top:12px;max-width:560px;margin-left:auto;margin-right:auto}
-@media(max-width:750px){.sec{padding:64px 0}.sec-bg-txt{font-size:48px;margin-bottom:-16px}}
+@media(max-width:767px){.sec{padding:64px 0}.sec-bg-txt{font-size:48px;margin-bottom:-16px}}
 `;
 
 /** ウェーブディバイダー */
 export const WAVE_DIVIDER = `
 .dvd{position:relative;height:72px;margin-top:-1px;z-index:3;overflow:hidden}
 .dvd svg{width:100%;height:100%;display:block}
-@media(max-width:750px){.dvd{height:48px}}
+@media(max-width:767px){.dvd{height:48px}}
 `;
 
 // ============================================================
@@ -113,7 +113,7 @@ export const TESTIMONIAL_CARD = `
 /* Center when fewer than 3 items */
 .tm-grid.items-1,.tm-grid.items-2{display:flex;flex-wrap:wrap;justify-content:center}
 .tm-grid.items-1 .tm-card,.tm-grid.items-2 .tm-card{width:calc((100% - 48px) / 3);min-width:280px}
-@media(max-width:750px){.tm-grid{grid-template-columns:1fr}.tm-grid.items-1 .tm-card,.tm-grid.items-2 .tm-card{width:100%;min-width:auto}.tm-card-img{height:160px}}
+@media(max-width:767px){.tm-grid{grid-template-columns:1fr}.tm-grid.items-1 .tm-card,.tm-grid.items-2 .tm-card{width:100%;min-width:auto}.tm-card-img{height:160px}}
 `;
 
 /** 比較テーブル */
@@ -128,7 +128,7 @@ export const COMPARISON = `
 .cmp-row strong{color:var(--t1)}
 .cmp-muted{background:var(--bg2);border-color:var(--bg2)}
 .cmp-muted .cmp-title{color:var(--t3)}
-@media(max-width:750px){.cmp-grid{grid-template-columns:1fr}}
+@media(max-width:767px){.cmp-grid{grid-template-columns:1fr}}
 `;
 
 /** フローステップ */
@@ -161,14 +161,14 @@ export const CARD_GRID = `
 .card-ico{color:var(--c);margin-bottom:16px}
 .card h3{font-size:16px;font-weight:800;margin-bottom:8px}
 .card p{font-size:14px;color:var(--t2);line-height:1.8}
-@media(max-width:750px){.card-grid{grid-template-columns:1fr}}
+@media(max-width:767px){.card-grid{grid-template-columns:1fr}}
 `;
 
 /** スタッツグリッド（4列→2列レスポンシブ） */
 export const STATS_GRID = `
 .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;margin-top:48px}
 .stats-grid .card{text-align:center}
-@media(max-width:750px){.stats-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:767px){.stats-grid{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:480px){.stats-grid{grid-template-columns:1fr 1fr;gap:12px}}
 `;
 
@@ -183,7 +183,7 @@ export const STRENGTH_CARD = `
 .str-ico svg{width:22px;height:22px;color:#fff}
 .str h4{font-size:15px;font-weight:800;margin-bottom:6px;color:var(--t1)}
 .str p{font-size:14px;color:var(--t2);line-height:1.7;margin:0}
-@media(max-width:750px){.str-grid{grid-template-columns:1fr;gap:16px}.str{padding:24px 20px}}
+@media(max-width:767px){.str-grid{grid-template-columns:1fr;gap:16px}.str{padding:24px 20px}}
 `;
 
 /** カードグリッド・プレミアム版（グラデヘッダー+ホバーグロー+アイコンリング） */
@@ -200,7 +200,7 @@ export const SERVICE_CARD = `
 .svc-body{padding:20px 24px 28px}
 .svc-body p{font-size:14px;color:var(--t2);line-height:1.85;margin:0}
 .svc-tag{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.05em;color:var(--c);background:rgba(var(--c-rgb),.08);padding:3px 10px;border-radius:4px;margin-top:14px;font-family:'Inter',sans-serif}
-@media(max-width:750px){.svc-grid{grid-template-columns:1fr;gap:20px}}
+@media(max-width:767px){.svc-grid{grid-template-columns:1fr;gap:20px}}
 `;
 
 // ============================================================
@@ -378,7 +378,7 @@ section.sec:nth-of-type(odd) { background:var(--bg); }
 /* ドット背景無効化 */
 .dot-bg { background-image:none; }
 /* モバイル調整 */
-@media(max-width:768px){
+@media(max-width:767px){
   .sec-tit { font-size:22px; }
   .hd-nav a.btn-accent { font-size:12px; padding:6px 16px; }
   .str-ico { width:48px; height:48px; }
