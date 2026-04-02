@@ -482,9 +482,10 @@ export function useSession(sessionId: string): UseSessionReturn {
     if (!isSessionValid) return;
 
     let isExtracting = false;
+    let cancelled = false;
 
     const interval = setInterval(async () => {
-      if (isExtracting) return;
+      if (isExtracting || cancelled) return;
 
       const chunks = transcriptChunksRef.current;
       const company = targetCompanyRef.current;
@@ -511,17 +512,20 @@ export function useSession(sessionId: string): UseSessionReturn {
           body: JSON.stringify(body),
         });
 
+        if (cancelled) return;
+
         // ポーリングで結果を待つ（最大30秒、次のインターバルまでに完了させる）
         await new Promise(r => setTimeout(r, 1000));
         for (let i = 0; i < 9; i++) {
+          if (cancelled) return;
           try {
             const pollResult = await api.pollJobStatus(sessionId, 'extract');
             if (pollResult.status === 'completed') {
               const resultData = pollResult.data as Record<string, unknown> | undefined;
               const extracted = resultData?.extracted_data;
-              if (extracted && typeof extracted === 'object' && !Array.isArray(extracted)) {
+              if (!cancelled && extracted && typeof extracted === 'object' && !Array.isArray(extracted)) {
                 setExtractedData(extracted as ExtractedDataMap);
-              } else {
+              } else if (!cancelled) {
                 console.warn('[useSession] preview: unexpected data format:', resultData);
               }
               break;
@@ -542,7 +546,10 @@ export function useSession(sessionId: string): UseSessionReturn {
       }
     }, PREVIEW_EXTRACT_INTERVAL_MS);
 
-    return () => clearInterval(interval);
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
   }, [sessionId, status, isSessionValid]);
 
   // 旧ジョブポーリングは削除（各生成が自前のポーリングを管理する）

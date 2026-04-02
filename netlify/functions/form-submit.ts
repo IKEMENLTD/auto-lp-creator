@@ -10,6 +10,38 @@
 import type { Config } from "@netlify/functions";
 
 // ============================================================
+// レート制限（インメモリ: コンテナ単位）
+// ============================================================
+
+const RATE_WINDOW_MS = 60_000;
+const RATE_MAX = 5; // 1 IP あたり 5 回/分
+
+const rateBuckets = new Map<string, number[]>();
+
+function isRateLimited(ip: string): boolean {
+  const now = Date.now();
+  const timestamps = rateBuckets.get(ip) ?? [];
+  const recent = timestamps.filter(t => t > now - RATE_WINDOW_MS);
+  if (recent.length >= RATE_MAX) {
+    rateBuckets.set(ip, recent);
+    return true;
+  }
+  recent.push(now);
+  rateBuckets.set(ip, recent);
+
+  // メモリ肥大化防止: 古いバケットを定期的にクリーンアップ
+  if (rateBuckets.size > 200) {
+    for (const [key, ts] of rateBuckets) {
+      if (ts.length === 0 || ts[ts.length - 1]! < now - RATE_WINDOW_MS * 5) {
+        rateBuckets.delete(key);
+      }
+    }
+  }
+
+  return false;
+}
+
+// ============================================================
 // CORSヘッダー
 // ============================================================
 
@@ -34,6 +66,17 @@ export default async function handler(
     return new Response(
       JSON.stringify({ error: "Method Not Allowed. Use POST." }),
       { status: 405, headers: { "Content-Type": "application/json", ...corsHeaders } },
+    );
+  }
+
+  // レート制限チェック
+  const clientIp = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim()
+    ?? request.headers.get("x-nf-client-connection-ip")
+    ?? "unknown";
+  if (isRateLimited(clientIp)) {
+    return new Response(
+      JSON.stringify({ error: "送信回数の上限に達しました。しばらく経ってからお試しください。" }),
+      { status: 429, headers: { "Content-Type": "application/json", "Retry-After": "60", ...corsHeaders } },
     );
   }
 

@@ -430,10 +430,15 @@ export default async function handler(request: Request): Promise<Response> {
 
     if (!sessionId || !type || !VALID_TYPES.has(type)) {
       console.error("[generate-bg] invalid params:", { sessionId, type });
-      // sessionId と type がある場合はエラーステータスを書いてフロントのポーリングを終了させる
       if (sessionId && type) {
         await writeStatus(sessionId, type, "failed", { error: "無効なパラメータです" });
       }
+      return new Response(null, { status: 202 });
+    }
+
+    if (transcript.trim().length < 10) {
+      console.warn("[generate-bg] transcript too short:", transcript.length);
+      await writeStatus(sessionId, type, "failed", { error: "トランスクリプトが短すぎます。録音または貼り付けを行ってください。" });
       return new Response(null, { status: 202 });
     }
 
@@ -446,6 +451,14 @@ export default async function handler(request: Request): Promise<Response> {
     const data = flatten(rawData);
     const processedTranscript = truncateTranscript(transcript);
     const start = Date.now();
+
+    // プレースホルダー使用チェック
+    const placeholderWarnings: string[] = [];
+    if (data.company_name === "企業") placeholderWarnings.push("company_name");
+    if (data.service_name === "サービス") placeholderWarnings.push("service_name");
+    if (placeholderWarnings.length > 0) {
+      console.warn(`[generate-bg] Placeholder defaults used for: ${placeholderWarnings.join(", ")}`);
+    }
 
     // 古いステータスを削除してからprocessingを書く
     await clearOldStatus(sessionId, type);
@@ -523,11 +536,14 @@ export default async function handler(request: Request): Promise<Response> {
     await store.set(blobKey, html, { metadata: { type, sessionId, createdAt: new Date().toISOString() } });
 
     // ステータス: completed（失敗時は追加リトライ）
-    const ok = await writeStatus(sessionId, type, "completed");
+    const completedData = placeholderWarnings.length > 0
+      ? { warning: `以下のフィールドが未入力のためデフォルト値を使用: ${placeholderWarnings.join(", ")}` }
+      : undefined;
+    const ok = await writeStatus(sessionId, type, "completed", completedData);
     if (!ok) {
       console.warn("[generate-bg] completed status write failed, retrying after 2s...");
       await new Promise(r => setTimeout(r, 2000));
-      await writeStatus(sessionId, type, "completed");
+      await writeStatus(sessionId, type, "completed", completedData);
     }
 
   } catch (error) {

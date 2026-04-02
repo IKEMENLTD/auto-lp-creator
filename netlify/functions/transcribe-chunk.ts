@@ -38,6 +38,9 @@ const RATE_WINDOW_MS = 60_000;
 const RATE_MAX = 20;
 const rateBuckets = new Map<string, number[]>();
 
+/** バケット数の上限。超過時は古い順に強制削除 */
+const RATE_MAX_BUCKETS = 500;
+
 function isRateLimited(sessionId: string): boolean {
   const now = Date.now();
   let timestamps = rateBuckets.get(sessionId);
@@ -51,10 +54,19 @@ function isRateLimited(sessionId: string): boolean {
   }
   if (timestamps.length >= RATE_MAX) return true;
   timestamps.push(now);
-  // メモリリーク防止: 古いセッションを定期的に掃除
+  // メモリリーク防止: 定期的に掃除 + ハードキャップ
   if (rateBuckets.size > 100) {
     for (const [key, ts] of rateBuckets) {
       if (ts.length === 0 || ts[ts.length - 1]! < now - RATE_WINDOW_MS * 5) {
+        rateBuckets.delete(key);
+      }
+    }
+    // ハードキャップ: それでも超過していたら古い順に削除
+    if (rateBuckets.size > RATE_MAX_BUCKETS) {
+      const entries = [...rateBuckets.entries()]
+        .sort((a, b) => (a[1][a[1].length - 1] ?? 0) - (b[1][b[1].length - 1] ?? 0));
+      const toDelete = entries.slice(0, rateBuckets.size - RATE_MAX_BUCKETS);
+      for (const [key] of toDelete) {
         rateBuckets.delete(key);
       }
     }

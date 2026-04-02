@@ -256,11 +256,11 @@ export function useAudioCapture(sessionId: string): UseAudioCaptureReturn {
     displayCycleRef.current = null;
 
     if (micStreamRef.current) {
-      micStreamRef.current.getTracks().forEach((t) => t.stop());
+      micStreamRef.current.getTracks().forEach((t) => { t.onended = null; t.stop(); });
       micStreamRef.current = null;
     }
     if (displayStreamRef.current) {
-      displayStreamRef.current.getTracks().forEach((t) => t.stop());
+      displayStreamRef.current.getTracks().forEach((t) => { t.onended = null; t.stop(); });
       displayStreamRef.current = null;
     }
   }
@@ -496,11 +496,11 @@ export function useAudioCapture(sessionId: string): UseAudioCaptureReturn {
     await Promise.allSettled([micStop, displayStop]);
 
     if (micStreamRef.current) {
-      micStreamRef.current.getTracks().forEach((t) => t.stop());
+      micStreamRef.current.getTracks().forEach((t) => { t.onended = null; t.stop(); });
       micStreamRef.current = null;
     }
     if (displayStreamRef.current) {
-      displayStreamRef.current.getTracks().forEach((t) => t.stop());
+      displayStreamRef.current.getTracks().forEach((t) => { t.onended = null; t.stop(); });
       displayStreamRef.current = null;
     }
     setIsRecording(false);

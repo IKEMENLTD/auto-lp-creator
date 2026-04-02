@@ -52,3 +52,4 @@
   for = "/view/*"
   [headers.values]
     Cache-Control = "public, max-age=3600"
+    Vary = "Authorization"

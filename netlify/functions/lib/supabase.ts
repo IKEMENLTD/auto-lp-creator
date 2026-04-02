@@ -431,7 +431,10 @@ export async function getLatestExtraction(
 }
 
 /**
- * 抽出データを更新する (UPSERT + バージョン指定)
+ * 抽出データを更新する (楽観的ロック付き)
+ *
+ * version を WHERE 条件に含めることで、読み取り〜書き込み間に
+ * 他リクエストが同じ行を更新していた場合は 0 行 UPDATE となり検知できる。
  */
 export async function updateExtraction(
   sessionId: string,
@@ -440,26 +443,50 @@ export async function updateExtraction(
 ): Promise<void> {
   const client = getSupabaseClient();
 
-  // 既存データを確認
-  const existing = await getLatestExtraction(sessionId);
-
-  if (existing) {
-    // 既存データを更新
+  if (version > 1) {
+    // 楽観的ロック: 前バージョンが一致する場合のみ更新
     const result = await client
       .from('extracted_data')
       .update({
         data_json: data,
         version,
       })
-      .eq('id', existing.id);
+      .eq('session_id', sessionId)
+      .eq('version', version - 1)
+      .select('id')
+      .maybeSingle();
 
     if (result.error) {
       throw new Error(
         `Supabase updateExtraction エラー: ${result.error.message}`
       );
     }
+
+    // 0 行更新 = 他リクエストが先に更新済み → リトライ可能なエラー
+    if (!result.data) {
+      // バージョン不一致時: 最新データを取得してマージ再試行
+      const latest = await getLatestExtraction(sessionId);
+      if (latest) {
+        const latestData = (latest.data_json ?? {}) as Record<string, unknown>;
+        const incoming = data as Record<string, unknown>;
+        const merged = { ...latestData, ...incoming };
+        const retryResult = await client
+          .from('extracted_data')
+          .update({
+            data_json: merged as Json,
+            version: latest.version + 1,
+          })
+          .eq('id', latest.id);
+
+        if (retryResult.error) {
+          throw new Error(
+            `Supabase updateExtraction リトライエラー: ${retryResult.error.message}`
+          );
+        }
+      }
+    }
   } else {
-    // 新規作成
+    // 新規作成 (version === 1)
     const result = await client
       .from('extracted_data')
       .insert({
